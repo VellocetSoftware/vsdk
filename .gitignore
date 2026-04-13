@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.user
+*.suo
+*.DotSettings.user
+
+# .NET / Avalonia build outputs
+/VSDK/Build/
+/VSDK/VSDK/bin/
+/VSDK/VSDK/obj/

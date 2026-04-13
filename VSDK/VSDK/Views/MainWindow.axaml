@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="VSDK.Views.MainWindow"
+        Width="920"
+        Height="700"
+        MinWidth="820"
+        MinHeight="620"
+        Title="VSDK Setup Guide"
+        Icon="/Assets/vellocet-logo.ico">
+    <Grid RowDefinitions="Auto,Auto,*,*,*,Auto" Margin="16" RowSpacing="12">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Width="72" Height="72" CornerRadius="8" Padding="6">
+                <Image Source="/Assets/vellocet-logo.png" Stretch="Uniform" />
+            </Border>
+
+            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="VSDK Setup Guide" FontWeight="Bold" FontSize="20" />
+                <TextBlock x:Name="VersionTextBlock" />
+                <TextBlock x:Name="InstallRootTextBlock" TextWrapping="Wrap" />
+                <TextBlock x:Name="LastCheckedTextBlock" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Padding="10,8" CornerRadius="4">
+            <TextBlock x:Name="SummaryTextBlock" TextWrapping="Wrap" />
+        </Border>
+
+        <GroupBox Grid.Row="2" Header="Distribution Checklist">
+            <TextBox x:Name="ChecklistTextBox"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     FontFamily="Consolas, Menlo, monospace"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        </GroupBox>
+
+        <GroupBox Grid.Row="3" Header="Guided Setup">
+            <TextBox x:Name="GuideTextBox"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        </GroupBox>
+
+        <GroupBox Grid.Row="4" Header="Diagnostics">
+            <TextBox x:Name="DiagnosticsTextBox"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     FontFamily="Consolas, Menlo, monospace"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        </GroupBox>
+
+        <TextBlock Grid.Row="5"
+                   Text="Status auto-refreshes every few seconds while this window is open."
+                   TextWrapping="Wrap" />
+    </Grid>
+</Window>
