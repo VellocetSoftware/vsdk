@@ -59,23 +59,23 @@ Published output path:
 
 `VSDK/bin/Release/net10.0/<RID>/publish/`
 
-## Combined Steam Bundle (Windows + macOS ARM64 + macOS Intel)
+## Launcher Export Script (Windows + macOS ARM64 + macOS Intel)
 
 From the solution root (`VSDK/`):
 
 ```bash
 chmod +x scripts/build-steam-tool.sh
-./scripts/build-steam-tool.sh --sdk-source /Users/evanjustino/Documents/GitHub/warlock/Build
+./scripts/build-steam-tool.sh
 ```
 
 Default output:
 
-`Build/SteamTool`
+`Build/Launcher`
 
-Output layout:
+Script output layout (launcher-only):
 
 ```text
-Build/SteamTool/
+Build/Launcher/
   Launcher/
     win-x64/
       VSDK.exe
@@ -86,17 +86,19 @@ Build/SteamTool/
     osx-x64/
       VSDK
       ...
-  SDKPackage/
-    *.unitypackage
-  SDKContent/
-    sdk-content-manifest.json
-    Assets/...
-  Docs/ (if present in sdk source)
-  README.txt or README.md (if present in sdk source)
-  STEAM_NOTES.txt
+  LAUNCHER_NOTES.txt
 ```
 
-Steam launch paths:
+Then manually copy `SDKPackage/` and `SDKContent/` beside `Launcher/` so final upload structure is:
+
+```text
+Build/Launcher/
+  Launcher/
+  SDKPackage/
+  SDKContent/
+```
+
+Steam launch paths remain:
 
 - Windows launch option target: `Launcher/win-x64/VSDK.exe`
 - macOS Apple Silicon launch option target: `Launcher/osx-arm64/VSDK`
