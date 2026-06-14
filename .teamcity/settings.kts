@@ -1,34 +1,95 @@
+@file:Suppress("ClassName")
+
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-
-/*
-The settings script is an entry point for defining a TeamCity
-project hierarchy. The script should contain a single call to the
-project() function with a Project instance or an init function as
-an argument.
-
-VcsRoots, BuildTypes, Templates, and subprojects can be
-registered inside the project using the vcsRoot(), buildType(),
-template(), and subProject() methods respectively.
-
-To debug settings scripts in command-line, run the
-
-    mvnDebug org.jetbrains.teamcity:teamcity-configs-maven-plugin:generate
-
-command and attach your debugger to the port 8000.
-
-To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
--> Tool Windows -> Maven Projects), find the generate task node
-(Plugins -> teamcity-configs -> teamcity-configs:generate), the
-'Debug' option is available in the context menu for the task.
-*/
+import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
+import java.io.File
 
 version = "2026.1"
 
+private object Ci {
+    private fun scriptResource(name: String): String {
+        val scriptFile = File(DslContext.baseDir, "scripts/$name").takeIf { it.isFile }
+            ?: error("Could not find TeamCity script resource: scripts/$name")
+
+        return scriptFile.readText().trimEnd()
+    }
+
+    fun vsdkVcs(buildType: BuildType) {
+        buildType.vcs {
+            checkoutMode = CheckoutMode.AUTO
+            root(DslContext.settingsRoot)
+        }
+    }
+
+    fun launcherTrigger(buildType: BuildType) {
+        buildType.triggers {
+            vcs {
+                branchFilter = "+:<default>"
+                triggerRules = """
+                    -:.teamcity/**
+                    -:**/*.md
+                    +:VSDK/**
+                """.trimIndent()
+                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_DEFAULT
+            }
+        }
+    }
+
+    fun settingsTrigger(buildType: BuildType) {
+        buildType.triggers {
+            vcs {
+                branchFilter = "+:<default>"
+                triggerRules = """
+                    +:.teamcity/**
+                    +:VSDK/scripts/build-steam-tool.sh
+                """.trimIndent()
+                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_DEFAULT
+            }
+        }
+    }
+
+    fun linuxOrMacRequirements(buildType: BuildType) {
+        buildType.requirements {
+            matches("teamcity.agent.jvm.os.family", "Linux|Mac OS")
+        }
+    }
+
+    fun teamCityDslValidateScript(): String = scriptResource("dsl-validate.sh")
+}
+
 project {
-    buildTypesOrder = arrayListOf(BuildLauncher)
+    buildTypesOrder = arrayListOf(
+        Workflows_DslValidate,
+        BuildLauncher
+    )
+
+    buildType(Workflows_DslValidate)
     buildType(BuildLauncher)
 }
+
+object Workflows_DslValidate : BuildType({
+    name = "TeamCity DSL Validate"
+    description = "Generates TeamCity Kotlin DSL and checks the generated settings contract."
+
+    Ci.settingsTrigger(this)
+    Ci.vsdkVcs(this)
+
+    steps {
+        script {
+            name = "Generate TeamCity Configs"
+            id = "Generate_TeamCity_Configs"
+            scriptContent = Ci.teamCityDslValidateScript()
+        }
+    }
+
+    Ci.linuxOrMacRequirements(this)
+
+    failureConditions {
+        executionTimeoutMin = 30
+    }
+})
 
 object BuildLauncher : BuildType({
     id("BuildLauncher")
@@ -39,9 +100,8 @@ object BuildLauncher : BuildType({
     maxRunningBuilds = 1
     publishArtifacts = PublishMode.SUCCESSFUL
 
-    vcs {
-        root(DslContext.settingsRoot)
-    }
+    Ci.launcherTrigger(this)
+    Ci.vsdkVcs(this)
 
     steps {
         script {
@@ -56,9 +116,15 @@ object BuildLauncher : BuildType({
         }
     }
 
-    requirements {
-        matches("teamcity.agent.jvm.os.family", "Linux|Mac OS")
+    outputParams {
+        param("source.revision", "%build.vcs.number%")
+        param("source.buildId", "%teamcity.build.id%")
+        param("source.buildNumber", "%build.number%")
+        param("source.buildTypeId", "%system.teamcity.buildType.id%")
+        exposeAllParameters = false
     }
+
+    Ci.linuxOrMacRequirements(this)
 
     failureConditions {
         executionTimeoutMin = 60
