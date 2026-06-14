@@ -61,6 +61,7 @@ dsl_config="$(find target/generated-configs -path "*buildTypes/*_Workflows_DslVa
 grep -q '<name>TeamCity DSL Validate</name>' "$dsl_config" || fail "DSL Validate config has the wrong display name."
 grep -q 'id="Generate_TeamCity_Configs"' "$dsl_config" || fail "DSL Validate must generate TeamCity configs."
 grep -q 'name="checkoutMode" value="AUTO"' "$dsl_config" || fail "DSL Validate must prefer agent-side checkout via TeamCity AUTO checkout mode."
+grep -q 'name="teamcity.agent.jvm.os.family" value="Linux"' "$dsl_config" || fail "DSL Validate must run on Linux automation agents."
 
 if grep -R --exclude="*Workflows_DslValidate.xml" 'name="cleanBuild" value="true"' target/generated-configs >"$TEMP_DIR/clean-build.txt"; then
   cat "$TEMP_DIR/clean-build.txt" >&2

@@ -37,7 +37,7 @@ private object Ci {
         }
     }
 
-    fun settingsTrigger(buildType: BuildType) {
+    fun settingsVcsTrigger(buildType: BuildType) {
         buildType.triggers {
             vcs {
                 branchFilter = "+:<default>"
@@ -47,6 +47,12 @@ private object Ci {
                 """.trimIndent()
                 quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_DEFAULT
             }
+        }
+    }
+
+    fun linuxAutomationRequirements(buildType: BuildType) {
+        buildType.requirements {
+            matches("teamcity.agent.jvm.os.family", "Linux")
         }
     }
 
@@ -71,9 +77,9 @@ project {
 
 object Workflows_DslValidate : BuildType({
     name = "TeamCity DSL Validate"
-    description = "Generates TeamCity Kotlin DSL and checks the generated settings contract."
+    description = "Generates TeamCity Kotlin DSL to catch settings errors before TeamCity Cloud applies them."
 
-    Ci.settingsTrigger(this)
+    Ci.settingsVcsTrigger(this)
     Ci.vsdkVcs(this)
 
     steps {
@@ -84,7 +90,7 @@ object Workflows_DslValidate : BuildType({
         }
     }
 
-    Ci.linuxOrMacRequirements(this)
+    Ci.linuxAutomationRequirements(this)
 
     failureConditions {
         executionTimeoutMin = 30
