@@ -7,9 +7,7 @@ internal sealed class LauncherPaths
     private static readonly string[] DistributionFolderMarkers =
     {
         "SDKContent",
-        "VellocetSDKContent",
         "SDKPackage",
-        "UnityPackage",
         "Docs",
         "Samples"
     };
@@ -21,14 +19,12 @@ internal sealed class LauncherPaths
 
         PackageDirectoryCandidates =
         [
-            Path.Combine(InstallRoot, "SDKPackage"),
-            Path.Combine(InstallRoot, "UnityPackage")
+            Path.Combine(InstallRoot, "SDKPackage")
         ];
 
         ContentDirectoryCandidates =
         [
-            Path.Combine(InstallRoot, "SDKContent"),
-            Path.Combine(InstallRoot, "VellocetSDKContent")
+            Path.Combine(InstallRoot, "SDKContent")
         ];
 
         DocumentationFileCandidates =

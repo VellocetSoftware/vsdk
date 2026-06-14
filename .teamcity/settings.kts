@@ -1,4 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 /*
 The settings script is an entry point for defining a TeamCity
@@ -25,4 +26,41 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 version = "2026.1"
 
 project {
+    buildTypesOrder = arrayListOf(BuildLauncher)
+    buildType(BuildLauncher)
 }
+
+object BuildLauncher : BuildType({
+    id("BuildLauncher")
+    name = "Build Launcher"
+    description = "Builds the VSDK launcher artifact consumed by Grimwar SDK packaging."
+
+    artifactRules = "VSDK/Build/Launcher/** => vsdk-launcher.zip"
+    maxRunningBuilds = 1
+    publishArtifacts = PublishMode.SUCCESSFUL
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        script {
+            name = "Build Steam Tool Launcher"
+            id = "Build_Steam_Tool_Launcher"
+            scriptContent = """
+                #!/usr/bin/env bash
+                set -euo pipefail
+
+                bash VSDK/scripts/build-steam-tool.sh
+            """.trimIndent()
+        }
+    }
+
+    requirements {
+        matches("teamcity.agent.jvm.os.family", "Linux|Mac OS")
+    }
+
+    failureConditions {
+        executionTimeoutMin = 60
+    }
+})

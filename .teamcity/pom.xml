@@ -5,6 +5,7 @@
   <groupId>VSDK</groupId>
   <artifactId>VSDK_dsl</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <parent>
     <groupId>org.jetbrains.teamcity</groupId>
@@ -40,29 +41,6 @@
     <sourceDirectory>${basedir}</sourceDirectory>
     <plugins>
       <plugin>
-        <artifactId>kotlin-maven-plugin</artifactId>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <version>${kotlin.version}</version>
-
-        <configuration/>
-        <executions>
-          <execution>
-            <id>compile</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>test-compile</id>
-            <phase>process-test-sources</phase>
-            <goals>
-              <goal>test-compile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.jetbrains.teamcity</groupId>
         <artifactId>teamcity-configs-maven-plugin</artifactId>
         <version>${teamcity.dsl.version}</version>
@@ -70,6 +48,15 @@
           <format>kotlin</format>
           <dstDir>target/generated-configs</dstDir>
         </configuration>
+        <executions>
+          <execution>
+            <id>generate-teamcity-configs</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -1,19 +1,19 @@
 # VSDK Setup Guide
 
-Minimal launcher intended for a Steam Tool app that distributes the Unity SDK.
+Minimal launcher for the Steam Tool app that distributes the Vellocet Unity SDK.
 
 ## What it does
 
-- No buttons or branching UI; it is a read-only setup guide
-- Auto-detects SDK distribution root (supports both direct layout and nested `Build/`)
-- Verifies required artifacts for setup:
-    - SDK package (`SDKPackage/*.unitypackage` or `UnityPackage/*.unitypackage`)
-    - SDK content (`SDKContent` or `VellocetSDKContent`) with `sdk-content-manifest.json`
-- Shows a single guided setup flow for Unity:
-    - import package
-    - link SDK content (`Tools > Vellocet > SDK > Link SDK Content`)
-    - open SDK editor (`Tools > Vellocet > SDK > Editor`)
-- Auto-refreshes status while open
+- Detects the Steam tool distribution root from the launcher location.
+- Verifies the final distribution layout:
+  - `Launcher/`
+  - `SDKPackage/package.json`
+  - `SDKContent/sdk-content-manifest.json`
+- Shows the Unity setup flow:
+  - add `SDKPackage/package.json` through Package Manager
+  - link `SDKContent`
+  - open the SDK editor
+- Auto-refreshes status while open.
 
 ## Build
 
@@ -29,37 +29,7 @@ dotnet build VSDK.sln -c Release
 dotnet run --project VSDK/VSDK.csproj
 ```
 
-## Publish
-
-Windows x64:
-
-```bash
-dotnet publish VSDK/VSDK.csproj -c Release -r win-x64 --self-contained false
-```
-
-macOS Apple Silicon:
-
-```bash
-dotnet publish VSDK/VSDK.csproj -c Release -r osx-arm64 --self-contained false
-```
-
-macOS Intel:
-
-```bash
-dotnet publish VSDK/VSDK.csproj -c Release -r osx-x64 --self-contained false
-```
-
-Self-contained example (larger output, no runtime prerequisite):
-
-```bash
-dotnet publish VSDK/VSDK.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
-```
-
-Published output path:
-
-`VSDK/bin/Release/net10.0/<RID>/publish/`
-
-## Launcher Export Script (Windows + macOS ARM64 + macOS Intel)
+## Publish launcher artifact
 
 From the solution root (`VSDK/`):
 
@@ -70,36 +40,29 @@ chmod +x scripts/build-steam-tool.sh
 
 Default output:
 
-`Build/Launcher`
-
-Script output layout (launcher-only):
-
 ```text
 Build/Launcher/
   Launcher/
     win-x64/
       VSDK.exe
-      ...
     osx-arm64/
       VSDK
-      ...
     osx-x64/
       VSDK
-      ...
   LAUNCHER_NOTES.txt
+  vsdk-build-metadata.json
 ```
 
-Then manually copy `SDKPackage/` and `SDKContent/` beside `Launcher/` so final upload structure is:
+Grimwar TeamCity consumes this launcher artifact and composes the final Steam tool payload:
 
 ```text
-Build/Launcher/
-  Launcher/
-  SDKPackage/
-  SDKContent/
+Launcher/
+SDKPackage/
+SDKContent/
 ```
 
-Steam launch paths remain:
+Steam launch paths:
 
-- Windows launch option target: `Launcher/win-x64/VSDK.exe`
-- macOS Apple Silicon launch option target: `Launcher/osx-arm64/VSDK`
-- macOS Intel launch option target: `Launcher/osx-x64/VSDK`
+- Windows: `Launcher/win-x64/VSDK.exe`
+- macOS Apple Silicon: `Launcher/osx-arm64/VSDK`
+- macOS Intel: `Launcher/osx-x64/VSDK`

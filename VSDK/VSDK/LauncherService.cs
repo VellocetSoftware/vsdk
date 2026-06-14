@@ -1,9 +1,11 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace VSDK;
 
 internal sealed class LauncherService(LauncherPaths paths)
 {
+    private const string ExpectedPackageName = "com.vellocet.sdk";
+
     public LauncherPaths Paths { get; } = paths;
 
     public LauncherStatusSnapshot GetStatusSnapshot()
@@ -12,31 +14,36 @@ internal sealed class LauncherService(LauncherPaths paths)
         var contentDirectory = LauncherPaths.ResolveFirstExistingDirectory(Paths.ContentDirectoryCandidates);
         var documentationFile = LauncherPaths.ResolveFirstExistingFile(Paths.DocumentationFileCandidates);
 
-        var packageFiles = GetUnityPackages(packageDirectory);
-        var selectedPackage = packageFiles
-            .OrderByDescending(File.GetLastWriteTimeUtc)
-            .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
-            .FirstOrDefault();
-
-        var manifest = InspectManifest(contentDirectory);
+        var packageManifest = InspectPackageManifest(packageDirectory);
+        var contentManifest = InspectContentManifest(contentDirectory);
         var contentAssetsDirectory = contentDirectory is null ? null : Path.Combine(contentDirectory, "Assets");
 
         var requiredChecks = new[]
         {
             new CheckResult("SDK package directory", packageDirectory is not null,
-                packageDirectory ?? $"Missing. Expected one of: {string.Join(", ", Paths.PackageDirectoryCandidates)}",
+                packageDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.PackageDirectoryCandidates)}",
                 true),
-            new CheckResult("SDK package file (.unitypackage)", selectedPackage is not null,
-                selectedPackage ?? "No .unitypackage file found in SDK package directory.", true),
+            new CheckResult("SDK package manifest", packageManifest.Exists,
+                packageManifest.Path ?? "Missing SDKPackage/package.json.", true),
+            new CheckResult("SDK package manifest parse", packageManifest.IsParsed,
+                packageManifest.IsParsed
+                    ? $"{packageManifest.Name ?? "unknown"} {packageManifest.Version ?? "unknown"}"
+                    : packageManifest.ParseError ?? "Package manifest parse failed.",
+                true),
+            new CheckResult("SDK package identity", packageManifest.HasExpectedName,
+                packageManifest.HasExpectedName
+                    ? ExpectedPackageName
+                    : $"Expected {ExpectedPackageName}, got {packageManifest.Name ?? "unknown"}.",
+                true),
             new CheckResult("SDK content directory", contentDirectory is not null,
-                contentDirectory ?? $"Missing. Expected one of: {string.Join(", ", Paths.ContentDirectoryCandidates)}",
+                contentDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.ContentDirectoryCandidates)}",
                 true),
-            new CheckResult("SDK content manifest", manifest.Exists,
-                manifest.Path ?? "Missing sdk-content-manifest.json.", true),
-            new CheckResult("SDK content manifest parse", manifest.IsParsed,
-                manifest.IsParsed
-                    ? $"Schema v{manifest.SchemaVersion?.ToString() ?? "unknown"}, entries: {manifest.EntryCount}"
-                    : manifest.ParseError ?? "Manifest parse failed.",
+            new CheckResult("SDK content manifest", contentManifest.Exists,
+                contentManifest.Path ?? "Missing SDKContent/sdk-content-manifest.json.", true),
+            new CheckResult("SDK content manifest parse", contentManifest.IsParsed,
+                contentManifest.IsParsed
+                    ? $"Schema v{contentManifest.SchemaVersion?.ToString() ?? "unknown"}, entries: {contentManifest.EntryCount}"
+                    : contentManifest.ParseError ?? "Content manifest parse failed.",
                 true),
             new CheckResult("SDK content Assets folder",
                 contentAssetsDirectory is not null && Directory.Exists(contentAssetsDirectory),
@@ -56,27 +63,52 @@ internal sealed class LauncherService(LauncherPaths paths)
             isReady,
             BuildSummary(isReady, requiredChecks),
             BuildChecklist(allChecks),
-            BuildGuide(selectedPackage, contentDirectory, isReady),
-            BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageFiles, selectedPackage, contentDirectory,
-                manifest,
+            BuildGuide(packageManifest.Path, contentDirectory, isReady),
+            BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest,
                 documentationFile));
     }
 
-    private static string[] GetUnityPackages(string? packageDirectory)
+    private static PackageInspection InspectPackageManifest(string? packageDirectory)
     {
-        if (string.IsNullOrWhiteSpace(packageDirectory) || !Directory.Exists(packageDirectory)) return [];
+        if (string.IsNullOrWhiteSpace(packageDirectory))
+            return PackageInspection.Missing();
 
-        return Directory
-            .EnumerateFiles(packageDirectory, "*.unitypackage", SearchOption.AllDirectories)
-            .ToArray();
+        var manifestPath = Path.Combine(packageDirectory, "package.json");
+        if (!File.Exists(manifestPath))
+            return PackageInspection.Missing(manifestPath);
+
+        try
+        {
+            using var stream = File.OpenRead(manifestPath);
+            using var document = JsonDocument.Parse(stream);
+            var root = document.RootElement;
+
+            var name = root.TryGetProperty("name", out var nameProperty) &&
+                       nameProperty.ValueKind == JsonValueKind.String
+                ? nameProperty.GetString()
+                : null;
+
+            var version = root.TryGetProperty("version", out var versionProperty) &&
+                          versionProperty.ValueKind == JsonValueKind.String
+                ? versionProperty.GetString()
+                : null;
+
+            return PackageInspection.FromParsed(manifestPath, name, version);
+        }
+        catch (Exception ex)
+        {
+            return PackageInspection.ParseFailed(manifestPath, ex.Message);
+        }
     }
 
-    private static ManifestInspection InspectManifest(string? contentDirectory)
+    private static ContentManifestInspection InspectContentManifest(string? contentDirectory)
     {
-        if (string.IsNullOrWhiteSpace(contentDirectory)) return ManifestInspection.Missing();
+        if (string.IsNullOrWhiteSpace(contentDirectory))
+            return ContentManifestInspection.Missing();
 
         var manifestPath = Path.Combine(contentDirectory, "sdk-content-manifest.json");
-        if (!File.Exists(manifestPath)) return ManifestInspection.Missing(manifestPath);
+        if (!File.Exists(manifestPath))
+            return ContentManifestInspection.Missing(manifestPath);
 
         try
         {
@@ -95,11 +127,11 @@ internal sealed class LauncherService(LauncherPaths paths)
                 entriesProperty.ValueKind == JsonValueKind.Array)
                 entryCount = entriesProperty.GetArrayLength();
 
-            return ManifestInspection.FromParsed(manifestPath, schemaVersion, entryCount);
+            return ContentManifestInspection.FromParsed(manifestPath, schemaVersion, entryCount);
         }
         catch (Exception ex)
         {
-            return ManifestInspection.ParseFailed(manifestPath, ex.Message);
+            return ContentManifestInspection.ParseFailed(manifestPath, ex.Message);
         }
     }
 
@@ -126,11 +158,11 @@ internal sealed class LauncherService(LauncherPaths paths)
         }));
     }
 
-    private static string BuildGuide(string? selectedPackage, string? contentDirectory, bool isReady)
+    private static string BuildGuide(string? packageManifestPath, string? contentDirectory, bool isReady)
     {
         var lines = new List<string>
         {
-            "Primary objective: import the SDK package, link SDK content, then open SDK tools."
+            "Primary objective: add the SDK package from disk, link SDK content, then open SDK tools."
         };
 
         if (!isReady)
@@ -142,7 +174,7 @@ internal sealed class LauncherService(LauncherPaths paths)
 
         lines.Add("1. Open your Unity project.");
         lines.Add(
-            $"2. Import package via Assets > Import Package > Custom Package...{Environment.NewLine}   Path: {selectedPackage ?? "Missing .unitypackage file"}");
+            $"2. Add package via Window > Package Manager > + > Add package from disk...{Environment.NewLine}   Path: {packageManifestPath ?? "Missing SDKPackage/package.json"}");
         lines.Add(
             $"3. Link content via Tools > Vellocet > SDK > Link SDK Content, then click Sync Now.{Environment.NewLine}   Content path: {contentDirectory ?? "Missing SDKContent directory"}");
         lines.Add("4. Open Tools > Vellocet > SDK > Editor.");
@@ -154,34 +186,65 @@ internal sealed class LauncherService(LauncherPaths paths)
     private static string BuildDiagnostics(
         string installRoot,
         string? packageDirectory,
-        IReadOnlyList<string> packageFiles,
-        string? selectedPackage,
+        PackageInspection packageManifest,
         string? contentDirectory,
-        ManifestInspection manifest,
+        ContentManifestInspection contentManifest,
         string? documentationFile)
     {
         var lines = new List<string>
         {
             $"Install Root: {installRoot}",
             $"SDK Package Directory: {packageDirectory ?? "Missing"}",
-            $"SDK Package Files Found: {packageFiles.Count}",
-            $"Selected SDK Package: {selectedPackage ?? "Missing"}",
+            $"SDK Package Manifest: {packageManifest.Path ?? "Missing"}",
+            $"SDK Package Manifest Parsed: {(packageManifest.IsParsed ? "Yes" : "No")}",
+            $"SDK Package Name: {packageManifest.Name ?? "Unknown"}",
+            $"SDK Package Version: {packageManifest.Version ?? "Unknown"}",
             $"SDK Content Directory: {contentDirectory ?? "Missing"}",
-            $"SDK Content Manifest: {manifest.Path ?? "Missing"}",
-            $"SDK Content Manifest Parsed: {(manifest.IsParsed ? "Yes" : "No")}",
-            $"SDK Content Manifest Schema: {manifest.SchemaVersion?.ToString() ?? "Unknown"}",
-            $"SDK Content Manifest Entries: {manifest.EntryCount}",
+            $"SDK Content Manifest: {contentManifest.Path ?? "Missing"}",
+            $"SDK Content Manifest Parsed: {(contentManifest.IsParsed ? "Yes" : "No")}",
+            $"SDK Content Manifest Schema: {contentManifest.SchemaVersion?.ToString() ?? "Unknown"}",
+            $"SDK Content Manifest Entries: {contentManifest.EntryCount}",
             $"Documentation: {documentationFile ?? "Missing"}"
         };
 
-        if (!string.IsNullOrWhiteSpace(manifest.ParseError)) lines.Add($"Manifest Parse Error: {manifest.ParseError}");
+        if (!string.IsNullOrWhiteSpace(packageManifest.ParseError))
+            lines.Add($"Package Manifest Parse Error: {packageManifest.ParseError}");
+        if (!string.IsNullOrWhiteSpace(contentManifest.ParseError))
+            lines.Add($"Content Manifest Parse Error: {contentManifest.ParseError}");
 
         return string.Join(Environment.NewLine, lines);
     }
 
     private sealed record CheckResult(string Label, bool Passed, string Detail, bool Required);
 
-    private sealed record ManifestInspection(
+    private sealed record PackageInspection(
+        bool Exists,
+        bool IsParsed,
+        string? Path,
+        string? Name,
+        string? Version,
+        string? ParseError)
+    {
+        public bool HasExpectedName =>
+            IsParsed && string.Equals(Name, ExpectedPackageName, StringComparison.OrdinalIgnoreCase);
+
+        public static PackageInspection Missing(string? path = null)
+        {
+            return new PackageInspection(false, false, path, null, null, null);
+        }
+
+        public static PackageInspection FromParsed(string path, string? name, string? version)
+        {
+            return new PackageInspection(true, true, path, name, version, null);
+        }
+
+        public static PackageInspection ParseFailed(string path, string parseError)
+        {
+            return new PackageInspection(true, false, path, null, null, parseError);
+        }
+    }
+
+    private sealed record ContentManifestInspection(
         bool Exists,
         bool IsParsed,
         string? Path,
@@ -189,19 +252,19 @@ internal sealed class LauncherService(LauncherPaths paths)
         int EntryCount,
         string? ParseError)
     {
-        public static ManifestInspection Missing(string? path = null)
+        public static ContentManifestInspection Missing(string? path = null)
         {
-            return new ManifestInspection(false, false, path, null, 0, null);
+            return new ContentManifestInspection(false, false, path, null, 0, null);
         }
 
-        public static ManifestInspection FromParsed(string path, int? schemaVersion, int entryCount)
+        public static ContentManifestInspection FromParsed(string path, int? schemaVersion, int entryCount)
         {
-            return new ManifestInspection(true, true, path, schemaVersion, entryCount, null);
+            return new ContentManifestInspection(true, true, path, schemaVersion, entryCount, null);
         }
 
-        public static ManifestInspection ParseFailed(string path, string parseError)
+        public static ContentManifestInspection ParseFailed(string path, string parseError)
         {
-            return new ManifestInspection(true, false, path, null, 0, parseError);
+            return new ContentManifestInspection(true, false, path, null, 0, parseError);
         }
     }
 }

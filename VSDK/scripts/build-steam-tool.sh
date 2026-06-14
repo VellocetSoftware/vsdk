@@ -117,13 +117,30 @@ Launch executables:
 - macOS:   Launcher/osx-arm64/VSDK
 - macOS:   Launcher/osx-x64/VSDK
 
-Next step (manual):
-- Copy SDKPackage/ and SDKContent/ beside Launcher/ in this output root.
+This is the launcher artifact only. Grimwar TeamCity composes this with SDKPackage/ and SDKContent/ for Steam.
 
-Expected final layout:
+Expected composed Steam tool layout:
 - Launcher/
 - SDKPackage/
 - SDKContent/
+EOF
+
+cat > "$OUTPUT_ROOT/vsdk-build-metadata.json" <<EOF
+{
+  "artifact": "vsdk-launcher",
+  "createdUtc": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "configuration": "$CONFIGURATION",
+  "selfContained": $SELF_CONTAINED,
+  "rids": [
+$(for i in "${!RIDS[@]}"; do
+  suffix=","
+  if [[ "$i" == "$((${#RIDS[@]} - 1))" ]]; then
+    suffix=""
+  fi
+  printf '    "%s"%s\n' "${RIDS[$i]}" "$suffix"
+done)
+  ]
+}
 EOF
 
 echo
