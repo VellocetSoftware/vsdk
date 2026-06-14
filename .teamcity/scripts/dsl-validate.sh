@@ -67,7 +67,7 @@ if grep -R --exclude="*Workflows_DslValidate.xml" 'name="cleanBuild" value="true
   fail "Do not force clean checkout on every build; TeamCity already cleans when needed."
 fi
 
-if grep -R --exclude="*Workflows_DslValidate.xml" 'name="checkoutMode" value="ON_SERVER"' target/generated-configs >"$TEMP_DIR/server-checkout.txt"; then
-  cat "$TEMP_DIR/server-checkout.txt" >&2
-  fail "Generated VSDK settings must not force server-side checkout."
+if grep -R --exclude="*Workflows_DslValidate.xml" -E 'name="checkoutMode" value="ON_(SERVER|AGENT)"' target/generated-configs >"$TEMP_DIR/forced-checkout-mode.txt"; then
+  cat "$TEMP_DIR/forced-checkout-mode.txt" >&2
+  fail "Generated VSDK settings must use TeamCity AUTO checkout mode instead of forcing server-side or agent-side checkout."
 fi
