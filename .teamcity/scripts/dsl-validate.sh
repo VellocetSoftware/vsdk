@@ -47,7 +47,7 @@ fi
 
 launcher_config="$(find target/generated-configs -path "*buildTypes/*_BuildLauncher.xml" -print -quit)"
 [[ -n "$launcher_config" ]] || fail "Could not find generated Build Launcher config."
-[[ "$(basename "$launcher_config")" == *_BuildLauncher.xml ]] || fail "Build Launcher relative ID must remain BuildLauncher; Grimwar depends on VSDK_BuildLauncher."
+[[ "$(basename "$launcher_config")" == *_BuildLauncher.xml ]] || fail "Build Launcher relative ID must remain BuildLauncher while the legacy VSDK TeamCity project is active."
 grep -q '<name>Build Launcher</name>' "$launcher_config" || fail "Build Launcher config has the wrong display name."
 grep -q 'name="checkoutMode" value="AUTO"' "$launcher_config" || fail "Build Launcher must prefer agent-side checkout via TeamCity AUTO checkout mode."
 grep -Fq 'name="artifactRules" value="VSDK/Build/Launcher/** =&gt; vsdk-launcher.zip"' "$launcher_config" || fail "Build Launcher artifact rule must keep publishing vsdk-launcher.zip."
@@ -71,4 +71,9 @@ fi
 if grep -R --exclude="*Workflows_DslValidate.xml" -E 'name="checkoutMode" value="ON_(SERVER|AGENT)"' target/generated-configs >"$TEMP_DIR/forced-checkout-mode.txt"; then
   cat "$TEMP_DIR/forced-checkout-mode.txt" >&2
   fail "Generated VSDK settings must use TeamCity AUTO checkout mode instead of forcing server-side or agent-side checkout."
+fi
+
+if grep -R --exclude="*Workflows_DslValidate.xml" -E 'vcsTrigger|watchChangesInDependencies|triggerRules|branchFilter|quietPeriod|<triggers?|<trigger ' target/generated-configs >"$TEMP_DIR/automatic-triggers.txt"; then
+  cat "$TEMP_DIR/automatic-triggers.txt" >&2
+  fail "Generated VSDK settings must not contain automatic build triggers."
 fi

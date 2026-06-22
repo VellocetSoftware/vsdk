@@ -2,8 +2,6 @@
 
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import java.io.File
 
 version = "2026.1"
@@ -20,33 +18,6 @@ private object Ci {
         buildType.vcs {
             checkoutMode = CheckoutMode.AUTO
             root(DslContext.settingsRoot)
-        }
-    }
-
-    fun launcherTrigger(buildType: BuildType) {
-        buildType.triggers {
-            vcs {
-                branchFilter = "+:<default>"
-                triggerRules = """
-                    -:.teamcity/**
-                    -:**/*.md
-                    +:VSDK/**
-                """.trimIndent()
-                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_DEFAULT
-            }
-        }
-    }
-
-    fun settingsVcsTrigger(buildType: BuildType) {
-        buildType.triggers {
-            vcs {
-                branchFilter = "+:<default>"
-                triggerRules = """
-                    +:.teamcity/**
-                    +:VSDK/scripts/build-steam-tool.sh
-                """.trimIndent()
-                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_DEFAULT
-            }
         }
     }
 
@@ -79,7 +50,6 @@ object Workflows_DslValidate : BuildType({
     name = "TeamCity DSL Validate"
     description = "Generates TeamCity Kotlin DSL to catch settings errors before TeamCity Cloud applies them."
 
-    Ci.settingsVcsTrigger(this)
     Ci.vsdkVcs(this)
 
     steps {
@@ -106,7 +76,6 @@ object BuildLauncher : BuildType({
     maxRunningBuilds = 1
     publishArtifacts = PublishMode.SUCCESSFUL
 
-    Ci.launcherTrigger(this)
     Ci.vsdkVcs(this)
 
     steps {
