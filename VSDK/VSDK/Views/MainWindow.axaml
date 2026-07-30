@@ -5,7 +5,7 @@
         Height="700"
         MinWidth="820"
         MinHeight="620"
-        Title="VSDK Setup Guide"
+        Title="VSDK — Unity SDK Setup"
         Icon="/Assets/vellocet-logo.ico">
     <Grid RowDefinitions="Auto,Auto,*,*,*,Auto" Margin="16" RowSpacing="12">
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="12">
@@ -14,7 +14,7 @@
             </Border>
 
             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                <TextBlock Text="VSDK Setup Guide" FontWeight="Bold" FontSize="20" />
+                <TextBlock Text="VSDK — Unity SDK Setup" FontWeight="Bold" FontSize="20" />
                 <TextBlock x:Name="VersionTextBlock" />
                 <TextBlock x:Name="InstallRootTextBlock" TextWrapping="Wrap" />
                 <TextBlock x:Name="LastCheckedTextBlock" />
@@ -34,7 +34,7 @@
                      ScrollViewer.VerticalScrollBarVisibility="Auto" />
         </GroupBox>
 
-        <GroupBox Grid.Row="3" Header="Guided Setup">
+        <GroupBox Grid.Row="3" Header="Unity Quick Start">
             <TextBox x:Name="GuideTextBox"
                      IsReadOnly="True"
                      AcceptsReturn="True"

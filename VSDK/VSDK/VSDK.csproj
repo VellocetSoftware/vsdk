@@ -24,5 +24,7 @@
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
+        <!-- Patched transport used transitively by Avalonia.FreeDesktop. -->
+        <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0"/>
     </ItemGroup>
 </Project>

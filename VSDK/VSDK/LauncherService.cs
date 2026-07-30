@@ -63,7 +63,7 @@ internal sealed class LauncherService(LauncherPaths paths)
             isReady,
             BuildSummary(isReady, requiredChecks),
             BuildChecklist(allChecks),
-            BuildGuide(packageManifest.Path, contentDirectory, isReady),
+            BuildGuide(Paths.InstallRoot, packageManifest.Path, isReady),
             BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest,
                 documentationFile));
     }
@@ -158,11 +158,11 @@ internal sealed class LauncherService(LauncherPaths paths)
         }));
     }
 
-    private static string BuildGuide(string? packageManifestPath, string? contentDirectory, bool isReady)
+    private static string BuildGuide(string installRoot, string? packageManifestPath, bool isReady)
     {
         var lines = new List<string>
         {
-            "Primary objective: add the SDK package from disk, link SDK content, then open SDK tools."
+            "Install the package once; Unity opens the SDK tools and guides the remaining setup."
         };
 
         if (!isReady)
@@ -176,9 +176,14 @@ internal sealed class LauncherService(LauncherPaths paths)
         lines.Add(
             $"2. Add package via Window > Package Manager > + > Add package from disk...{Environment.NewLine}   Path: {packageManifestPath ?? "Missing SDKPackage/package.json"}");
         lines.Add(
-            $"3. Link content via Tools > Vellocet > SDK > Link SDK Content, then click Sync Now.{Environment.NewLine}   Content path: {contentDirectory ?? "Missing SDKContent directory"}");
-        lines.Add("4. Open Tools > Vellocet > SDK > Editor.");
-        lines.Add("5. In the SDK window, open Map > Validate and resolve all errors before export.");
+            $"3. Unity opens SDK Workbench and SDK Map Exporter automatically.{Environment.NewLine}" +
+            $"   In the setup prompt, select this VSDK install folder: {installRoot}");
+        lines.Add(
+            "4. In SDK Workbench, click Create New Map… or Prepare Active Scene. The SDK configures the map contract and Probe Volumes.");
+        lines.Add(
+            "5. Add entity markers, test in Play Mode, then compile or export from SDK Map Exporter.");
+        lines.Add(
+            "Need the setup prompt again? Use Tools > Vellocet > SDK > Welcome & Setup.");
 
         return string.Join(Environment.NewLine, lines);
     }

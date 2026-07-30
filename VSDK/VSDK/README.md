@@ -1,6 +1,6 @@
-# VSDK Setup Guide
+# VSDK — Unity SDK Setup
 
-Minimal launcher for the Steam Tool app that distributes the Vellocet Unity SDK.
+Launcher for the Steam Tool app that verifies and explains the Vellocet Unity SDK installation.
 
 ## What it does
 
@@ -9,10 +9,11 @@ Minimal launcher for the Steam Tool app that distributes the Vellocet Unity SDK.
   - `Launcher/`
   - `SDKPackage/package.json`
   - `SDKContent/sdk-content-manifest.json`
-- Shows the Unity setup flow:
+- Shows the current Unity setup flow:
   - add `SDKPackage/package.json` through Package Manager
-  - link `SDKContent`
-  - open the SDK editor
+  - let Unity open SDK Workbench and SDK Map Exporter
+  - select the VSDK install root when prompted so `SDKPackage` and `SDKContent` stay synchronized
+  - create or prepare a map from SDK Workbench
 - Auto-refreshes status while open.
 
 ## Build
