@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Vellocet Corporation. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
+
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;

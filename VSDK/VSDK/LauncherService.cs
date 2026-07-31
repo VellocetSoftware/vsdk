@@ -1,10 +1,29 @@
+// Copyright (c) 2026 Vellocet Corporation. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
+
+using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace VSDK;
 
 internal sealed class LauncherService(LauncherPaths paths)
 {
+    private const int ExpectedContentSchemaVersion = 1;
+    private const string ExpectedPackageLicense = "SEE LICENSE IN LICENSE.txt";
     private const string ExpectedPackageName = "com.vellocet.sdk";
+
+    private static readonly Regex StableSemanticVersionPattern = new(
+        @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$",
+        RegexOptions.CultureInvariant);
+
+    private static readonly Regex UnityVersionPattern = new(
+        @"^\d{4}\.\d+$",
+        RegexOptions.CultureInvariant);
+
+    private static readonly Regex UnityReleasePattern = new(
+        @"^\d+(?:a|b|f|p)\d+$",
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     public LauncherPaths Paths { get; } = paths;
 
@@ -12,66 +31,83 @@ internal sealed class LauncherService(LauncherPaths paths)
     {
         var packageDirectory = LauncherPaths.ResolveFirstExistingDirectory(Paths.PackageDirectoryCandidates);
         var contentDirectory = LauncherPaths.ResolveFirstExistingDirectory(Paths.ContentDirectoryCandidates);
-        var documentationFile = LauncherPaths.ResolveFirstExistingFile(Paths.DocumentationFileCandidates);
-
         var packageManifest = InspectPackageManifest(packageDirectory);
         var contentManifest = InspectContentManifest(contentDirectory);
         var contentAssetsDirectory = contentDirectory is null ? null : Path.Combine(contentDirectory, "Assets");
+        var distributionLicenseFile = Path.Combine(Paths.InstallRoot, "LICENSE.txt");
+        var packageLicenseFile = packageDirectory is null ? null : Path.Combine(packageDirectory, "LICENSE.txt");
+        var packageReadmeFile = packageDirectory is null ? null : Path.Combine(packageDirectory, "README.md");
+        var packageChangelogFile = packageDirectory is null ? null : Path.Combine(packageDirectory, "CHANGELOG.md");
 
         var requiredChecks = new[]
         {
+            new CheckResult("Distribution license", File.Exists(distributionLicenseFile),
+                distributionLicenseFile),
             new CheckResult("SDK package directory", packageDirectory is not null,
-                packageDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.PackageDirectoryCandidates)}",
-                true),
+                packageDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.PackageDirectoryCandidates)}"),
             new CheckResult("SDK package manifest", packageManifest.Exists,
-                packageManifest.Path ?? "Missing SDKPackage/package.json.", true),
+                packageManifest.Path ?? "Missing SDKPackage/package.json."),
             new CheckResult("SDK package manifest parse", packageManifest.IsParsed,
                 packageManifest.IsParsed
                     ? $"{packageManifest.Name ?? "unknown"} {packageManifest.Version ?? "unknown"}"
-                    : packageManifest.ParseError ?? "Package manifest parse failed.",
-                true),
+                    : packageManifest.ParseError ?? "Package manifest parse failed."),
             new CheckResult("SDK package identity", packageManifest.HasExpectedName,
                 packageManifest.HasExpectedName
                     ? ExpectedPackageName
-                    : $"Expected {ExpectedPackageName}, got {packageManifest.Name ?? "unknown"}.",
-                true),
+                    : $"Expected {ExpectedPackageName}, got {packageManifest.Name ?? "unknown"}."),
+            new CheckResult("SDK package version", packageManifest.HasValidVersion,
+                packageManifest.HasValidVersion
+                    ? packageManifest.Version!
+                    : $"Expected a stable major.minor.patch version, got {packageManifest.Version ?? "missing"}."),
             new CheckResult("Required Unity version", packageManifest.HasUnityRequirement,
                 packageManifest.HasUnityRequirement
                     ? $"Unity {packageManifest.RequiredUnityVersion} exactly"
-                    : "Missing package.json unity and/or unityRelease metadata.",
-                true),
+                    : packageManifest.UnityRequirementError ??
+                      "Missing package.json unity and/or unityRelease metadata."),
+            new CheckResult("SDK package license declaration", packageManifest.HasExpectedLicenseDeclaration,
+                packageManifest.HasExpectedLicenseDeclaration
+                    ? packageManifest.License!
+                    : $"Expected '{ExpectedPackageLicense}', got {packageManifest.License ?? "missing"}."),
+            new CheckResult("SDK package license file", packageLicenseFile is not null && File.Exists(packageLicenseFile),
+                packageLicenseFile ?? "Missing SDKPackage/LICENSE.txt."),
+            new CheckResult("SDK package README", packageReadmeFile is not null && File.Exists(packageReadmeFile),
+                packageReadmeFile ?? "Missing SDKPackage/README.md."),
+            new CheckResult("SDK package changelog",
+                packageChangelogFile is not null && File.Exists(packageChangelogFile),
+                packageChangelogFile ?? "Missing SDKPackage/CHANGELOG.md."),
             new CheckResult("SDK content directory", contentDirectory is not null,
-                contentDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.ContentDirectoryCandidates)}",
-                true),
+                contentDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.ContentDirectoryCandidates)}"),
             new CheckResult("SDK content manifest", contentManifest.Exists,
-                contentManifest.Path ?? "Missing SDKContent/sdk-content-manifest.json.", true),
+                contentManifest.Path ?? "Missing SDKContent/sdk-content-manifest.json."),
             new CheckResult("SDK content manifest parse", contentManifest.IsParsed,
                 contentManifest.IsParsed
-                    ? $"Schema v{contentManifest.SchemaVersion?.ToString() ?? "unknown"}, entries: {contentManifest.EntryCount}"
-                    : contentManifest.ParseError ?? "Content manifest parse failed.",
-                true),
+                    ? $"Schema v{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "unknown"}, entries: {contentManifest.EntryCount}"
+                    : contentManifest.ParseError ?? "Content manifest parse failed."),
+            new CheckResult("SDK content schema", contentManifest.HasExpectedSchema,
+                contentManifest.HasExpectedSchema
+                    ? $"Schema v{ExpectedContentSchemaVersion}"
+                    : $"Expected schema v{ExpectedContentSchemaVersion}, got " +
+                      $"{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "missing"}."),
+            new CheckResult("SDK content entries", contentManifest.HasEntries,
+                contentManifest.HasEntries
+                    ? $"{contentManifest.EntryCount} entries"
+                    : contentManifest.HasEntriesArray
+                        ? "The content manifest contains no entries."
+                        : "The content manifest is missing its entries array."),
             new CheckResult("SDK content Assets folder",
                 contentAssetsDirectory is not null && Directory.Exists(contentAssetsDirectory),
-                contentAssetsDirectory ?? "Content root missing.", true)
+                contentAssetsDirectory ?? "Content root missing.")
         };
 
-        var optionalChecks = new[]
-        {
-            new CheckResult("Documentation file", documentationFile is not null,
-                documentationFile ?? "Optional. No Docs/index.html, README.txt, or README.md found.", false)
-        };
-
-        var allChecks = requiredChecks.Concat(optionalChecks).ToArray();
         var isReady = requiredChecks.All(check => check.Passed);
 
         return new LauncherStatusSnapshot(
             isReady,
             BuildSummary(isReady, requiredChecks),
-            BuildChecklist(allChecks),
+            BuildChecklist(requiredChecks),
             BuildUnityRequirement(packageManifest),
             BuildGuide(Paths.InstallRoot, packageManifest, isReady),
-            BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest,
-                documentationFile));
+            BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest));
     }
 
     private static PackageInspection InspectPackageManifest(string? packageDirectory)
@@ -109,7 +145,23 @@ internal sealed class LauncherService(LauncherPaths paths)
                 ? unityReleaseProperty.GetString()
                 : null;
 
-            return PackageInspection.FromParsed(manifestPath, name, version, unity, unityRelease);
+            var license = root.TryGetProperty("license", out var licenseProperty) &&
+                          licenseProperty.ValueKind == JsonValueKind.String
+                ? licenseProperty.GetString()
+                : null;
+
+            TryBuildRequiredUnityVersion(unity, unityRelease, out var requiredUnityVersion,
+                out var unityRequirementError);
+
+            return PackageInspection.FromParsed(
+                manifestPath,
+                name,
+                version,
+                unity,
+                unityRelease,
+                license,
+                requiredUnityVersion,
+                unityRequirementError);
         }
         catch (Exception ex)
         {
@@ -138,12 +190,13 @@ internal sealed class LauncherService(LauncherPaths paths)
                 ? value
                 : (int?)null;
 
+            var hasEntriesArray = root.TryGetProperty("entries", out var entriesProperty) &&
+                                  entriesProperty.ValueKind == JsonValueKind.Array;
             var entryCount = 0;
-            if (root.TryGetProperty("entries", out var entriesProperty) &&
-                entriesProperty.ValueKind == JsonValueKind.Array)
+            if (hasEntriesArray)
                 entryCount = entriesProperty.GetArrayLength();
 
-            return ContentManifestInspection.FromParsed(manifestPath, schemaVersion, entryCount);
+            return ContentManifestInspection.FromParsed(manifestPath, schemaVersion, hasEntriesArray, entryCount);
         }
         catch (Exception ex)
         {
@@ -161,15 +214,49 @@ internal sealed class LauncherService(LauncherPaths paths)
             : $"Distribution incomplete ({passedCount}/{totalCount} required checks). Resolve missing items before setup.";
     }
 
+    private static bool TryBuildRequiredUnityVersion(
+        string? unity,
+        string? unityRelease,
+        out string? requiredUnityVersion,
+        out string? error)
+    {
+        requiredUnityVersion = null;
+        error = null;
+
+        var normalizedUnity = unity?.Trim();
+        var normalizedRelease = unityRelease?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedUnity) || string.IsNullOrWhiteSpace(normalizedRelease))
+        {
+            error = "Both package.json unity and unityRelease metadata are required.";
+            return false;
+        }
+
+        if (!UnityVersionPattern.IsMatch(normalizedUnity))
+        {
+            error = $"Invalid package.json unity value: {normalizedUnity}.";
+            return false;
+        }
+
+        if (!UnityReleasePattern.IsMatch(normalizedRelease))
+        {
+            error = $"Invalid package.json unityRelease value: {normalizedRelease}.";
+            return false;
+        }
+
+        requiredUnityVersion = $"{normalizedUnity}.{normalizedRelease}";
+        return true;
+    }
+
+    private static bool IsStableSemanticVersion(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value) && StableSemanticVersionPattern.IsMatch(value.Trim());
+    }
+
     private static string BuildChecklist(IEnumerable<CheckResult> checks)
     {
         return string.Join(Environment.NewLine, checks.Select(check =>
         {
-            var prefix = check.Required
-                ? check.Passed ? "[OK]" : "[MISSING]"
-                : check.Passed
-                    ? "[OK]"
-                    : "[OPTIONAL]";
+            var prefix = check.Passed ? "[OK]" : "[FAIL]";
             return $"{prefix} {check.Label}: {check.Detail}";
         }));
     }
@@ -221,8 +308,7 @@ internal sealed class LauncherService(LauncherPaths paths)
         string? packageDirectory,
         PackageInspection packageManifest,
         string? contentDirectory,
-        ContentManifestInspection contentManifest,
-        string? documentationFile)
+        ContentManifestInspection contentManifest)
     {
         var lines = new List<string>
         {
@@ -232,26 +318,28 @@ internal sealed class LauncherService(LauncherPaths paths)
             $"SDK Package Manifest Parsed: {(packageManifest.IsParsed ? "Yes" : "No")}",
             $"SDK Package Name: {packageManifest.Name ?? "Unknown"}",
             $"SDK Package Version: {packageManifest.Version ?? "Unknown"}",
+            $"SDK Package License: {packageManifest.License ?? "Unknown"}",
             $"SDK Package Unity: {packageManifest.Unity ?? "Unknown"}",
             $"SDK Package Unity Release: {packageManifest.UnityRelease ?? "Unknown"}",
             $"Required Unity Version: {packageManifest.RequiredUnityVersion ?? "Unknown"}",
             $"SDK Content Directory: {contentDirectory ?? "Missing"}",
             $"SDK Content Manifest: {contentManifest.Path ?? "Missing"}",
             $"SDK Content Manifest Parsed: {(contentManifest.IsParsed ? "Yes" : "No")}",
-            $"SDK Content Manifest Schema: {contentManifest.SchemaVersion?.ToString() ?? "Unknown"}",
-            $"SDK Content Manifest Entries: {contentManifest.EntryCount}",
-            $"Documentation: {documentationFile ?? "Missing"}"
+            $"SDK Content Manifest Schema: {contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "Unknown"}",
+            $"SDK Content Manifest Entries: {contentManifest.EntryCount}"
         };
 
         if (!string.IsNullOrWhiteSpace(packageManifest.ParseError))
             lines.Add($"Package Manifest Parse Error: {packageManifest.ParseError}");
+        if (!string.IsNullOrWhiteSpace(packageManifest.UnityRequirementError))
+            lines.Add($"Unity Requirement Error: {packageManifest.UnityRequirementError}");
         if (!string.IsNullOrWhiteSpace(contentManifest.ParseError))
             lines.Add($"Content Manifest Parse Error: {contentManifest.ParseError}");
 
         return string.Join(Environment.NewLine, lines);
     }
 
-    private sealed record CheckResult(string Label, bool Passed, string Detail, bool Required);
+    private sealed record CheckResult(string Label, bool Passed, string Detail);
 
     private sealed record PackageInspection(
         bool Exists,
@@ -261,21 +349,35 @@ internal sealed class LauncherService(LauncherPaths paths)
         string? Version,
         string? Unity,
         string? UnityRelease,
+        string? License,
+        string? RequiredUnityVersion,
+        string? UnityRequirementError,
         string? ParseError)
     {
         public bool HasExpectedName =>
             IsParsed && string.Equals(Name, ExpectedPackageName, StringComparison.OrdinalIgnoreCase);
 
-        public bool HasUnityRequirement => !string.IsNullOrWhiteSpace(RequiredUnityVersion);
+        public bool HasValidVersion => IsParsed && IsStableSemanticVersion(Version);
 
-        public string? RequiredUnityVersion =>
-            string.IsNullOrWhiteSpace(Unity) || string.IsNullOrWhiteSpace(UnityRelease)
-                ? null
-                : $"{Unity.Trim()}.{UnityRelease.Trim()}";
+        public bool HasUnityRequirement => IsParsed && !string.IsNullOrWhiteSpace(RequiredUnityVersion);
+
+        public bool HasExpectedLicenseDeclaration =>
+            IsParsed && string.Equals(License?.Trim(), ExpectedPackageLicense, StringComparison.Ordinal);
 
         public static PackageInspection Missing(string? path = null)
         {
-            return new PackageInspection(false, false, path, null, null, null, null, null);
+            return new PackageInspection(
+                false,
+                false,
+                path,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
         }
 
         public static PackageInspection FromParsed(
@@ -283,14 +385,39 @@ internal sealed class LauncherService(LauncherPaths paths)
             string? name,
             string? version,
             string? unity,
-            string? unityRelease)
+            string? unityRelease,
+            string? license,
+            string? requiredUnityVersion,
+            string? unityRequirementError)
         {
-            return new PackageInspection(true, true, path, name, version, unity, unityRelease, null);
+            return new PackageInspection(
+                true,
+                true,
+                path,
+                name,
+                version,
+                unity,
+                unityRelease,
+                license,
+                requiredUnityVersion,
+                unityRequirementError,
+                null);
         }
 
         public static PackageInspection ParseFailed(string path, string parseError)
         {
-            return new PackageInspection(true, false, path, null, null, null, null, parseError);
+            return new PackageInspection(
+                true,
+                false,
+                path,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                parseError);
         }
     }
 
@@ -299,22 +426,38 @@ internal sealed class LauncherService(LauncherPaths paths)
         bool IsParsed,
         string? Path,
         int? SchemaVersion,
+        bool HasEntriesArray,
         int EntryCount,
         string? ParseError)
     {
+        public bool HasExpectedSchema => IsParsed && SchemaVersion == ExpectedContentSchemaVersion;
+
+        public bool HasEntries => IsParsed && HasEntriesArray && EntryCount > 0;
+
         public static ContentManifestInspection Missing(string? path = null)
         {
-            return new ContentManifestInspection(false, false, path, null, 0, null);
+            return new ContentManifestInspection(false, false, path, null, false, 0, null);
         }
 
-        public static ContentManifestInspection FromParsed(string path, int? schemaVersion, int entryCount)
+        public static ContentManifestInspection FromParsed(
+            string path,
+            int? schemaVersion,
+            bool hasEntriesArray,
+            int entryCount)
         {
-            return new ContentManifestInspection(true, true, path, schemaVersion, entryCount, null);
+            return new ContentManifestInspection(
+                true,
+                true,
+                path,
+                schemaVersion,
+                hasEntriesArray,
+                entryCount,
+                null);
         }
 
         public static ContentManifestInspection ParseFailed(string path, string parseError)
         {
-            return new ContentManifestInspection(true, false, path, null, 0, parseError);
+            return new ContentManifestInspection(true, false, path, null, false, 0, parseError);
         }
     }
 }

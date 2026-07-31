@@ -2,6 +2,8 @@
 
 Launcher for the Steam Tool app that verifies and explains the Vellocet Unity SDK installation.
 
+The launcher and SDK are distributed under the terms in `LICENSE.txt`.
+
 ## What it does
 
 - Detects the Steam tool distribution root from the launcher location.
@@ -51,6 +53,7 @@ Build/Launcher/
       VSDK
     osx-x64/
       VSDK
+  LICENSE.txt
   LAUNCHER_NOTES.txt
   vsdk-build-metadata.json
 ```
@@ -61,6 +64,7 @@ Grimwar TeamCity consumes this launcher artifact and composes the final Steam to
 Launcher/
 SDKPackage/
 SDKContent/
+LICENSE.txt
 ```
 
 Steam launch paths:

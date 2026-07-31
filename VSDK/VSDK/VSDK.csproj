@@ -4,8 +4,17 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <Deterministic>true</Deterministic>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Assets/vellocet-logo.ico</ApplicationIcon>
+        <Authors>Vellocet Corporation</Authors>
+        <Company>Vellocet Corporation</Company>
+        <Product>VSDK Unity SDK Setup</Product>
+        <Description>Verifies and explains the Vellocet Unity SDK installation.</Description>
+        <Copyright>Copyright © 2026 Vellocet Corporation. All rights reserved.</Copyright>
         <Version>1.0.0</Version>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
@@ -16,15 +25,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.0.0"/>
-        <PackageReference Include="Avalonia.Desktop" Version="12.0.0"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.0"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.0"/>
-        <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.0">
+        <PackageReference Include="Avalonia" Version="12.1.1"/>
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.1"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1"/>
+        <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <!-- Patched transport used transitively by Avalonia.FreeDesktop. -->
-        <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0"/>
+        <PackageReference Include="Tmds.DBus.Protocol" Version="0.94.2"/>
     </ItemGroup>
 </Project>

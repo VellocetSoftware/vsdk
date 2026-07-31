@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Vellocet Corporation. All rights reserved.
+# SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
+
 set -euo pipefail
 
 usage() {
@@ -22,8 +25,10 @@ USAGE
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOLUTION_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPOSITORY_ROOT="$(cd "$SOLUTION_ROOT/.." && pwd)"
 PROJECT_FILE="$SOLUTION_ROOT/VSDK/VSDK.csproj"
 SOLUTION_FILE="$SOLUTION_ROOT/VSDK.sln"
+LICENSE_FILE="$REPOSITORY_ROOT/LICENSE.txt"
 
 CONFIGURATION="Release"
 SELF_CONTAINED="true"
@@ -33,10 +38,18 @@ RIDS=("win-x64" "osx-arm64" "osx-x64")
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --output)
+      if [[ $# -lt 2 || -z "${2:-}" ]]; then
+        echo "--output requires a non-empty path." >&2
+        exit 1
+      fi
       OUTPUT_ROOT="${2:-}"
       shift 2
       ;;
     --configuration)
+      if [[ $# -lt 2 || -z "${2:-}" ]]; then
+        echo "--configuration requires a non-empty value." >&2
+        exit 1
+      fi
       CONFIGURATION="${2:-}"
       shift 2
       ;;
@@ -56,10 +69,23 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ ! "$CONFIGURATION" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Invalid configuration name: $CONFIGURATION" >&2
+  exit 1
+fi
+
 require_dir() {
   local path="$1"
   if [[ ! -d "$path" ]]; then
     echo "Required directory not found: $path" >&2
+    exit 1
+  fi
+}
+
+require_file() {
+  local path="$1"
+  if [[ ! -f "$path" ]]; then
+    echo "Required file not found: $path" >&2
     exit 1
   fi
 }
@@ -73,9 +99,31 @@ copy_tree() {
   cp -R "$src" "$dst"
 }
 
-OUTPUT_ROOT="$(mkdir -p "$OUTPUT_ROOT" && cd "$OUTPUT_ROOT" && pwd)"
+output_parent="$(dirname "$OUTPUT_ROOT")"
+output_name="$(basename "$OUTPUT_ROOT")"
+if [[ -z "$output_name" || "$output_name" == "." || "$output_name" == ".." || "$output_name" == "/" ]]; then
+  echo "Refusing unsafe output path: $OUTPUT_ROOT" >&2
+  exit 1
+fi
+
+if [[ -L "$OUTPUT_ROOT" ]]; then
+  echo "Refusing a symbolic link as the output directory: $OUTPUT_ROOT" >&2
+  exit 1
+fi
+
+mkdir -p "$output_parent"
+output_parent="$(cd "$output_parent" && pwd)"
+OUTPUT_ROOT="$output_parent/$output_name"
+
+if [[ "$OUTPUT_ROOT" == "$SOLUTION_ROOT" || "$OUTPUT_ROOT" == "$REPOSITORY_ROOT" ]]; then
+  echo "Refusing to use a repository root as the output directory: $OUTPUT_ROOT" >&2
+  exit 1
+fi
+
+mkdir -p "$OUTPUT_ROOT"
 
 require_dir "$SOLUTION_ROOT/VSDK"
+require_file "$LICENSE_FILE"
 
 echo "==> Solution root: $SOLUTION_ROOT"
 echo "==> Output root:   $OUTPUT_ROOT"
@@ -84,7 +132,16 @@ echo "==> Self-contained: $SELF_CONTAINED"
 echo
 
 echo "==> Cleaning output root"
-rm -rf "$OUTPUT_ROOT"
+rm -rf "$OUTPUT_ROOT/Launcher"
+rm -f "$OUTPUT_ROOT/LAUNCHER_NOTES.txt" "$OUTPUT_ROOT/vsdk-build-metadata.json" "$OUTPUT_ROOT/LICENSE.txt"
+
+unexpected_entry="$(find "$OUTPUT_ROOT" -mindepth 1 -maxdepth 1 -print -quit)"
+if [[ -n "$unexpected_entry" ]]; then
+  echo "Refusing to mix the launcher artifact with unrelated output: $unexpected_entry" >&2
+  echo "Choose an empty, dedicated --output directory." >&2
+  exit 1
+fi
+
 mkdir -p "$OUTPUT_ROOT/Launcher"
 
 echo "==> Restoring solution"
@@ -109,6 +166,12 @@ for rid in "${RIDS[@]}"; do
   find "$OUTPUT_ROOT/Launcher/$rid" -type f -name '*.pdb' -delete
 done
 
+require_file "$OUTPUT_ROOT/Launcher/win-x64/VSDK.exe"
+require_file "$OUTPUT_ROOT/Launcher/osx-arm64/VSDK"
+require_file "$OUTPUT_ROOT/Launcher/osx-x64/VSDK"
+
+cp "$LICENSE_FILE" "$OUTPUT_ROOT/LICENSE.txt"
+
 cat > "$OUTPUT_ROOT/LAUNCHER_NOTES.txt" <<EOF
 Launcher-only bundle generated on $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -123,6 +186,7 @@ Expected composed Steam tool layout:
 - Launcher/
 - SDKPackage/
 - SDKContent/
+- LICENSE.txt
 EOF
 
 cat > "$OUTPUT_ROOT/vsdk-build-metadata.json" <<EOF

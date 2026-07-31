@@ -1,4 +1,7 @@
-﻿using Avalonia;
+﻿// Copyright (c) 2026 Vellocet Corporation. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
+
+using Avalonia;
 
 namespace VSDK;
 

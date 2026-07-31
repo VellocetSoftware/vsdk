@@ -1,4 +1,7 @@
-﻿namespace VSDK;
+﻿// Copyright (c) 2026 Vellocet Corporation. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
+
+namespace VSDK;
 
 internal sealed class LauncherPaths
 {
@@ -7,9 +10,7 @@ internal sealed class LauncherPaths
     private static readonly string[] DistributionFolderMarkers =
     {
         "SDKContent",
-        "SDKPackage",
-        "Docs",
-        "Samples"
+        "SDKPackage"
     };
 
     public LauncherPaths(string executableDirectory)
@@ -27,33 +28,17 @@ internal sealed class LauncherPaths
             Path.Combine(InstallRoot, "SDKContent")
         ];
 
-        DocumentationFileCandidates =
-        [
-            Path.Combine(InstallRoot, "Docs", "index.html"),
-            Path.Combine(InstallRoot, "README.txt"),
-            Path.Combine(InstallRoot, "README.md")
-        ];
     }
 
     public string ExecutableDirectory { get; }
     public string InstallRoot { get; }
     public IReadOnlyList<string> PackageDirectoryCandidates { get; }
     public IReadOnlyList<string> ContentDirectoryCandidates { get; }
-    public IReadOnlyList<string> DocumentationFileCandidates { get; }
 
     public static string? ResolveFirstExistingDirectory(IEnumerable<string> candidates)
     {
         foreach (var path in candidates)
             if (Directory.Exists(path))
-                return path;
-
-        return null;
-    }
-
-    public static string? ResolveFirstExistingFile(IEnumerable<string> candidates)
-    {
-        foreach (var path in candidates)
-            if (File.Exists(path))
                 return path;
 
         return null;
@@ -100,7 +85,6 @@ internal sealed class LauncherPaths
             if (Directory.Exists(Path.Combine(path, marker)))
                 return true;
 
-        return File.Exists(Path.Combine(path, "README.txt")) ||
-               File.Exists(Path.Combine(path, "README.md"));
+        return false;
     }
 }
