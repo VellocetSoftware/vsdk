@@ -35,6 +35,11 @@ internal sealed class LauncherService(LauncherPaths paths)
                     ? ExpectedPackageName
                     : $"Expected {ExpectedPackageName}, got {packageManifest.Name ?? "unknown"}.",
                 true),
+            new CheckResult("Required Unity version", packageManifest.HasUnityRequirement,
+                packageManifest.HasUnityRequirement
+                    ? $"Unity {packageManifest.RequiredUnityVersion} exactly"
+                    : "Missing package.json unity and/or unityRelease metadata.",
+                true),
             new CheckResult("SDK content directory", contentDirectory is not null,
                 contentDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.ContentDirectoryCandidates)}",
                 true),
@@ -63,7 +68,8 @@ internal sealed class LauncherService(LauncherPaths paths)
             isReady,
             BuildSummary(isReady, requiredChecks),
             BuildChecklist(allChecks),
-            BuildGuide(Paths.InstallRoot, packageManifest.Path, isReady),
+            BuildUnityRequirement(packageManifest),
+            BuildGuide(Paths.InstallRoot, packageManifest, isReady),
             BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest,
                 documentationFile));
     }
@@ -93,7 +99,17 @@ internal sealed class LauncherService(LauncherPaths paths)
                 ? versionProperty.GetString()
                 : null;
 
-            return PackageInspection.FromParsed(manifestPath, name, version);
+            var unity = root.TryGetProperty("unity", out var unityProperty) &&
+                        unityProperty.ValueKind == JsonValueKind.String
+                ? unityProperty.GetString()
+                : null;
+
+            var unityRelease = root.TryGetProperty("unityRelease", out var unityReleaseProperty) &&
+                               unityReleaseProperty.ValueKind == JsonValueKind.String
+                ? unityReleaseProperty.GetString()
+                : null;
+
+            return PackageInspection.FromParsed(manifestPath, name, version, unity, unityRelease);
         }
         catch (Exception ex)
         {
@@ -158,10 +174,20 @@ internal sealed class LauncherService(LauncherPaths paths)
         }));
     }
 
-    private static string BuildGuide(string installRoot, string? packageManifestPath, bool isReady)
+    private static string BuildUnityRequirement(PackageInspection packageManifest)
+    {
+        return packageManifest.HasUnityRequirement
+            ? $"Required Unity: {packageManifest.RequiredUnityVersion} (use this exact Editor version)"
+            : "Required Unity: Unknown (package compatibility metadata is missing)";
+    }
+
+    private static string BuildGuide(string installRoot, PackageInspection packageManifest, bool isReady)
     {
         var lines = new List<string>
         {
+            packageManifest.HasUnityRequirement
+                ? $"Before installing, open the project with Unity {packageManifest.RequiredUnityVersion} exactly."
+                : "Before installing, resolve the missing Unity version metadata shown in the checklist.",
             "Install the package once; Unity opens the SDK tools and guides the remaining setup."
         };
 
@@ -172,9 +198,11 @@ internal sealed class LauncherService(LauncherPaths paths)
             lines.Add(string.Empty);
         }
 
-        lines.Add("1. Open your Unity project.");
+        lines.Add(packageManifest.HasUnityRequirement
+            ? $"1. In Unity Hub, open your project with Editor {packageManifest.RequiredUnityVersion}."
+            : "1. Open your Unity project after resolving the required Editor version.");
         lines.Add(
-            $"2. Add package via Window > Package Manager > + > Add package from disk...{Environment.NewLine}   Path: {packageManifestPath ?? "Missing SDKPackage/package.json"}");
+            $"2. Add package via Window > Package Manager > + > Add package from disk...{Environment.NewLine}   Path: {packageManifest.Path ?? "Missing SDKPackage/package.json"}");
         lines.Add(
             $"3. Unity opens SDK Workbench and SDK Map Exporter automatically.{Environment.NewLine}" +
             $"   In the setup prompt, select this VSDK install folder: {installRoot}");
@@ -204,6 +232,9 @@ internal sealed class LauncherService(LauncherPaths paths)
             $"SDK Package Manifest Parsed: {(packageManifest.IsParsed ? "Yes" : "No")}",
             $"SDK Package Name: {packageManifest.Name ?? "Unknown"}",
             $"SDK Package Version: {packageManifest.Version ?? "Unknown"}",
+            $"SDK Package Unity: {packageManifest.Unity ?? "Unknown"}",
+            $"SDK Package Unity Release: {packageManifest.UnityRelease ?? "Unknown"}",
+            $"Required Unity Version: {packageManifest.RequiredUnityVersion ?? "Unknown"}",
             $"SDK Content Directory: {contentDirectory ?? "Missing"}",
             $"SDK Content Manifest: {contentManifest.Path ?? "Missing"}",
             $"SDK Content Manifest Parsed: {(contentManifest.IsParsed ? "Yes" : "No")}",
@@ -228,24 +259,38 @@ internal sealed class LauncherService(LauncherPaths paths)
         string? Path,
         string? Name,
         string? Version,
+        string? Unity,
+        string? UnityRelease,
         string? ParseError)
     {
         public bool HasExpectedName =>
             IsParsed && string.Equals(Name, ExpectedPackageName, StringComparison.OrdinalIgnoreCase);
 
+        public bool HasUnityRequirement => !string.IsNullOrWhiteSpace(RequiredUnityVersion);
+
+        public string? RequiredUnityVersion =>
+            string.IsNullOrWhiteSpace(Unity) || string.IsNullOrWhiteSpace(UnityRelease)
+                ? null
+                : $"{Unity.Trim()}.{UnityRelease.Trim()}";
+
         public static PackageInspection Missing(string? path = null)
         {
-            return new PackageInspection(false, false, path, null, null, null);
+            return new PackageInspection(false, false, path, null, null, null, null, null);
         }
 
-        public static PackageInspection FromParsed(string path, string? name, string? version)
+        public static PackageInspection FromParsed(
+            string path,
+            string? name,
+            string? version,
+            string? unity,
+            string? unityRelease)
         {
-            return new PackageInspection(true, true, path, name, version, null);
+            return new PackageInspection(true, true, path, name, version, unity, unityRelease, null);
         }
 
         public static PackageInspection ParseFailed(string path, string parseError)
         {
-            return new PackageInspection(true, false, path, null, null, parseError);
+            return new PackageInspection(true, false, path, null, null, null, null, parseError);
         }
     }
 
@@ -278,5 +323,6 @@ internal sealed record LauncherStatusSnapshot(
     bool IsReady,
     string Summary,
     string Checklist,
+    string UnityRequirement,
     string Guide,
     string Diagnostics);

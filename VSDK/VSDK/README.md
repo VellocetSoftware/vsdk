@@ -10,6 +10,7 @@ Launcher for the Steam Tool app that verifies and explains the Vellocet Unity SD
   - `SDKPackage/package.json`
   - `SDKContent/sdk-content-manifest.json`
 - Shows the current Unity setup flow:
+  - use the exact Unity Editor version declared by the SDK package
   - add `SDKPackage/package.json` through Package Manager
   - let Unity open SDK Workbench and SDK Map Exporter
   - select the VSDK install root when prompted so `SDKPackage` and `SDKContent` stay synchronized

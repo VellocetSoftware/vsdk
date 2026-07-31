@@ -16,6 +16,10 @@
             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                 <TextBlock Text="VSDK — Unity SDK Setup" FontWeight="Bold" FontSize="20" />
                 <TextBlock x:Name="VersionTextBlock" />
+                <TextBlock x:Name="UnityRequirementTextBlock"
+                           FontWeight="Bold"
+                           FontSize="16"
+                           TextWrapping="Wrap" />
                 <TextBlock x:Name="InstallRootTextBlock" TextWrapping="Wrap" />
                 <TextBlock x:Name="LastCheckedTextBlock" />
             </StackPanel>

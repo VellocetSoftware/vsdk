@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     };
 
     private readonly TextBlock _summaryTextBlock;
+    private readonly TextBlock _unityRequirementTextBlock;
     private readonly TextBlock _versionTextBlock;
 
     public MainWindow()
@@ -38,6 +39,7 @@ public partial class MainWindow : Window
         _installRootTextBlock = RequireControl<TextBlock>("InstallRootTextBlock");
         _lastCheckedTextBlock = RequireControl<TextBlock>("LastCheckedTextBlock");
         _summaryTextBlock = RequireControl<TextBlock>("SummaryTextBlock");
+        _unityRequirementTextBlock = RequireControl<TextBlock>("UnityRequirementTextBlock");
         _checklistTextBox = RequireControl<TextBox>("ChecklistTextBox");
         _guideTextBox = RequireControl<TextBox>("GuideTextBox");
         _diagnosticsTextBox = RequireControl<TextBox>("DiagnosticsTextBox");
@@ -71,6 +73,8 @@ public partial class MainWindow : Window
         var status = _launcherService.GetStatusSnapshot();
         _summaryTextBlock.Text = status.Summary;
         _summaryTextBlock.Foreground = status.IsReady ? Brushes.ForestGreen : Brushes.DarkOrange;
+        _unityRequirementTextBlock.Text = status.UnityRequirement;
+        _unityRequirementTextBlock.Foreground = status.IsReady ? Brushes.DarkOrange : Brushes.OrangeRed;
         _checklistTextBox.Text = status.Checklist;
         _guideTextBox.Text = status.Guide;
         _diagnosticsTextBox.Text = status.Diagnostics;
