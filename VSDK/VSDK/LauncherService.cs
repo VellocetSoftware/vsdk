@@ -9,7 +9,6 @@ namespace VSDK;
 
 internal sealed class LauncherService(LauncherPaths paths)
 {
-    private const int ExpectedContentSchemaVersion = 1;
     private const string ExpectedPackageLicense = "SEE LICENSE IN LICENSE.txt";
     private const string ExpectedPackageName = "com.vellocet.sdk";
 
@@ -68,6 +67,10 @@ internal sealed class LauncherService(LauncherPaths paths)
                 packageManifest.HasExpectedLicenseDeclaration
                     ? packageManifest.License!
                     : $"Expected '{ExpectedPackageLicense}', got {packageManifest.License ?? "missing"}."),
+            new CheckResult("SDK package content schema declaration", packageManifest.HasContentSchemaVersion,
+                packageManifest.HasContentSchemaVersion
+                    ? $"Schema v{packageManifest.ContentSchemaVersion}"
+                    : "Missing positive integer package.json vellocetSdkContentSchemaVersion metadata."),
             new CheckResult("SDK package license file", packageLicenseFile is not null && File.Exists(packageLicenseFile),
                 packageLicenseFile ?? "Missing SDKPackage/LICENSE.txt."),
             new CheckResult("SDK package README", packageReadmeFile is not null && File.Exists(packageReadmeFile),
@@ -83,11 +86,13 @@ internal sealed class LauncherService(LauncherPaths paths)
                 contentManifest.IsParsed
                     ? $"Schema v{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "unknown"}, entries: {contentManifest.EntryCount}"
                     : contentManifest.ParseError ?? "Content manifest parse failed."),
-            new CheckResult("SDK content schema", contentManifest.HasExpectedSchema,
-                contentManifest.HasExpectedSchema
-                    ? $"Schema v{ExpectedContentSchemaVersion}"
-                    : $"Expected schema v{ExpectedContentSchemaVersion}, got " +
-                      $"{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "missing"}."),
+            new CheckResult("SDK content schema",
+                contentManifest.MatchesSchema(packageManifest.ContentSchemaVersion),
+                contentManifest.MatchesSchema(packageManifest.ContentSchemaVersion)
+                    ? $"Schema v{packageManifest.ContentSchemaVersion}"
+                    : $"Package declares schema " +
+                      $"v{packageManifest.ContentSchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "missing"}; " +
+                      $"content contains v{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "missing"}."),
             new CheckResult("SDK content entries", contentManifest.HasEntries,
                 contentManifest.HasEntries
                     ? $"{contentManifest.EntryCount} entries"
@@ -150,6 +155,13 @@ internal sealed class LauncherService(LauncherPaths paths)
                 ? licenseProperty.GetString()
                 : null;
 
+            var contentSchemaVersion =
+                root.TryGetProperty("vellocetSdkContentSchemaVersion", out var contentSchemaProperty) &&
+                contentSchemaProperty.ValueKind == JsonValueKind.Number &&
+                contentSchemaProperty.TryGetInt32(out var parsedContentSchemaVersion)
+                    ? parsedContentSchemaVersion
+                    : (int?)null;
+
             TryBuildRequiredUnityVersion(unity, unityRelease, out var requiredUnityVersion,
                 out var unityRequirementError);
 
@@ -160,6 +172,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 unity,
                 unityRelease,
                 license,
+                contentSchemaVersion,
                 requiredUnityVersion,
                 unityRequirementError);
         }
@@ -319,6 +332,7 @@ internal sealed class LauncherService(LauncherPaths paths)
             $"SDK Package Name: {packageManifest.Name ?? "Unknown"}",
             $"SDK Package Version: {packageManifest.Version ?? "Unknown"}",
             $"SDK Package License: {packageManifest.License ?? "Unknown"}",
+            $"SDK Package Content Schema: {packageManifest.ContentSchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "Unknown"}",
             $"SDK Package Unity: {packageManifest.Unity ?? "Unknown"}",
             $"SDK Package Unity Release: {packageManifest.UnityRelease ?? "Unknown"}",
             $"Required Unity Version: {packageManifest.RequiredUnityVersion ?? "Unknown"}",
@@ -350,6 +364,7 @@ internal sealed class LauncherService(LauncherPaths paths)
         string? Unity,
         string? UnityRelease,
         string? License,
+        int? ContentSchemaVersion,
         string? RequiredUnityVersion,
         string? UnityRequirementError,
         string? ParseError)
@@ -364,12 +379,15 @@ internal sealed class LauncherService(LauncherPaths paths)
         public bool HasExpectedLicenseDeclaration =>
             IsParsed && string.Equals(License?.Trim(), ExpectedPackageLicense, StringComparison.Ordinal);
 
+        public bool HasContentSchemaVersion => IsParsed && ContentSchemaVersion > 0;
+
         public static PackageInspection Missing(string? path = null)
         {
             return new PackageInspection(
                 false,
                 false,
                 path,
+                null,
                 null,
                 null,
                 null,
@@ -387,6 +405,7 @@ internal sealed class LauncherService(LauncherPaths paths)
             string? unity,
             string? unityRelease,
             string? license,
+            int? contentSchemaVersion,
             string? requiredUnityVersion,
             string? unityRequirementError)
         {
@@ -399,6 +418,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 unity,
                 unityRelease,
                 license,
+                contentSchemaVersion,
                 requiredUnityVersion,
                 unityRequirementError,
                 null);
@@ -410,6 +430,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 true,
                 false,
                 path,
+                null,
                 null,
                 null,
                 null,
@@ -430,7 +451,10 @@ internal sealed class LauncherService(LauncherPaths paths)
         int EntryCount,
         string? ParseError)
     {
-        public bool HasExpectedSchema => IsParsed && SchemaVersion == ExpectedContentSchemaVersion;
+        public bool MatchesSchema(int? expectedSchemaVersion)
+        {
+            return IsParsed && expectedSchemaVersion > 0 && SchemaVersion == expectedSchemaVersion;
+        }
 
         public bool HasEntries => IsParsed && HasEntriesArray && EntryCount > 0;
 

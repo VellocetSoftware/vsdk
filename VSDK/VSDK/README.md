@@ -11,6 +11,7 @@ The launcher and SDK are distributed under the terms in `LICENSE.txt`.
   - `Launcher/`
   - `SDKPackage/package.json`
   - `SDKContent/sdk-content-manifest.json`
+- Verifies that the SDK content schema matches the version declared by `SDKPackage/package.json`.
 - Shows the current Unity setup flow:
   - use the exact Unity Editor version declared by the SDK package
   - add `SDKPackage/package.json` through Package Manager
