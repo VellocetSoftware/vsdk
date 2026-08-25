@@ -1,8 +1,29 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="VSDK.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Dark">
+    <Application.Resources>
+        <ResourceDictionary>
+            <FontFamily x:Key="VellocetFont">avares://VSDK/Assets/Fonts#Monda</FontFamily>
+            <FontFamily x:Key="VellocetMonoFont">Menlo, Consolas, monospace</FontFamily>
+
+            <SolidColorBrush x:Key="VellocetBlack">#060606</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetNearBlack">#0B0B0B</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetSurface">#111111</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetRaised">#181818</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetWhite">#FFFFFF</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetSoftWhite">#E9E9E9</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetMuted">#A2A2A2</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetDim">#686868</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetLine">#303030</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetLineStrong">#555555</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetRed">#FF3030</SolidColorBrush>
+            <SolidColorBrush x:Key="VellocetRedDark">#260909</SolidColorBrush>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://VSDK/Styles/VellocetTheme.axaml" />
     </Application.Styles>
 </Application>

@@ -9,8 +9,23 @@ namespace VSDK;
 
 internal sealed class LauncherService(LauncherPaths paths)
 {
+    internal const string DocumentationUrl = "https://developer.vellocetsoftware.com/wiki/Vellocet_SDK";
+
     private const string ExpectedPackageLicense = "SEE LICENSE IN LICENSE.txt";
     private const string ExpectedPackageName = "com.vellocet.sdk";
+
+    private static readonly HashSet<string> LiteratureExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".doc",
+        ".docx",
+        ".epub",
+        ".htm",
+        ".html",
+        ".markdown",
+        ".md",
+        ".pdf",
+        ".rtf"
+    };
 
     private static readonly Regex StableSemanticVersionPattern = new(
         @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$",
@@ -35,71 +50,67 @@ internal sealed class LauncherService(LauncherPaths paths)
         var contentAssetsDirectory = contentDirectory is null ? null : Path.Combine(contentDirectory, "Assets");
         var distributionLicenseFile = Path.Combine(Paths.InstallRoot, "LICENSE.txt");
         var packageLicenseFile = packageDirectory is null ? null : Path.Combine(packageDirectory, "LICENSE.txt");
-        var packageReadmeFile = packageDirectory is null ? null : Path.Combine(packageDirectory, "README.md");
-        var packageChangelogFile = packageDirectory is null ? null : Path.Combine(packageDirectory, "CHANGELOG.md");
+        var packageLiterature = InspectPackageLiterature(packageDirectory);
 
         var requiredChecks = new[]
         {
-            new CheckResult("Distribution license", File.Exists(distributionLicenseFile),
+            new LauncherCheck("Distribution license", File.Exists(distributionLicenseFile),
                 distributionLicenseFile),
-            new CheckResult("SDK package directory", packageDirectory is not null,
+            new LauncherCheck("SDK package directory", packageDirectory is not null,
                 packageDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.PackageDirectoryCandidates)}"),
-            new CheckResult("SDK package manifest", packageManifest.Exists,
+            new LauncherCheck("SDK package manifest", packageManifest.Exists,
                 packageManifest.Path ?? "Missing SDKPackage/package.json."),
-            new CheckResult("SDK package manifest parse", packageManifest.IsParsed,
+            new LauncherCheck("SDK package manifest parse", packageManifest.IsParsed,
                 packageManifest.IsParsed
                     ? $"{packageManifest.Name ?? "unknown"} {packageManifest.Version ?? "unknown"}"
                     : packageManifest.ParseError ?? "Package manifest parse failed."),
-            new CheckResult("SDK package identity", packageManifest.HasExpectedName,
+            new LauncherCheck("SDK package identity", packageManifest.HasExpectedName,
                 packageManifest.HasExpectedName
                     ? ExpectedPackageName
                     : $"Expected {ExpectedPackageName}, got {packageManifest.Name ?? "unknown"}."),
-            new CheckResult("SDK package version", packageManifest.HasValidVersion,
+            new LauncherCheck("SDK package version", packageManifest.HasValidVersion,
                 packageManifest.HasValidVersion
                     ? packageManifest.Version!
                     : $"Expected a stable major.minor.patch version, got {packageManifest.Version ?? "missing"}."),
-            new CheckResult("Required Unity version", packageManifest.HasUnityRequirement,
+            new LauncherCheck("Required Unity version", packageManifest.HasUnityRequirement,
                 packageManifest.HasUnityRequirement
                     ? $"Unity {packageManifest.RequiredUnityVersion} exactly"
                     : packageManifest.UnityRequirementError ??
                       "Missing package.json unity and/or unityRelease metadata."),
-            new CheckResult("SDK package license declaration", packageManifest.HasExpectedLicenseDeclaration,
+            new LauncherCheck("SDK package license declaration", packageManifest.HasExpectedLicenseDeclaration,
                 packageManifest.HasExpectedLicenseDeclaration
                     ? packageManifest.License!
                     : $"Expected '{ExpectedPackageLicense}', got {packageManifest.License ?? "missing"}."),
-            new CheckResult("SDK package content schema declaration", packageManifest.HasContentSchemaVersion,
+            new LauncherCheck("SDK package content schema declaration", packageManifest.HasContentSchemaVersion,
                 packageManifest.HasContentSchemaVersion
                     ? $"Schema v{packageManifest.ContentSchemaVersion}"
                     : "Missing positive integer package.json vellocetSdkContentSchemaVersion metadata."),
-            new CheckResult("SDK package license file", packageLicenseFile is not null && File.Exists(packageLicenseFile),
+            new LauncherCheck("SDK package license file", packageLicenseFile is not null && File.Exists(packageLicenseFile),
                 packageLicenseFile ?? "Missing SDKPackage/LICENSE.txt."),
-            new CheckResult("SDK package README", packageReadmeFile is not null && File.Exists(packageReadmeFile),
-                packageReadmeFile ?? "Missing SDKPackage/README.md."),
-            new CheckResult("SDK package changelog",
-                packageChangelogFile is not null && File.Exists(packageChangelogFile),
-                packageChangelogFile ?? "Missing SDKPackage/CHANGELOG.md."),
-            new CheckResult("SDK content directory", contentDirectory is not null,
+            new LauncherCheck("Wiki-only documentation policy", packageLiterature.IsCompliant,
+                packageLiterature.BuildDetail()),
+            new LauncherCheck("SDK content directory", contentDirectory is not null,
                 contentDirectory ?? $"Missing. Expected: {string.Join(", ", Paths.ContentDirectoryCandidates)}"),
-            new CheckResult("SDK content manifest", contentManifest.Exists,
+            new LauncherCheck("SDK content manifest", contentManifest.Exists,
                 contentManifest.Path ?? "Missing SDKContent/sdk-content-manifest.json."),
-            new CheckResult("SDK content manifest parse", contentManifest.IsParsed,
+            new LauncherCheck("SDK content manifest parse", contentManifest.IsParsed,
                 contentManifest.IsParsed
                     ? $"Schema v{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "unknown"}, entries: {contentManifest.EntryCount}"
                     : contentManifest.ParseError ?? "Content manifest parse failed."),
-            new CheckResult("SDK content schema",
+            new LauncherCheck("SDK content schema",
                 contentManifest.MatchesSchema(packageManifest.ContentSchemaVersion),
                 contentManifest.MatchesSchema(packageManifest.ContentSchemaVersion)
                     ? $"Schema v{packageManifest.ContentSchemaVersion}"
                     : $"Package declares schema " +
                       $"v{packageManifest.ContentSchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "missing"}; " +
                       $"content contains v{contentManifest.SchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "missing"}."),
-            new CheckResult("SDK content entries", contentManifest.HasEntries,
+            new LauncherCheck("SDK content entries", contentManifest.HasEntries,
                 contentManifest.HasEntries
                     ? $"{contentManifest.EntryCount} entries"
                     : contentManifest.HasEntriesArray
                         ? "The content manifest contains no entries."
                         : "The content manifest is missing its entries array."),
-            new CheckResult("SDK content Assets folder",
+            new LauncherCheck("SDK content Assets folder",
                 contentAssetsDirectory is not null && Directory.Exists(contentAssetsDirectory),
                 contentAssetsDirectory ?? "Content root missing.")
         };
@@ -109,10 +120,15 @@ internal sealed class LauncherService(LauncherPaths paths)
         return new LauncherStatusSnapshot(
             isReady,
             BuildSummary(isReady, requiredChecks),
-            BuildChecklist(requiredChecks),
-            BuildUnityRequirement(packageManifest),
-            BuildGuide(Paths.InstallRoot, packageManifest, isReady),
-            BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest));
+            requiredChecks,
+            packageManifest.Version,
+            packageManifest.RequiredUnityVersion,
+            packageManifest.ContentSchemaVersion,
+            contentManifest.EntryCount,
+            Paths.InstallRoot,
+            packageManifest.Path,
+            BuildDiagnostics(Paths.InstallRoot, packageDirectory, packageManifest, contentDirectory, contentManifest,
+                requiredChecks));
     }
 
     private static PackageInspection InspectPackageManifest(string? packageDirectory)
@@ -217,14 +233,16 @@ internal sealed class LauncherService(LauncherPaths paths)
         }
     }
 
-    private static string BuildSummary(bool isReady, IReadOnlyList<CheckResult> requiredChecks)
+    private static string BuildSummary(bool isReady, LauncherCheck[] requiredChecks)
     {
         var passedCount = requiredChecks.Count(check => check.Passed);
-        var totalCount = requiredChecks.Count;
+        var totalCount = requiredChecks.Length;
+        var failedCount = totalCount - passedCount;
 
         return isReady
-            ? $"Distribution verified ({passedCount}/{totalCount} required checks). SDK setup can proceed in Unity."
-            : $"Distribution incomplete ({passedCount}/{totalCount} required checks). Resolve missing items before setup.";
+            ? $"Package metadata, content schema, and managed assets are consistent ({passedCount}/{totalCount} checks)."
+            : $"VSDK found {failedCount} required distribution {(failedCount == 1 ? "issue" : "issues")}. " +
+              "Review the highlighted checks before using the SDK in Unity.";
     }
 
     private static bool TryBuildRequiredUnityVersion(
@@ -265,55 +283,33 @@ internal sealed class LauncherService(LauncherPaths paths)
         return !string.IsNullOrWhiteSpace(value) && StableSemanticVersionPattern.IsMatch(value.Trim());
     }
 
-    private static string BuildChecklist(IEnumerable<CheckResult> checks)
+    private static PackageLiteratureInspection InspectPackageLiterature(string? packageDirectory)
     {
-        return string.Join(Environment.NewLine, checks.Select(check =>
-        {
-            var prefix = check.Passed ? "[OK]" : "[FAIL]";
-            return $"{prefix} {check.Label}: {check.Detail}";
-        }));
-    }
+        if (string.IsNullOrWhiteSpace(packageDirectory))
+            return PackageLiteratureInspection.Failed("SDK package directory is missing.");
 
-    private static string BuildUnityRequirement(PackageInspection packageManifest)
-    {
-        return packageManifest.HasUnityRequirement
-            ? $"Required Unity: {packageManifest.RequiredUnityVersion} (use this exact Editor version)"
-            : "Required Unity: Unknown (package compatibility metadata is missing)";
-    }
-
-    private static string BuildGuide(string installRoot, PackageInspection packageManifest, bool isReady)
-    {
-        var lines = new List<string>
+        try
         {
-            packageManifest.HasUnityRequirement
-                ? $"Before installing, open the project with Unity {packageManifest.RequiredUnityVersion} exactly."
-                : "Before installing, resolve the missing Unity version metadata shown in the checklist.",
-            "Install the package once; Unity opens the SDK tools and guides the remaining setup."
-        };
-
-        if (!isReady)
-        {
-            lines.Add(
-                "Setup is blocked until all required distribution checks are marked [OK] in the checklist.");
-            lines.Add(string.Empty);
+            var files = Directory.EnumerateFiles(packageDirectory, "*", SearchOption.AllDirectories)
+                .Where(IsPackageLiteraturePath)
+                .Select(path => Path.GetRelativePath(packageDirectory, path).Replace('\\', '/'))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            return PackageLiteratureInspection.FromFiles(files);
         }
+        catch (Exception ex)
+        {
+            return PackageLiteratureInspection.Failed($"Could not inspect package documentation policy: {ex.Message}");
+        }
+    }
 
-        lines.Add(packageManifest.HasUnityRequirement
-            ? $"1. In Unity Hub, open your project with Editor {packageManifest.RequiredUnityVersion}."
-            : "1. Open your Unity project after resolving the required Editor version.");
-        lines.Add(
-            $"2. Add package via Window > Package Manager > + > Add package from disk...{Environment.NewLine}   Path: {packageManifest.Path ?? "Missing SDKPackage/package.json"}");
-        lines.Add(
-            $"3. Unity opens SDK Workbench and SDK Map Exporter automatically.{Environment.NewLine}" +
-            $"   In the setup prompt, select this VSDK install folder: {installRoot}");
-        lines.Add(
-            "4. In SDK Workbench, click Create New Map… or Prepare Active Scene. The SDK configures the map contract and Probe Volumes.");
-        lines.Add(
-            "5. Add entity markers, test in Play Mode, then compile or export from SDK Map Exporter.");
-        lines.Add(
-            "Need the setup prompt again? Use Tools > Vellocet > SDK > Welcome & Setup.");
+    private static bool IsPackageLiteraturePath(string path)
+    {
+        var candidate = path;
+        if (string.Equals(Path.GetExtension(candidate), ".meta", StringComparison.OrdinalIgnoreCase))
+            candidate = Path.GetFileNameWithoutExtension(candidate);
 
-        return string.Join(Environment.NewLine, lines);
+        return LiteratureExtensions.Contains(Path.GetExtension(candidate));
     }
 
     private static string BuildDiagnostics(
@@ -321,10 +317,12 @@ internal sealed class LauncherService(LauncherPaths paths)
         string? packageDirectory,
         PackageInspection packageManifest,
         string? contentDirectory,
-        ContentManifestInspection contentManifest)
+        ContentManifestInspection contentManifest,
+        IReadOnlyList<LauncherCheck> checks)
     {
         var lines = new List<string>
         {
+            $"Official Documentation: {DocumentationUrl}",
             $"Install Root: {installRoot}",
             $"SDK Package Directory: {packageDirectory ?? "Missing"}",
             $"SDK Package Manifest: {packageManifest.Path ?? "Missing"}",
@@ -350,10 +348,42 @@ internal sealed class LauncherService(LauncherPaths paths)
         if (!string.IsNullOrWhiteSpace(contentManifest.ParseError))
             lines.Add($"Content Manifest Parse Error: {contentManifest.ParseError}");
 
+        lines.Add(string.Empty);
+        lines.Add("Required Checks:");
+        lines.AddRange(checks.Select(check =>
+            $"[{(check.Passed ? "OK" : "FAIL")}] {check.Label}: {check.Detail}"));
+
         return string.Join(Environment.NewLine, lines);
     }
 
-    private sealed record CheckResult(string Label, bool Passed, string Detail);
+    private sealed record PackageLiteratureInspection(IReadOnlyList<string> Files, string? Error)
+    {
+        public bool IsCompliant => Error is null && Files.Count == 0;
+
+        public string BuildDetail()
+        {
+            if (!string.IsNullOrWhiteSpace(Error))
+                return Error;
+
+            if (Files.Count == 0)
+                return $"No packaged guides. Current guidance: {DocumentationUrl}";
+
+            const int displayLimit = 4;
+            var listedFiles = string.Join(", ", Files.Take(displayLimit));
+            var remainder = Files.Count > displayLimit ? $" (+{Files.Count - displayLimit} more)" : string.Empty;
+            return $"Remove packaged documentation: {listedFiles}{remainder}";
+        }
+
+        public static PackageLiteratureInspection Failed(string error)
+        {
+            return new PackageLiteratureInspection(Array.Empty<string>(), error);
+        }
+
+        public static PackageLiteratureInspection FromFiles(IReadOnlyList<string> files)
+        {
+            return new PackageLiteratureInspection(files, null);
+        }
+    }
 
     private sealed record PackageInspection(
         bool Exists,
@@ -486,10 +516,20 @@ internal sealed class LauncherService(LauncherPaths paths)
     }
 }
 
+internal sealed record LauncherCheck(string Label, bool Passed, string Detail);
+
 internal sealed record LauncherStatusSnapshot(
     bool IsReady,
     string Summary,
-    string Checklist,
-    string UnityRequirement,
-    string Guide,
-    string Diagnostics);
+    IReadOnlyList<LauncherCheck> Checks,
+    string? PackageVersion,
+    string? RequiredUnityVersion,
+    int? ContentSchemaVersion,
+    int ContentEntryCount,
+    string InstallRoot,
+    string? PackageManifestPath,
+    string Diagnostics)
+{
+    public int PassedCheckCount => Checks.Count(check => check.Passed);
+    public int FailedCheckCount => Checks.Count - PassedCheckCount;
+}

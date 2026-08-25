@@ -23,7 +23,6 @@ internal static class Program
 #endif
 
         return builder
-            .WithInterFont()
             .LogToTrace();
     }
 }

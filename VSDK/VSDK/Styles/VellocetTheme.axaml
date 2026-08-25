@@ -1,0 +1,239 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{DynamicResource VellocetBlack}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetSoftWhite}" />
+        <Setter Property="FontFamily" Value="{DynamicResource VellocetFont}" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetSoftWhite}" />
+    </Style>
+
+    <Style Selector="TextBlock.overline">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetMuted}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="1.5" />
+        <Setter Property="LineHeight" Value="16" />
+    </Style>
+
+    <Style Selector="TextBlock.display">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="FontSize" Value="42" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="-1.4" />
+        <Setter Property="LineHeight" Value="58" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.section-title">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="FontSize" Value="19" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="-0.35" />
+        <Setter Property="LineHeight" Value="24" />
+    </Style>
+
+    <Style Selector="TextBlock.body-large">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetMuted}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="LineHeight" Value="25" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.muted">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetMuted}" />
+    </Style>
+
+    <Style Selector="TextBlock.dim">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetDim}" />
+    </Style>
+
+    <Style Selector="TextBlock.mono">
+        <Setter Property="FontFamily" Value="{DynamicResource VellocetMonoFont}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VellocetMuted}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource VellocetBlack}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.mono">
+        <Setter Property="FontFamily" Value="{DynamicResource VellocetMonoFont}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="Padding" Value="17,8" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="FontFamily" Value="{DynamicResource VellocetFont}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetBlack}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetWhite}" />
+    </Style>
+
+    <Style Selector="Button:pressed">
+        <Setter Property="Background" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetBlack}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="Opacity" Value="0.88" />
+    </Style>
+
+    <Style Selector="Button:focus-visible">
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.36" />
+        <Setter Property="Cursor" Value="Arrow" />
+    </Style>
+
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetBlack}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetWhite}" />
+    </Style>
+
+    <Style Selector="Button.primary:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+    </Style>
+
+    <Style Selector="Button.quiet">
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetMuted}" />
+        <Setter Property="Padding" Value="10,8" />
+    </Style>
+
+    <Style Selector="Button.quiet:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VellocetSurface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLine}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetWhite}" />
+    </Style>
+
+    <Style Selector="ToggleButton.filter-toggle">
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetMuted}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="FontFamily" Value="{DynamicResource VellocetFont}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ToggleButton.filter-toggle:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetWhite}" />
+    </Style>
+
+    <Style Selector="ToggleButton.filter-toggle:checked">
+        <Setter Property="Background" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetBlack}" />
+    </Style>
+
+    <Style Selector="ToggleButton.filter-toggle:focus-visible">
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <Style Selector="Border.metric-row">
+        <Setter Property="Padding" Value="0,11" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLine}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style Selector="Border.check-row">
+        <Setter Property="Padding" Value="0,14" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLine}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style Selector="Border.check-row:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VellocetNearBlack}" />
+    </Style>
+
+    <Style Selector="Border.check-marker">
+        <Setter Property="Width" Value="26" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <Style Selector="Border.check-marker.passed">
+        <Setter Property="Background" Value="{DynamicResource VellocetWhite}" />
+    </Style>
+
+    <Style Selector="Border.check-marker.failed">
+        <Setter Property="Background" Value="{DynamicResource VellocetRed}" />
+    </Style>
+
+    <Style Selector="Border.status-badge">
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style Selector="Border.status-badge.ready">
+        <Setter Property="Background" Value="{DynamicResource VellocetWhite}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetWhite}" />
+    </Style>
+
+    <Style Selector="Border.status-badge.issue">
+        <Setter Property="Background" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+    </Style>
+
+    <Style Selector="Border.callout">
+        <Setter Property="Background" Value="{DynamicResource VellocetNearBlack}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <Style Selector="Border.wiki-callout">
+        <Setter Property="Background" Value="{DynamicResource VellocetNearBlack}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+        <Setter Property="BorderThickness" Value="4,1,1,1" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <Style Selector="Border.feedback">
+        <Setter Property="Background" Value="{DynamicResource VellocetNearBlack}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLineStrong}" />
+        <Setter Property="BorderThickness" Value="3,0,0,0" />
+    </Style>
+
+    <Style Selector="Border.feedback.error">
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetRed}" />
+    </Style>
+
+    <Style Selector="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource VellocetNearBlack}" />
+        <Setter Property="Foreground" Value="{DynamicResource VellocetSoftWhite}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VellocetLineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+</Styles>

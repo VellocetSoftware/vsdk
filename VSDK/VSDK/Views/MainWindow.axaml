@@ -1,62 +1,266 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="VSDK.Views.MainWindow"
-        Width="920"
-        Height="700"
-        MinWidth="820"
-        MinHeight="620"
-        Title="VSDK — Unity SDK Setup"
+        Width="1180"
+        Height="820"
+        MinWidth="980"
+        MinHeight="680"
+        Title="VSDK — Vellocet SDK"
         Icon="/Assets/vellocet-logo.ico">
-    <Grid RowDefinitions="Auto,Auto,*,*,*,Auto" Margin="16" RowSpacing="12">
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="12">
-            <Border Width="72" Height="72" CornerRadius="8" Padding="6">
-                <Image Source="/Assets/vellocet-logo.png" Stretch="Uniform" />
-            </Border>
+    <Grid RowDefinitions="74,*">
+        <Border Grid.Row="0"
+                Background="{DynamicResource VellocetNearBlack}"
+                BorderBrush="{DynamicResource VellocetLine}"
+                BorderThickness="0,0,0,1">
+            <Grid Height="74"
+                  Margin="32,0"
+                  ColumnDefinitions="Auto,1,Auto,*,Auto"
+                  VerticalAlignment="Center">
+                <Image Grid.Column="0"
+                       Width="38"
+                       Height="38"
+                       Margin="0,0,18,0"
+                       Source="/Assets/vellocet-logo.png"
+                       Stretch="Uniform" />
 
-            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                <TextBlock Text="VSDK — Unity SDK Setup" FontWeight="Bold" FontSize="20" />
-                <TextBlock x:Name="VersionTextBlock" />
-                <TextBlock x:Name="UnityRequirementTextBlock"
-                           FontWeight="Bold"
-                           FontSize="16"
-                           TextWrapping="Wrap" />
-                <TextBlock x:Name="InstallRootTextBlock" TextWrapping="Wrap" />
-                <TextBlock x:Name="LastCheckedTextBlock" />
-            </StackPanel>
-        </Grid>
+                <Border Grid.Column="1"
+                        Width="1"
+                        Height="34"
+                        Background="{DynamicResource VellocetLineStrong}" />
 
-        <Border Grid.Row="1" Padding="10,8" CornerRadius="4">
-            <TextBlock x:Name="SummaryTextBlock" TextWrapping="Wrap" />
+                <StackPanel Grid.Column="2"
+                            Margin="18,0,0,0"
+                            Spacing="1"
+                            VerticalAlignment="Center">
+                    <TextBlock Classes="overline" Text="VELLOCET / SDK CONTROL" />
+                    <TextBlock Classes="dim" FontSize="11" Text="AUTHORING DISTRIBUTION" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="4"
+                            Orientation="Horizontal"
+                            Spacing="14"
+                            VerticalAlignment="Center">
+                    <Border x:Name="HeaderStatusBadge" Classes="status-badge ready">
+                        <TextBlock x:Name="HeaderStatusTextBlock"
+                                   Foreground="{DynamicResource VellocetBlack}"
+                                   FontSize="10"
+                                   FontWeight="Bold"
+                                   LetterSpacing="1"
+                                   Text="CHECKING" />
+                    </Border>
+                    <TextBlock x:Name="VersionTextBlock"
+                               Classes="mono dim"
+                               VerticalAlignment="Center"
+                               Text="APP —" />
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <GroupBox Grid.Row="2" Header="Distribution Checklist">
-            <TextBox x:Name="ChecklistTextBox"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     FontFamily="Consolas, Menlo, monospace"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
-        </GroupBox>
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid Margin="40,38,40,28" RowDefinitions="Auto,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,1,310">
+                    <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                        <TextBlock Classes="overline" Text="DISTRIBUTION STATUS" />
+                        <TextBlock x:Name="StatusTitleTextBlock"
+                                   Classes="display"
+                                   Margin="0,8,0,0"
+                                   Text="Inspecting SDK distribution" />
+                        <Border Width="58"
+                                Height="4"
+                                Margin="0,18,0,0"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource VellocetRed}" />
+                        <TextBlock x:Name="SummaryTextBlock"
+                                   Classes="body-large"
+                                   Margin="0,18,0,0"
+                                   MaxWidth="680"
+                                   HorizontalAlignment="Left"
+                                   Text="Checking package and content integrity." />
 
-        <GroupBox Grid.Row="3" Header="Unity Quick Start">
-            <TextBox x:Name="GuideTextBox"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
-        </GroupBox>
+                        <Border Classes="callout" Margin="0,24,0,0" Padding="18,15">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border x:Name="HeroStatusBadge"
+                                        Grid.Column="0"
+                                        Classes="status-badge ready"
+                                        Margin="0,0,16,0"
+                                        VerticalAlignment="Center">
+                                    <TextBlock x:Name="HeroStatusTextBlock"
+                                               Foreground="{DynamicResource VellocetBlack}"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               LetterSpacing="1"
+                                               Text="CHECKING" />
+                                </Border>
+                                <TextBlock x:Name="CheckScoreTextBlock"
+                                           Grid.Column="1"
+                                           Classes="muted"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Text="Reading required checks…" />
+                            </Grid>
+                        </Border>
 
-        <GroupBox Grid.Row="4" Header="Diagnostics">
-            <TextBox x:Name="DiagnosticsTextBox"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     FontFamily="Consolas, Menlo, monospace"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
-        </GroupBox>
+                        <StackPanel Margin="0,18,0,0" Orientation="Horizontal" Spacing="10">
+                            <Button Classes="primary"
+                                    Click="RefreshButtonClicked"
+                                    Content="REFRESH STATUS" />
+                            <Button Click="OpenInstallFolderClicked" Content="OPEN INSTALL FOLDER" />
+                            <Button x:Name="CopyPackagePathButton"
+                                    Classes="quiet"
+                                    Click="CopyPackagePathClicked"
+                                    Content="COPY PACKAGE PATH" />
+                        </StackPanel>
 
-        <TextBlock Grid.Row="5"
-                   Text="Status auto-refreshes every few seconds while this window is open."
-                   TextWrapping="Wrap" />
+                        <Border x:Name="FeedbackBorder"
+                                Classes="feedback"
+                                Margin="0,14,0,0"
+                                Padding="12,8"
+                                IsVisible="False">
+                            <TextBlock x:Name="FeedbackTextBlock"
+                                       Classes="muted"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+                        </Border>
+
+                        <Grid Margin="0,46,0,0" ColumnDefinitions="*,Auto,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Classes="section-title"
+                                       Text="Distribution checks" />
+                            <TextBlock x:Name="CheckCountTextBlock"
+                                       Grid.Column="1"
+                                       Classes="mono dim"
+                                       Margin="0,0,14,0"
+                                       VerticalAlignment="Center"
+                                       Text="—" />
+                            <ToggleButton x:Name="IssuesOnlyToggleButton"
+                                          Grid.Column="2"
+                                          Classes="filter-toggle"
+                                          Click="IssuesOnlyToggleClicked"
+                                          Content="ISSUES ONLY" />
+                        </Grid>
+
+                        <Border Height="1"
+                                Margin="0,12,0,0"
+                                Background="{DynamicResource VellocetWhite}" />
+
+                        <StackPanel x:Name="ChecksPanel" />
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Background="{DynamicResource VellocetLineStrong}" />
+
+                    <StackPanel Grid.Column="2" Margin="34,0,0,0">
+                        <TextBlock Classes="section-title" Text="SDK profile" />
+                        <Border Height="1"
+                                Margin="0,12,0,0"
+                                Background="{DynamicResource VellocetWhite}" />
+
+                        <Border Classes="metric-row">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Classes="muted" Text="SDK version" />
+                                <TextBlock x:Name="SdkVersionTextBlock"
+                                           Grid.Column="1"
+                                           Classes="mono"
+                                           Text="—" />
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="metric-row">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Classes="muted" Text="Required Unity" />
+                                <TextBlock x:Name="UnityVersionTextBlock"
+                                           Grid.Column="1"
+                                           Classes="mono"
+                                           Text="—" />
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="metric-row">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Classes="muted" Text="Content schema" />
+                                <TextBlock x:Name="ContentSchemaTextBlock"
+                                           Grid.Column="1"
+                                           Classes="mono"
+                                           Text="—" />
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="metric-row">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Classes="muted" Text="Managed entries" />
+                                <TextBlock x:Name="ContentEntryCountTextBlock"
+                                           Grid.Column="1"
+                                           Classes="mono"
+                                           Text="—" />
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Classes="overline" Margin="0,34,0,0" Text="INSTALL LOCATION" />
+                        <SelectableTextBlock x:Name="InstallRootTextBlock"
+                                             Classes="mono"
+                                             Margin="0,10,0,0"
+                                             TextWrapping="Wrap"
+                                             Text="—" />
+                        <StackPanel Margin="0,14,0,0" Orientation="Horizontal" Spacing="8">
+                            <Button Click="OpenInstallFolderClicked" Content="OPEN" />
+                            <Button Classes="quiet"
+                                    Click="CopyInstallRootClicked"
+                                    Content="COPY PATH" />
+                        </StackPanel>
+
+                        <Border Classes="wiki-callout" Margin="0,36,0,0" Padding="18,18,18,20">
+                            <StackPanel Spacing="10">
+                                <TextBlock Classes="overline"
+                                           Foreground="{DynamicResource VellocetRed}"
+                                           Text="OFFICIAL DOCUMENTATION" />
+                                <TextBlock Foreground="{DynamicResource VellocetWhite}"
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           LetterSpacing="-0.35"
+                                           Text="One source of truth." />
+                                <TextBlock Classes="muted"
+                                           LineHeight="21"
+                                           TextWrapping="Wrap"
+                                           Text="Setup, mapping, VSig, audio, and publishing guidance lives on the Vellocet developer wiki." />
+                                <Button Classes="primary"
+                                        Margin="0,5,0,0"
+                                        HorizontalAlignment="Stretch"
+                                        Click="OpenDocumentationClicked"
+                                        Content="OPEN DEVELOPER WIKI  ↗" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="overline" Margin="0,34,0,0" Text="SUPPORT" />
+                        <TextBlock Classes="muted"
+                                   Margin="0,9,0,0"
+                                   LineHeight="20"
+                                   TextWrapping="Wrap"
+                                   Text="Copy a complete environment snapshot when reporting an installation problem." />
+                        <Button Margin="0,13,0,0"
+                                HorizontalAlignment="Left"
+                                Click="CopyDiagnosticsClicked"
+                                Content="COPY DIAGNOSTICS" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Margin="0,38,0,0"
+                        Padding="0,16,0,0"
+                        BorderBrush="{DynamicResource VellocetLine}"
+                        BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Classes="dim"
+                                   FontSize="11"
+                                   Text="VSDK watches the installed distribution while this window is open." />
+                        <TextBlock x:Name="LastCheckedTextBlock"
+                                   Grid.Column="1"
+                                   Classes="mono dim"
+                                   Text="LAST CHECK —" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Window>
