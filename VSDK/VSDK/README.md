@@ -11,7 +11,7 @@ The launcher and SDK are distributed under the terms in `LICENSE.txt`.
 ## Capabilities
 
 - Detects the Steam Tool distribution root from the launcher location.
-- Validates package identity, version, license metadata, required Unity version, and content schema.
+- Validates package identity, version, license metadata, required Unity version, content schema, and canonical documentation URL.
 - Verifies the SDK content manifest, managed entry set, and content assets folder.
 - Enforces the wiki-only documentation policy for `SDKPackage`.
 - Shows structured pass/fail checks with an issues-only filter.

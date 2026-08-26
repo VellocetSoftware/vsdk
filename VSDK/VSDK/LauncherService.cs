@@ -68,6 +68,10 @@ internal sealed class LauncherService(LauncherPaths paths)
                 packageManifest.HasExpectedName
                     ? ExpectedPackageName
                     : $"Expected {ExpectedPackageName}, got {packageManifest.Name ?? "unknown"}."),
+            new LauncherCheck("Official documentation URL", packageManifest.HasExpectedDocumentationUrl,
+                packageManifest.HasExpectedDocumentationUrl
+                    ? DocumentationUrl
+                    : $"Expected {DocumentationUrl}, got {packageManifest.DocumentationUrl ?? "missing"}."),
             new LauncherCheck("SDK package version", packageManifest.HasValidVersion,
                 packageManifest.HasValidVersion
                     ? packageManifest.Version!
@@ -171,6 +175,11 @@ internal sealed class LauncherService(LauncherPaths paths)
                 ? licenseProperty.GetString()
                 : null;
 
+            var documentationUrl = root.TryGetProperty("documentationUrl", out var documentationUrlProperty) &&
+                                   documentationUrlProperty.ValueKind == JsonValueKind.String
+                ? documentationUrlProperty.GetString()
+                : null;
+
             var contentSchemaVersion =
                 root.TryGetProperty("vellocetSdkContentSchemaVersion", out var contentSchemaProperty) &&
                 contentSchemaProperty.ValueKind == JsonValueKind.Number &&
@@ -188,6 +197,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 unity,
                 unityRelease,
                 license,
+                documentationUrl,
                 contentSchemaVersion,
                 requiredUnityVersion,
                 unityRequirementError);
@@ -330,6 +340,7 @@ internal sealed class LauncherService(LauncherPaths paths)
             $"SDK Package Name: {packageManifest.Name ?? "Unknown"}",
             $"SDK Package Version: {packageManifest.Version ?? "Unknown"}",
             $"SDK Package License: {packageManifest.License ?? "Unknown"}",
+            $"SDK Package Documentation: {packageManifest.DocumentationUrl ?? "Unknown"}",
             $"SDK Package Content Schema: {packageManifest.ContentSchemaVersion?.ToString(CultureInfo.InvariantCulture) ?? "Unknown"}",
             $"SDK Package Unity: {packageManifest.Unity ?? "Unknown"}",
             $"SDK Package Unity Release: {packageManifest.UnityRelease ?? "Unknown"}",
@@ -394,6 +405,7 @@ internal sealed class LauncherService(LauncherPaths paths)
         string? Unity,
         string? UnityRelease,
         string? License,
+        string? DocumentationUrl,
         int? ContentSchemaVersion,
         string? RequiredUnityVersion,
         string? UnityRequirementError,
@@ -409,6 +421,10 @@ internal sealed class LauncherService(LauncherPaths paths)
         public bool HasExpectedLicenseDeclaration =>
             IsParsed && string.Equals(License?.Trim(), ExpectedPackageLicense, StringComparison.Ordinal);
 
+        public bool HasExpectedDocumentationUrl =>
+            IsParsed && string.Equals(DocumentationUrl?.Trim(), LauncherService.DocumentationUrl,
+                StringComparison.Ordinal);
+
         public bool HasContentSchemaVersion => IsParsed && ContentSchemaVersion > 0;
 
         public static PackageInspection Missing(string? path = null)
@@ -417,6 +433,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 false,
                 false,
                 path,
+                null,
                 null,
                 null,
                 null,
@@ -435,6 +452,7 @@ internal sealed class LauncherService(LauncherPaths paths)
             string? unity,
             string? unityRelease,
             string? license,
+            string? documentationUrl,
             int? contentSchemaVersion,
             string? requiredUnityVersion,
             string? unityRequirementError)
@@ -448,6 +466,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 unity,
                 unityRelease,
                 license,
+                documentationUrl,
                 contentSchemaVersion,
                 requiredUnityVersion,
                 unityRequirementError,
@@ -460,6 +479,7 @@ internal sealed class LauncherService(LauncherPaths paths)
                 true,
                 false,
                 path,
+                null,
                 null,
                 null,
                 null,
