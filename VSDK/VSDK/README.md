@@ -42,8 +42,8 @@ chmod +x scripts/build-steam-tool.sh
 ./scripts/build-steam-tool.sh
 ```
 
-The default launcher artifact is written to `Build/Launcher`. Grimwar TeamCity combines it with `SDKPackage`,
-`SDKContent`, and the distribution license before publishing the Steam Tool payload.
+The default launcher artifact is written to `Build/Launcher`. The product build pipeline combines it with
+`SDKPackage`, `SDKContent`, and the distribution license before publishing the Steam Tool payload.
 
 Steam launch paths:
 

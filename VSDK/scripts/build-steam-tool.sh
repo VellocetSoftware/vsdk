@@ -180,7 +180,7 @@ Launch executables:
 - macOS:   Launcher/osx-arm64/VSDK
 - macOS:   Launcher/osx-x64/VSDK
 
-This is the launcher artifact only. Grimwar TeamCity composes this with SDKPackage/ and SDKContent/ for Steam.
+This is the launcher artifact only. The product build pipeline composes this with SDKPackage/ and SDKContent/ for Steam.
 
 Expected composed Steam tool layout:
 - Launcher/
