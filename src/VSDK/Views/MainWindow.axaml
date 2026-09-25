@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="VSDK.Views.MainWindow" Width="660" Height="460" MinWidth="540" MinHeight="380"
+        Title="Grimwar SDK" Icon="/Assets/vellocet-logo.ico">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="32" Spacing="18">
+      <Image Source="/Assets/vellocet-logo.png" Width="38" Height="38" HorizontalAlignment="Left"/>
+      <TextBlock Text="Grimwar SDK" FontSize="28" FontWeight="SemiBold"/>
+      <TextBlock Text="Build your world in Vertex." FontSize="18"/>
+      <TextBlock Text="Create a project, make a map, and export an add-on. Your game assets and compiler settings are supplied by the SDK." TextWrapping="Wrap"/>
+      <TextBlock x:Name="Status" TextWrapping="Wrap"/>
+      <WrapPanel>
+        <Button x:Name="OpenVertexButton" Content="Open Vertex" Classes="primary" Click="OpenVertexClicked" Margin="0,0,8,8"/>
+        <Button Content="Open project…" Click="OpenProjectClicked" Margin="0,0,8,8"/>
+        <Button Content="Documentation" Click="DocumentationClicked" Margin="0,0,8,8"/>
+      </WrapPanel>
+      <Expander Header="Installation details">
+        <StackPanel Spacing="10">
+          <SelectableTextBlock x:Name="InstallPath" TextWrapping="Wrap"/>
+          <TextBlock Text="Install the indicated Unity version through Unity Hub and activate its license once. Vertex prepares the compiler on first export. No game source project or manual Package Manager setup is needed." TextWrapping="Wrap"/>
+          <Button Content="Check installation" Click="CheckClicked"/>
+        </StackPanel>
+      </Expander>
+    </StackPanel>
+  </ScrollViewer>
+</Window>

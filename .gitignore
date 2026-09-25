@@ -1,14 +1,30 @@
 # macOS
 .DS_Store
+._*
+Thumbs.db
+Desktop.ini
 
 # IDE
 .idea/
 .vscode/
+.vs/
 *.user
 *.suo
 *.DotSettings.user
 
 # .NET / Avalonia build outputs
-/VSDK/Build/
-/VSDK/VSDK/bin/
-/VSDK/VSDK/obj/
+**/bin/
+**/obj/
+/artifacts/
+TestResults/
+*.log
+*.tmp
+
+# Machine-local SDK connections and credentials.
+*.local.vertexsdk
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pfx
+*.p12

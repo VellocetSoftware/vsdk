@@ -16,7 +16,7 @@ Usage:
 
 Options:
   --output <path>            Output directory for staged launcher binaries.
-                             Default: Build/Launcher (under this solution root)
+                             Default: artifacts/launcher (under this repository)
   --configuration <name>     dotnet configuration (default: Release)
   --framework-dependent      Publish framework-dependent instead of self-contained
   --help                     Show this help
@@ -24,15 +24,14 @@ USAGE
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOLUTION_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPOSITORY_ROOT="$(cd "$SOLUTION_ROOT/.." && pwd)"
-PROJECT_FILE="$SOLUTION_ROOT/VSDK/VSDK.csproj"
-SOLUTION_FILE="$SOLUTION_ROOT/VSDK.sln"
+REPOSITORY_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_FILE="$REPOSITORY_ROOT/src/VSDK/VSDK.csproj"
+SOLUTION_FILE="$REPOSITORY_ROOT/VSDK.slnx"
 LICENSE_FILE="$REPOSITORY_ROOT/LICENSE.txt"
 
 CONFIGURATION="Release"
 SELF_CONTAINED="true"
-OUTPUT_ROOT="$SOLUTION_ROOT/Build/Launcher"
+OUTPUT_ROOT="$REPOSITORY_ROOT/artifacts/launcher"
 RIDS=("win-x64" "osx-arm64" "osx-x64")
 
 while [[ $# -gt 0 ]]; do
@@ -115,17 +114,17 @@ mkdir -p "$output_parent"
 output_parent="$(cd "$output_parent" && pwd)"
 OUTPUT_ROOT="$output_parent/$output_name"
 
-if [[ "$OUTPUT_ROOT" == "$SOLUTION_ROOT" || "$OUTPUT_ROOT" == "$REPOSITORY_ROOT" ]]; then
+if [[ "$OUTPUT_ROOT" == "$REPOSITORY_ROOT" ]]; then
   echo "Refusing to use a repository root as the output directory: $OUTPUT_ROOT" >&2
   exit 1
 fi
 
 mkdir -p "$OUTPUT_ROOT"
 
-require_dir "$SOLUTION_ROOT/VSDK"
+require_file "$PROJECT_FILE"
 require_file "$LICENSE_FILE"
 
-echo "==> Solution root: $SOLUTION_ROOT"
+echo "==> Repository: $REPOSITORY_ROOT"
 echo "==> Output root:   $OUTPUT_ROOT"
 echo "==> Configuration: $CONFIGURATION"
 echo "==> Self-contained: $SELF_CONTAINED"
@@ -158,7 +157,7 @@ for rid in "${RIDS[@]}"; do
     -p:DebugSymbols=false \
     --nologo
 
-  publish_dir="$SOLUTION_ROOT/VSDK/bin/$CONFIGURATION/net10.0/$rid/publish"
+  publish_dir="$REPOSITORY_ROOT/src/VSDK/bin/$CONFIGURATION/net10.0/$rid/publish"
   require_dir "$publish_dir"
   copy_tree "$publish_dir" "$OUTPUT_ROOT/Launcher/$rid"
 
@@ -180,12 +179,15 @@ Launch executables:
 - macOS:   Launcher/osx-arm64/VSDK
 - macOS:   Launcher/osx-x64/VSDK
 
-This is the launcher artifact only. The product build pipeline composes this with SDKPackage/ and SDKContent/ for Steam.
+This is the launcher artifact only. The product build pipeline composes this with the Vertex SDK compiler, authoring catalogs and editor for Steam.
 
 Expected composed Steam tool layout:
 - Launcher/
-- SDKPackage/
-- SDKContent/
+- Grimwar.vertexsdk
+- Compiler/
+- Compiler.inputs.json
+- Authoring/
+- Editor/
 - LICENSE.txt
 EOF
 

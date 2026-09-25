@@ -22,10 +22,7 @@ public class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var paths = new LauncherPaths(AppContext.BaseDirectory);
-            var launcherService = new LauncherService(paths);
-
-            desktop.MainWindow = new MainWindow(launcherService);
+            desktop.MainWindow = new MainWindow(Program.Service());
         }
 
         base.OnFrameworkInitializationCompleted();
