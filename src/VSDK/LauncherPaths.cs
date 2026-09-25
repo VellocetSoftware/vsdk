@@ -16,7 +16,7 @@ internal sealed class LauncherPaths
         var platform = OperatingSystem.IsMacOS() ? "osx" : OperatingSystem.IsWindows() ? "win" : "linux";
         var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
         VertexExecutable = Path.GetFullPath(vertex ?? Path.Combine(InstallRoot, "Editor", platform + "-" + architecture,
-            OperatingSystem.IsWindows() ? "Vertex.Desktop.exe" : "Vertex.Desktop"));
+            OperatingSystem.IsWindows() ? "Vertex.exe" : "Vertex"));
     }
     public string Manifest { get; }
     public string InstallRoot { get; }

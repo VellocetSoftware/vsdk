@@ -15,7 +15,7 @@ dotnet run --project src/VSDK -c Release -- --sdk /path/to/Grimwar.vertexsdk
 dotnet run --project src/VSDK -c Release -- --check --sdk /path/to/Grimwar.vertexsdk
 ```
 
-`--vertex /path/to/Vertex.Desktop` overrides the bundled executable for local development. `--sdk` also accepts a developer connection published by Grimwar; Vertex then offers Save to Unity as well as Export add-on.
+`--vertex /path/to/Vertex` overrides the bundled executable for local development. `--sdk` also accepts a developer connection published by Grimwar; Vertex then offers Save to Unity as well as Export add-on.
 
 ## Distribution
 
@@ -26,7 +26,7 @@ Grimwar.vertexsdk
 Compiler.inputs.json
 Compiler/
 Authoring/
-Editor/<runtime-id>/Vertex.Desktop[.exe]
+Editor/<runtime-id>/Vertex[.exe]
 Launcher/<runtime-id>/VSDK[.exe]
 LICENSE.txt
 ```
