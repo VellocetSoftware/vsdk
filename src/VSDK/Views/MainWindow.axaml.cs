@@ -27,12 +27,12 @@ public partial class MainWindow : Window
     private void SetStatus(string message) => this.FindControl<TextBlock>("Status")!.Text = message;
     private void CheckClicked(object? sender, RoutedEventArgs args) => Check();
     private void OpenVertexClicked(object? sender, RoutedEventArgs args) => OpenVertex();
-    private void OpenVertex(string? project = null)
-    { try { _service.OpenVertex(project); SetStatus("Vertex opened. Choose File → New project to start a map."); } catch (Exception error) { SetStatus(error.Message); } }
-    private async void OpenProjectClicked(object? sender, RoutedEventArgs args)
+    private void OpenVertex(string? map = null)
+    { try { _service.OpenVertex(map); SetStatus("Vertex opened. Choose File → New map, then save a .vertex file."); } catch (Exception error) { SetStatus(error.Message); } }
+    private async void OpenMapClicked(object? sender, RoutedEventArgs args)
     {
-        var files = await StorageProvider.OpenFilePickerAsync(new() { Title = "Open Vertex project", AllowMultiple = false,
-            FileTypeFilter = [new FilePickerFileType("Vertex project") { Patterns = ["*.vertexproject"] }] });
+        var files = await StorageProvider.OpenFilePickerAsync(new() { Title = "Open Vertex map", AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType("Vertex map") { Patterns = ["*.vertex"] }] });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path) OpenVertex(path);
     }
     private async void DocumentationClicked(object? sender, RoutedEventArgs args)

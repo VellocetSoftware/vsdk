@@ -2,6 +2,11 @@
 
 The Grimwar SDK launcher opens Vertex with the installed game profile and compiler. Map authors use Vertex for geometry, entities, materials, VSig and add-on exports. They do not create a Unity project or copy Package Manager paths.
 
+Choose **File → New map** in Vertex, save a `.vertex` file, and reopen that map
+directly next time. Game identity and script references travel with the map; SDK
+installation paths are remembered on each computer. No `.vertexproject` is needed.
+The launcher's **Open map…** action passes `--map` to Vertex.
+
 Unity remains the asset and compilation backend. The required Unity version and license must be installed once through Unity Hub. Vertex detects standard Hub installations and prepares a private compiler on first export.
 
 ## Build and test

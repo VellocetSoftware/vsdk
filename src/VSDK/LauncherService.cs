@@ -32,12 +32,12 @@ internal sealed class LauncherService(LauncherPaths paths)
         return $"{game.GetProperty("name").GetString()} SDK ready · {game.GetProperty("engineId").GetString()} {version}";
     }
 
-    public void OpenVertex(string? project = null)
+    public void OpenVertex(string? map = null)
     {
         Inspect();
         var start = new ProcessStartInfo(Paths.VertexExecutable) { UseShellExecute = false, WorkingDirectory = Paths.InstallRoot };
         start.ArgumentList.Add("--sdk"); start.ArgumentList.Add(Paths.Manifest);
-        if (project != null) { start.ArgumentList.Add("--project"); start.ArgumentList.Add(Path.GetFullPath(project)); }
+        if (map != null) { start.ArgumentList.Add("--map"); start.ArgumentList.Add(Path.GetFullPath(map)); }
         using var process = Process.Start(start) ?? throw new IOException("Vertex could not start.");
     }
 

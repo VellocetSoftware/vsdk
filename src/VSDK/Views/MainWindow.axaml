@@ -7,11 +7,11 @@
       <Image Source="/Assets/vellocet-logo.png" Width="38" Height="38" HorizontalAlignment="Left"/>
       <TextBlock Text="Grimwar SDK" FontSize="28" FontWeight="SemiBold"/>
       <TextBlock Text="Build your world in Vertex." FontSize="18"/>
-      <TextBlock Text="Create a project, make a map, and export an add-on. Your game assets and compiler settings are supplied by the SDK." TextWrapping="Wrap"/>
+      <TextBlock Text="Make a map, save it, and export an add-on. Your game assets and compiler settings are supplied by the SDK." TextWrapping="Wrap"/>
       <TextBlock x:Name="Status" TextWrapping="Wrap"/>
       <WrapPanel>
         <Button x:Name="OpenVertexButton" Content="Open Vertex" Classes="primary" Click="OpenVertexClicked" Margin="0,0,8,8"/>
-        <Button Content="Open project…" Click="OpenProjectClicked" Margin="0,0,8,8"/>
+        <Button Content="Open map…" Click="OpenMapClicked" Margin="0,0,8,8"/>
         <Button Content="Documentation" Click="DocumentationClicked" Margin="0,0,8,8"/>
       </WrapPanel>
       <Expander Header="Installation details">
