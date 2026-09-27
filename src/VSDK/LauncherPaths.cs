@@ -10,8 +10,12 @@ internal sealed class LauncherPaths
     public LauncherPaths(string executableDirectory, string? sdk = null, string? vertex = null)
     {
         var current = new DirectoryInfo(executableDirectory);
-        for (var i = 0; i < 8 && current?.Parent != null && !File.Exists(Path.Combine(current.FullName, "Grimwar.vertexsdk")); i++) current = current.Parent;
-        Manifest = Path.GetFullPath(sdk ?? Path.Combine(current?.FullName ?? executableDirectory, "Grimwar.vertexsdk"));
+        for (var i = 0; sdk == null && i < 8 && current != null; i++, current = current.Parent)
+        {
+            var manifests = current.GetFiles("*.vertexsdk");
+            if (manifests.Length == 1) sdk = manifests[0].FullName;
+        }
+        Manifest = Path.GetFullPath(sdk ?? Path.Combine(executableDirectory, "Game.vertexsdk"));
         InstallRoot = Path.GetDirectoryName(Manifest)!;
         var platform = OperatingSystem.IsMacOS() ? "osx" : OperatingSystem.IsWindows() ? "win" : "linux";
         var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";

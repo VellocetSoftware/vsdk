@@ -11,12 +11,53 @@ internal sealed class LauncherService(LauncherPaths paths)
     internal const string DocumentationUrl = "https://developer.vellocetsoftware.com/wiki/Vellocet_SDK";
     public LauncherPaths Paths { get; } = paths;
 
+    public async Task<SetupStatus> SetupStatusAsync(CancellationToken cancellation = default)
+    {
+        Inspect();
+        var output = await RunSetupAsync("--inspect-sdk", null, null, null, cancellation);
+        return JsonSerializer.Deserialize<SetupStatus>(output) ?? throw new InvalidDataException("Vertex returned no setup information.");
+    }
+
+    public Task ConfigureAsync(string? engine, string? game, Action<string> progress, CancellationToken cancellation) =>
+        RunSetupAsync("--setup-sdk", engine, game, progress, cancellation);
+
+    private async Task<string> RunSetupAsync(string action, string? engine, string? game, Action<string>? progress,
+        CancellationToken cancellation)
+    {
+        var start = new ProcessStartInfo(Paths.VertexExecutable)
+        {
+            UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true
+        };
+        start.ArgumentList.Add(action); start.ArgumentList.Add(Paths.Manifest);
+        if (!string.IsNullOrWhiteSpace(engine)) { start.ArgumentList.Add("--engine"); start.ArgumentList.Add(engine); }
+        if (!string.IsNullOrWhiteSpace(game)) { start.ArgumentList.Add("--game"); start.ArgumentList.Add(game); }
+        using var process = Process.Start(start) ?? throw new IOException("Vertex could not start setup.");
+        var errors = process.StandardError.ReadToEndAsync(cancellation);
+        var output = new System.Text.StringBuilder();
+        try
+        {
+            while (await process.StandardOutput.ReadLineAsync(cancellation) is { } line)
+            {
+                output.AppendLine(line);
+                progress?.Invoke(line);
+            }
+            await process.WaitForExitAsync(cancellation);
+            var error = await errors;
+            if (process.ExitCode != 0) throw new InvalidOperationException(string.IsNullOrWhiteSpace(error) ? "Vertex setup failed." : error.Trim());
+            return output.ToString();
+        }
+        finally
+        {
+            if (!process.HasExited) { process.Kill(true); await process.WaitForExitAsync(CancellationToken.None); }
+        }
+    }
+
     public string Inspect()
     {
-        if (!File.Exists(Paths.Manifest)) throw new FileNotFoundException("Reinstall the Grimwar SDK: its Vertex connection is missing.", Paths.Manifest);
+        if (!File.Exists(Paths.Manifest)) throw new FileNotFoundException("Reinstall the game SDK: its Vertex connection is missing.", Paths.Manifest);
         using var sdk = JsonDocument.Parse(File.ReadAllBytes(Paths.Manifest));
         var root = sdk.RootElement;
-        if (root.GetProperty("formatVersion").GetInt32() != 1) throw new InvalidDataException("Update the Grimwar SDK launcher to read this SDK version.");
+        if (root.GetProperty("formatVersion").GetInt32() != 1) throw new InvalidDataException("Update the game SDK launcher to read this SDK version.");
         var gamePath = Resolve(root.GetProperty("game").GetProperty("path").GetString());
         using var profile = JsonDocument.Parse(File.ReadAllBytes(gamePath));
         var game = profile.RootElement;
@@ -28,7 +69,7 @@ internal sealed class LauncherService(LauncherPaths paths)
         if (!Directory.Exists(compiler)) throw new InvalidDataException("The SDK compiler is missing. Reinstall the SDK.");
         if (!root.TryGetProperty("editorProject", out _) && !File.Exists(Resolve(root.GetProperty("compilerInputs").GetString())))
             throw new InvalidDataException("The SDK compiler inventory is missing. Reinstall the SDK.");
-        if (!File.Exists(Paths.VertexExecutable)) throw new FileNotFoundException("Vertex is missing for this computer. Reinstall the matching Grimwar SDK distribution.", Paths.VertexExecutable);
+        if (!File.Exists(Paths.VertexExecutable)) throw new FileNotFoundException("Vertex is missing for this computer. Reinstall the matching game SDK distribution.", Paths.VertexExecutable);
         return $"{game.GetProperty("name").GetString()} SDK ready · {game.GetProperty("engineId").GetString()} {version}";
     }
 
@@ -48,3 +89,6 @@ internal sealed class LauncherService(LauncherPaths paths)
         return Path.GetFullPath(Path.Combine(Paths.InstallRoot, relative));
     }
 }
+
+internal sealed record SetupStatus(string Name, string Engine, string Version, string EngineExecutable,
+    string? GameExecutable, bool Developer, bool Ready, bool CanPlay, string? InstallationUrl);

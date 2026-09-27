@@ -1,24 +1,38 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="VSDK.Views.MainWindow" Width="660" Height="460" MinWidth="540" MinHeight="380"
-        Title="Grimwar SDK" Icon="/Assets/vellocet-logo.ico">
+        x:Class="VSDK.Views.MainWindow" Width="700" Height="650" MinWidth="560" MinHeight="460"
+        Title="SDK setup" Icon="/Assets/vellocet-logo.ico">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="32" Spacing="18">
       <Image Source="/Assets/vellocet-logo.png" Width="38" Height="38" HorizontalAlignment="Left"/>
-      <TextBlock Text="Grimwar SDK" FontSize="28" FontWeight="SemiBold"/>
-      <TextBlock Text="Build your world in Vertex." FontSize="18"/>
-      <TextBlock Text="Make a map, save it, and export an add-on. Your game assets and compiler settings are supplied by the SDK." TextWrapping="Wrap"/>
-      <TextBlock x:Name="Status" TextWrapping="Wrap"/>
+      <TextBlock x:Name="Heading" Text="SDK setup" FontSize="28" FontWeight="SemiBold"/>
+      <TextBlock x:Name="Workflow" Text="Connect your SDK to Vertex." TextWrapping="Wrap"/>
+      <StackPanel x:Name="Locations" Spacing="14">
+        <TextBlock x:Name="EngineRequirement" TextWrapping="Wrap"/>
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox x:Name="EnginePath" PlaceholderText="Engine executable or app" AutomationProperties.Name="Engine executable"/>
+          <Button Grid.Column="1" Content="Choose…" Tag="EnginePath" Click="ChooseExecutableClicked" Margin="8,0,0,0"/>
+        </Grid>
+        <Button x:Name="InstallEngine" IsVisible="False" Click="InstallEngineClicked"/>
+        <StackPanel x:Name="GameSettings" Spacing="8">
+          <TextBlock Text="Game executable · optional until you playtest" TextWrapping="Wrap"/>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox x:Name="GamePath" PlaceholderText="Installed game executable or app" AutomationProperties.Name="Game executable"/>
+            <Button Grid.Column="1" Content="Choose…" Tag="GamePath" Click="ChooseExecutableClicked" Margin="8,0,0,0"/>
+          </Grid>
+        </StackPanel>
+      </StackPanel>
+      <TextBlock x:Name="Status" Text="Checking installation…" TextWrapping="Wrap"/>
       <WrapPanel>
-        <Button x:Name="OpenVertexButton" Content="Open Vertex" Classes="primary" Click="OpenVertexClicked" Margin="0,0,8,8"/>
-        <Button Content="Open map…" Click="OpenMapClicked" Margin="0,0,8,8"/>
-        <Button Content="Documentation" Click="DocumentationClicked" Margin="0,0,8,8"/>
+        <Button x:Name="Configure" Content="Finish setup and open Vertex" IsEnabled="False" Classes="primary" Click="ConfigureClicked" Margin="0,0,8,8"/>
+        <Button x:Name="CancelSetup" Content="Cancel setup" IsVisible="False" Click="CancelClicked" Margin="0,0,8,8"/>
+        <Button x:Name="OpenVertexButton" Content="Author without compiler setup" IsEnabled="False" Click="OpenVertexClicked" Margin="0,0,8,8"/>
       </WrapPanel>
       <Expander Header="Installation details">
         <StackPanel Spacing="10">
           <SelectableTextBlock x:Name="InstallPath" TextWrapping="Wrap"/>
-          <TextBlock Text="Install the indicated Unity version through Unity Hub and activate its license once. Vertex prepares the compiler on first export. No game source project or manual Package Manager setup is needed." TextWrapping="Wrap"/>
-          <Button Content="Check installation" Click="CheckClicked"/>
+          <TextBlock Text="Maps and preferences stay outside this installation. Update the complete game SDK through its distributor. Change engine and game locations in Vertex’s Build → Advanced settings." TextWrapping="Wrap"/>
+          <Button Content="Documentation" Click="DocumentationClicked"/>
         </StackPanel>
       </Expander>
     </StackPanel>

@@ -19,6 +19,7 @@ Desktop.ini
 TestResults/
 *.log
 *.tmp
+__pycache__/
 
 # Machine-local SDK connections and credentials.
 *.local.vertexsdk

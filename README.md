@@ -1,30 +1,53 @@
 # VSDK
 
-The Grimwar SDK launcher opens Vertex with the installed game profile and compiler. Map authors use Vertex for geometry, entities, materials, VSig and add-on exports. They do not create a Unity project or copy Package Manager paths.
+VSDK sets up a game's SDK and opens Vertex. The complete SDK supplies the editor,
+authoring content, engine packages and a standalone compiler. First launch detects
+the required engine version, accepts an optional installed game location, prepares
+the writable compiler cache and registers the game in Vertex. Later launches open
+Vertex directly. Modders do not create an engine project or copy package paths.
 
-Choose **File → New map** in Vertex, save a `.vertex` file, and reopen that map
-directly next time. Game identity and script references travel with the map; SDK
-installation paths are remembered on each computer. No `.vertexproject` is needed.
-The launcher's **Open map…** action passes `--map` to Vertex.
+Create or open `.vertex` maps in Vertex. **Play in Game** compiles the current map,
+installs its add-on and launches the installed game. **Export add-on** creates a
+package for distribution. Grimwar's public SDK contains no private gameplay source
+and offers no game playback in Unity. Its developers instead connect the private
+game checkout through Unity's **Tools → Vertex → Open Map Editor**, then use
+**Save to Unity** and play in that editor.
 
-Unity remains the asset and compilation backend. The required Unity version and license must be installed once through Unity Hub. Vertex detects standard Hub installations and prepares a private compiler on first export.
+These choices come from the game's profile and SDK connection. Studios can expose
+an editor project publicly when their game permits it. VSDK discovers any single
+`.vertexsdk` beside or above the launcher; it has no hardcoded game identity.
 
 ## Build and test
 
-From this repository root:
-
 ```sh
 dotnet build VSDK.slnx -c Release
-dotnet run --project src/VSDK -c Release -- --sdk /path/to/Grimwar.vertexsdk
-# Validate an installation without opening the GUI:
-dotnet run --project src/VSDK -c Release -- --check --sdk /path/to/Grimwar.vertexsdk
+python3 -m unittest discover -s scripts -p 'test_*.py'
+dotnet run --project src/VSDK -c Release -- --sdk /path/to/Game.vertexsdk
+# Check distribution files without opening a window:
+dotnet run --project src/VSDK -c Release -- --check --sdk /path/to/Game.vertexsdk
 ```
 
-`--vertex /path/to/Vertex` overrides the bundled executable for local development. `--sdk` also accepts a developer connection published by Grimwar; Vertex then offers Save to Unity as well as Export add-on.
+`--vertex /path/to/Vertex` selects a local editor build. `--map /path/to/Map.vertex`
+opens a map after setup; `--setup` reopens setup even when already configured.
+Unity users install and activate the version named by their profile through Unity
+Hub, including the build module for their target platform. Setup detects standard
+Hub locations and lets users choose a different installation.
 
 ## Distribution
 
-`scripts/build-steam-tool.sh` publishes the launcher. Compose its `Launcher/` output with the distribution produced by Grimwar's `SdkToolsBuilder`:
+Build the matching Vertex inputs first, then compose the toolkit:
+
+```sh
+# In the Vertex checkout, on macOS:
+python3 tools/build-sdk.py
+# In this checkout:
+python3 scripts/build-sdk.py --vertex ../vertex/artifacts/sdk
+```
+
+TeamCity's **Tools → Vertex → Build and Validate** supplies the editors and matching
+Unity package. **Tools → VSDK → Build SDK Toolkit** consumes that same-chain editor
+artifact and publishes `vsdk-tools.zip`. Grimwar consumes the toolkit and Unity
+package from the same chain, exports its approved content and atomically publishes:
 
 ```text
 Grimwar.vertexsdk
@@ -33,15 +56,24 @@ Compiler/
 Authoring/
 Editor/<runtime-id>/Vertex[.exe]
 Launcher/<runtime-id>/VSDK[.exe]
+toolchain.json
 LICENSE.txt
 ```
 
-Steam launch paths remain `Launcher/win-x64/VSDK.exe`, `Launcher/osx-arm64/VSDK` and `Launcher/osx-x64/VSDK`. The launcher discovers `Grimwar.vertexsdk` above its executable and starts the matching bundled Vertex. The publisher must supply a Vertex binary for every distributed runtime.
+The runtimes are `win-x64`, `osx-arm64`, and `osx-x64`. Steam's launch paths remain
+`Launcher/win-x64/VSDK.exe`, `Launcher/osx-arm64/VSDK`, and `Launcher/osx-x64/VSDK`.
+`toolchain.json` records the Vertex, VSDK and game source revisions. Release the
+complete SDK together; never update just one executable or package inside it.
 
-The compiler contains the SDK, engine dependencies, approved base-content proxies and portable Grimwar authoring contracts. It contains no Grimwar gameplay implementation. Vertex verifies its file inventory before preparing a writable copy; installed SDK files remain read-only inputs.
+Vertex verifies the compiler inventory before preparing a writable cache outside
+the installed SDK. Updates select a new compiler revision while keeping maps,
+preferences, installed game locations and developer connections. Each map retains
+its chosen SDK connection even when another installation of the same game is added.
 
-The [Vellocet SDK wiki](https://developer.vellocetsoftware.com/wiki/Vellocet_SDK) is the public documentation. Distribution terms are in `LICENSE.txt`; the Monda font license is in `src/VSDK/Assets/Fonts/OFL.txt`.
+The [Vellocet SDK wiki](https://developer.vellocetsoftware.com/wiki/Vellocet_SDK)
+is the public documentation. Distribution terms are in `LICENSE.txt`; the Monda
+font license is in `src/VSDK/Assets/Fonts/OFL.txt`.
 
-## Repository layout
-
-`src/VSDK` contains the launcher; `scripts` contains its publisher. Generated builds live in ignored `artifacts/` directories. Shared TeamCity configuration lives in the sibling `build-infra` repository.
+`src/VSDK` contains the launcher and setup UI; `scripts` contains toolkit packaging.
+Generated builds live in ignored `artifacts/`. TeamCity configuration lives in the
+sibling `build-infra` repository.
