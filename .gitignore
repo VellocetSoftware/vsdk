@@ -21,6 +21,10 @@ TestResults/
 *.tmp
 __pycache__/
 
+# TeamCity checkout and dependency artifacts.
+/_build-infra/
+/Incoming/
+
 # Machine-local SDK connections and credentials.
 *.local.vertexsdk
 .env
