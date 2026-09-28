@@ -3,8 +3,9 @@
 VSDK sets up a game's SDK and opens Vertex. The complete SDK supplies the editor,
 authoring content, engine packages and a standalone compiler. First launch detects
 the required engine version, accepts an optional installed game location, prepares
-the writable compiler cache and registers the game in Vertex. Later launches open
-Vertex directly. Modders do not create an engine project or copy package paths.
+the writable compiler cache and registers the game in Vertex. The launcher offers
+map authoring and the standalone resource types supplied by the game SDK. Modders
+do not create an engine project or copy package paths.
 
 Create or open `.vertex` maps in Vertex. **Play in Game** compiles the current map,
 installs its add-on and launches the installed game. **Export add-on** creates a
@@ -16,6 +17,17 @@ game checkout through Unity's **Tools → Vertex → Open Map Editor**, then use
 These choices come from the game's profile and SDK connection. Studios can expose
 an editor project publicly when their game permits it. VSDK discovers any single
 `.vertexsdk` beside or above the launcher; it has no hardcoded game identity.
+
+## Standalone resources
+
+Choose a resource type, then **Create** or **Open** its manifest. **Open folder**
+exposes the manifest and source files; **Edit source** opens the default editor.
+Save changes, then **Validate**, **Build**, or **Play in game**. These operations
+use the game SDK's resource tool and do not require engine setup. VSDK has no
+knowledge of VMods, programming languages, or game runtime behavior.
+
+Map-bound resources are attached in Vertex and included in the map build. They
+use the same source format and SDK validator as their standalone equivalents.
 
 ## Build and test
 
@@ -53,6 +65,7 @@ package from the same chain, exports its approved content and atomically publish
 Grimwar.vertexsdk
 Compiler.inputs.json
 Compiler/
+Compiler/VertexTools/<runtime-id>/    game-owned resource tools and public API
 Authoring/
 Editor/<runtime-id>/Vertex[.exe]
 Launcher/<runtime-id>/VSDK[.exe]

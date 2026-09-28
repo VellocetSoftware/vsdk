@@ -1,12 +1,31 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="VSDK.Views.MainWindow" Width="700" Height="650" MinWidth="560" MinHeight="460"
-        Title="SDK setup" Icon="/Assets/vellocet-logo.ico">
+        Title="SDK" Icon="/Assets/vellocet-logo.ico">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="32" Spacing="18">
       <Image Source="/Assets/vellocet-logo.png" Width="38" Height="38" HorizontalAlignment="Left"/>
       <TextBlock x:Name="Heading" Text="SDK setup" FontSize="28" FontWeight="SemiBold"/>
       <TextBlock x:Name="Workflow" Text="Connect your SDK to Vertex." TextWrapping="Wrap"/>
+      <StackPanel x:Name="ResourcePanel" IsVisible="False" Spacing="10">
+        <TextBlock Text="Standalone resources" FontSize="20" FontWeight="SemiBold"/>
+        <TextBlock Text="Create or open a resource, edit its source, then build or playtest it. These tools do not require the engine editor." TextWrapping="Wrap"/>
+        <ComboBox x:Name="ResourceType" AutomationProperties.Name="Resource type" HorizontalAlignment="Stretch"/>
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <TextBox x:Name="ResourcePath" PlaceholderText="Resource manifest" AutomationProperties.Name="Resource manifest"/>
+          <Button Grid.Column="1" Content="Create…" Click="CreateResourceClicked" Margin="8,0,0,0"/>
+          <Button Grid.Column="2" Content="Open…" Click="ChooseResourceClicked" Margin="8,0,0,0"/>
+        </Grid>
+        <TextBox x:Name="ResourceOutput" PlaceholderText="Build output folder" AutomationProperties.Name="Resource build output"/>
+        <CheckBox x:Name="ResourceRelease" Content="Release package"/>
+        <WrapPanel>
+          <Button Content="Edit source" Tag="edit" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+          <Button Content="Open folder" Tag="folder" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+          <Button Content="Validate" Tag="validate" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+          <Button Content="Build" Tag="build" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+          <Button Content="Play in game" Tag="test" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+        </WrapPanel>
+      </StackPanel>
       <StackPanel x:Name="Locations" Spacing="14">
         <TextBlock x:Name="EngineRequirement" TextWrapping="Wrap"/>
         <Grid ColumnDefinitions="*,Auto">
@@ -25,8 +44,8 @@
       <TextBlock x:Name="Status" Text="Checking installation…" TextWrapping="Wrap"/>
       <WrapPanel>
         <Button x:Name="Configure" Content="Finish setup and open Vertex" IsEnabled="False" Classes="primary" Click="ConfigureClicked" Margin="0,0,8,8"/>
-        <Button x:Name="CancelSetup" Content="Cancel setup" IsVisible="False" Click="CancelClicked" Margin="0,0,8,8"/>
-        <Button x:Name="OpenVertexButton" Content="Author without compiler setup" IsEnabled="False" Click="OpenVertexClicked" Margin="0,0,8,8"/>
+        <Button x:Name="CancelSetup" Content="Cancel operation" IsVisible="False" Click="CancelClicked" Margin="0,0,8,8"/>
+        <Button x:Name="OpenVertexButton" Content="Open Vertex" IsEnabled="False" Click="OpenVertexClicked" Margin="0,0,8,8"/>
       </WrapPanel>
       <Expander Header="Installation details">
         <StackPanel Spacing="10">

@@ -37,7 +37,7 @@ internal static class Program
         try
         {
             InitialSetup = Service().SetupStatusAsync().GetAwaiter().GetResult();
-            if (InitialSetup.Ready && !args.Contains("--setup"))
+            if (InitialSetup.Ready && Map != null && !args.Contains("--setup"))
             {
                 Service().OpenVertex(Map);
                 return;
