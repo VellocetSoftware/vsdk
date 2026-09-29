@@ -37,7 +37,7 @@ def main():
         for runtime in RUNTIMES:
             subprocess.run([
                 "dotnet", "publish", "src/VSDK/VSDK.csproj", "-c", "Release", "-r", runtime,
-                "--self-contained", "true", "-p:DebugType=embedded", "-o", str(stage / "Launcher" / runtime)
+                "--self-contained", "true", "-p:DebugType=None", "-o", str(stage / "Launcher" / runtime)
             ], cwd=root, check=True)
             launcher = stage / "Launcher" / runtime / ("VSDK.exe" if runtime == "win-x64" else "VSDK")
             if not launcher.is_file() or not launcher.stat().st_size:
