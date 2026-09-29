@@ -146,15 +146,20 @@ public partial class MainWindow : Window
     private void OpenVertexClicked(object? sender, RoutedEventArgs args) => OpenVertex();
     private void OpenVertex()
     {
-        try { _service.OpenVertex(Program.Map); Close(); }
+        try { _service.OpenVertex(Program.Map, this.FindControl<TextBox>("GamePath")!.Text); Close(); }
         catch (Exception error) { SetStatus(error.Message); }
     }
     private async void ChooseExecutableClicked(object? sender, RoutedEventArgs args)
     {
         if (sender is not Button { Tag: string field }) return;
-        var files = await StorageProvider.OpenFilePickerAsync(new() { Title = "Choose executable or app", AllowMultiple = false });
-        if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
-            this.FindControl<TextBox>(field)!.Text = path;
+        string? path;
+        if (OperatingSystem.IsMacOS()) path = App.PickMacExecutable("Choose executable or app");
+        else
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new() { Title = "Choose executable", AllowMultiple = false });
+            path = files.Count > 0 ? files[0].TryGetLocalPath() : null;
+        }
+        if (path != null) this.FindControl<TextBox>(field)!.Text = path;
     }
     private async void InstallEngineClicked(object? sender, RoutedEventArgs args)
     {
