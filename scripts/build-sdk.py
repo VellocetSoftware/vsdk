@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+import plistlib
 import shutil
 import subprocess
 import tempfile
@@ -15,9 +16,16 @@ def validate_vertex(root):
     if set(metadata["runtimes"]) != set(RUNTIMES) or not metadata.get("revision"):
         raise ValueError("Vertex must provide one matching build for every SDK platform.")
     for runtime in RUNTIMES:
-        executable = root / "Editor" / runtime / ("Vertex.exe" if runtime == "win-x64" else "Vertex")
+        editor = root / "Editor" / runtime
+        executable = editor / ("Vertex.exe" if runtime == "win-x64" else "Vertex.app/Contents/MacOS/Vertex")
         if not executable.is_file() or not executable.stat().st_size:
             raise ValueError(f"Missing Vertex executable: {executable}")
+        if runtime.startswith("osx-"):
+            contents = editor / "Vertex.app/Contents"
+            info = plistlib.loads((contents / "Info.plist").read_bytes())
+            if (info.get("CFBundleIdentifier") != "com.vellocet.vertex" or info.get("CFBundleExecutable") != "Vertex"
+                    or info.get("CFBundleIconFile") != "Vertex.icns" or not (contents / "Resources/Vertex.icns").is_file()):
+                raise ValueError(f"Missing Vertex application identity or icon: {editor}")
     if any(path.is_symlink() for path in (root / "Editor").rglob("*")):
         raise ValueError("Vertex SDK inputs must not contain symbolic links.")
     return metadata
@@ -44,7 +52,7 @@ def main():
                 raise ValueError(f"Missing launcher: {launcher}")
             if runtime.startswith("osx-"):
                 launcher.chmod(0o755)
-                (stage / "Editor" / runtime / "Vertex").chmod(0o755)
+                (stage / "Editor" / runtime / "Vertex.app/Contents/MacOS/Vertex").chmod(0o755)
         for symbol in stage.rglob("*.pdb"):
             symbol.unlink()
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()

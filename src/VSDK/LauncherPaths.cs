@@ -19,10 +19,13 @@ internal sealed class LauncherPaths
         InstallRoot = Path.GetDirectoryName(Manifest)!;
         var platform = OperatingSystem.IsMacOS() ? "osx" : OperatingSystem.IsWindows() ? "win" : "linux";
         var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
-        VertexExecutable = Path.GetFullPath(vertex ?? Path.Combine(InstallRoot, "Editor", platform + "-" + architecture,
-            OperatingSystem.IsWindows() ? "Vertex.exe" : "Vertex"));
+        var editor = Path.TrimEndingDirectorySeparator(Path.GetFullPath(vertex ?? Path.Combine(InstallRoot, "Editor", platform + "-" + architecture,
+            OperatingSystem.IsMacOS() ? "Vertex.app" : OperatingSystem.IsWindows() ? "Vertex.exe" : "Vertex")));
+        VertexApplication = OperatingSystem.IsMacOS() && editor.EndsWith(".app", StringComparison.OrdinalIgnoreCase) ? editor : null;
+        VertexExecutable = VertexApplication == null ? editor : Path.Combine(editor, "Contents", "MacOS", "Vertex");
     }
     public string Manifest { get; }
     public string InstallRoot { get; }
     public string VertexExecutable { get; }
+    public string? VertexApplication { get; }
 }

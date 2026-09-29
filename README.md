@@ -39,7 +39,7 @@ dotnet run --project src/VSDK -c Release -- --sdk /path/to/Game.vertexsdk
 dotnet run --project src/VSDK -c Release -- --check --sdk /path/to/Game.vertexsdk
 ```
 
-`--vertex /path/to/Vertex` selects a local editor build. `--map /path/to/Map.vertex`
+`--vertex /path/to/Vertex` (or `/path/to/Vertex.app` on macOS) selects a local editor build. `--map /path/to/Map.vertex`
 opens a map after setup; `--setup` reopens setup even when already configured.
 Unity users install and activate the version named by their profile through Unity
 Hub, including the build module for their target platform. Setup detects standard
@@ -67,7 +67,8 @@ Compiler.inputs.json
 Compiler/
 Compiler/VertexTools/<runtime-id>/    game-owned resource tools and public API
 Authoring/
-Editor/<runtime-id>/Vertex[.exe]
+Editor/win-x64/Vertex.exe
+Editor/osx-<architecture>/Vertex.app/
 Launcher/<runtime-id>/VSDK[.exe]
 toolchain.json
 LICENSE.txt
@@ -75,6 +76,8 @@ LICENSE.txt
 
 The runtimes are `win-x64`, `osx-arm64`, and `osx-x64`. Steam's launch paths remain
 `Launcher/win-x64/VSDK.exe`, `Launcher/osx-arm64/VSDK`, and `Launcher/osx-x64/VSDK`.
+The launcher opens the complete macOS app bundle; setup and resource commands use
+its `Contents/MacOS/Vertex` executable without opening a window.
 `toolchain.json` records the Vertex, VSDK and game source revisions. Release the
 complete SDK together; never update just one executable or package inside it.
 

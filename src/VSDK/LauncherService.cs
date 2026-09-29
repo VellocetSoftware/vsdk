@@ -95,11 +95,24 @@ internal sealed class LauncherService(LauncherPaths paths)
     public void OpenVertex(string? map = null, string? game = null)
     {
         Inspect();
-        var start = new ProcessStartInfo(Paths.VertexExecutable) { UseShellExecute = false, WorkingDirectory = Paths.InstallRoot };
+        var start = new ProcessStartInfo(Paths.VertexApplication == null ? Paths.VertexExecutable : "/usr/bin/open")
+            { UseShellExecute = false, WorkingDirectory = Paths.InstallRoot };
+        if (Paths.VertexApplication is { } application)
+        {
+            start.RedirectStandardError = true;
+            start.ArgumentList.Add("-n"); start.ArgumentList.Add("-a"); start.ArgumentList.Add(application);
+            start.ArgumentList.Add("--args");
+        }
         start.ArgumentList.Add("--sdk"); start.ArgumentList.Add(Paths.Manifest);
         if (!string.IsNullOrWhiteSpace(game)) { start.ArgumentList.Add("--game"); start.ArgumentList.Add(game); }
         if (map != null) { start.ArgumentList.Add("--map"); start.ArgumentList.Add(Path.GetFullPath(map)); }
         using var process = Process.Start(start) ?? throw new IOException("Vertex could not start.");
+        if (Paths.VertexApplication != null)
+        {
+            var error = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+            if (process.ExitCode != 0) throw new IOException("macOS could not open Vertex. " + error.Trim());
+        }
     }
 
     private string Resolve(string? relative)

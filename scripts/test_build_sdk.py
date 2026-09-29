@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import plistlib
 import tempfile
 import unittest
 
@@ -15,10 +16,28 @@ class ToolkitCheck(unittest.TestCase):
             root = Path(directory)
             (root / "vertex-build.json").write_text(json.dumps({"revision": "abc", "runtimes": build.RUNTIMES}))
             for runtime in build.RUNTIMES:
-                executable = root / "Editor" / runtime / ("Vertex.exe" if runtime == "win-x64" else "Vertex")
+                executable = root / "Editor" / runtime / ("Vertex.exe" if runtime == "win-x64" else "Vertex.app/Contents/MacOS/Vertex")
                 executable.parent.mkdir(parents=True)
                 executable.write_bytes(b"editor")
+                if runtime.startswith("osx-"):
+                    contents = executable.parent.parent
+                    (contents / "Info.plist").write_bytes(plistlib.dumps({
+                        "CFBundleIdentifier": "com.vellocet.vertex", "CFBundleExecutable": "Vertex", "CFBundleIconFile": "Vertex.icns"
+                    }))
+                    (contents / "Resources").mkdir()
+                    (contents / "Resources/Vertex.icns").write_bytes(b"icon")
             self.assertEqual(build.validate_vertex(root)["revision"], "abc")
+            icon = contents / "Resources/Vertex.icns"
+            icon.unlink()
+            with self.assertRaisesRegex(ValueError, "identity or icon"):
+                build.validate_vertex(root)
+            icon.write_bytes(b"icon")
+            # Flattening a macOS app must no longer produce a distributable toolkit.
+            loose = root / "Editor/osx-x64/Vertex"
+            executable.rename(loose)
+            with self.assertRaisesRegex(ValueError, "Missing Vertex executable"):
+                build.validate_vertex(root)
+            loose.rename(executable)
             executable.write_bytes(b"")
             with self.assertRaisesRegex(ValueError, "Missing Vertex"):
                 build.validate_vertex(root)
