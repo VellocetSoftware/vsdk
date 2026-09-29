@@ -28,6 +28,10 @@ def validate_vertex(root):
                 raise ValueError(f"Missing Vertex application identity or icon: {editor}")
     if any(path.is_symlink() for path in (root / "Editor").rglob("*")):
         raise ValueError("Vertex SDK inputs must not contain symbolic links.")
+    for name in ("Vertex.Core.dll", "Vertex.Contracts.dll", "Vertex.VSig.dll"):
+        library = root / "Libraries" / name
+        if not library.is_file() or not library.stat().st_size or library.is_symlink():
+            raise ValueError(f"Missing or linked Vertex library: {library}")
     return metadata
 
 
@@ -42,6 +46,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="sdk-", dir=artifacts) as temporary:
         stage = Path(temporary) / "tools"
         shutil.copytree(args.vertex / "Editor", stage / "Editor")
+        shutil.copytree(args.vertex / "Libraries", stage / "Libraries")
         for runtime in RUNTIMES:
             subprocess.run([
                 "dotnet", "publish", "src/VSDK/VSDK.csproj", "-c", "Release", "-r", runtime,

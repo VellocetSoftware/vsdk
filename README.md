@@ -57,7 +57,7 @@ python3 scripts/build-sdk.py --vertex ../vertex/artifacts/sdk
 ```
 
 TeamCity's **Tools → Vertex → Build and Validate** supplies the editors and matching
-Unity package. **Tools → VSDK → Build SDK Toolkit** consumes that same-chain editor
+Unity package and worker libraries. **Tools → VSDK → Build SDK Toolkit** consumes that same-chain editor
 artifact and publishes `vsdk-tools.zip`. Grimwar consumes the toolkit and Unity
 package from the same chain, exports its approved content and atomically publishes:
 
@@ -80,6 +80,8 @@ The launcher opens the complete macOS app bundle; setup and resource commands us
 its `Contents/MacOS/Vertex` executable without opening a window.
 `toolchain.json` records the Vertex, VSDK and game source revisions. Release the
 complete SDK together; never update just one executable or package inside it.
+Toolkit `Libraries/` are build inputs for the game's resource worker and are not
+copied into the public game SDK.
 
 Vertex verifies the compiler inventory before preparing a writable cache outside
 the installed SDK. Updates select a new compiler revision while keeping maps,

@@ -15,6 +15,9 @@ class ToolkitCheck(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "vertex-build.json").write_text(json.dumps({"revision": "abc", "runtimes": build.RUNTIMES}))
+            (root / "Libraries").mkdir()
+            for name in ("Vertex.Core.dll", "Vertex.Contracts.dll", "Vertex.VSig.dll"):
+                (root / "Libraries" / name).write_bytes(b"library")
             for runtime in build.RUNTIMES:
                 executable = root / "Editor" / runtime / ("Vertex.exe" if runtime == "win-x64" else "Vertex.app/Contents/MacOS/Vertex")
                 executable.parent.mkdir(parents=True)
