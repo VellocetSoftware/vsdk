@@ -107,7 +107,10 @@ public partial class MainWindow : Window
         SetBusy(true);
         try
         {
-            var result = await _service.ResourceAsync("create", type, Path.Combine(parent, "NewResource-" + Guid.NewGuid().ToString("N")[..8]),
+            var id = this.FindControl<TextBox>("NewResourceId")!.Text ?? "";
+            if (id.Length is < 1 or > 96 || id.Any(c => !(c is >= 'a' and <= 'z' or >= '0' and <= '9' or '_' or '-' or '.')) || id is "." or "..")
+                throw new InvalidOperationException("Choose a lowercase resource ID using letters, numbers, underscores, dots or hyphens.");
+            var result = await _service.ResourceAsync("create", type, Path.Combine(parent, id),
                 null, false, null, SetStatus, _setup.Token);
             SetResource(result.Trim());
             SetStatus("Resource created. Edit the manifest and source files, then build.");

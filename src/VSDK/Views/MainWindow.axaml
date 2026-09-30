@@ -11,6 +11,7 @@
         <TextBlock Text="Standalone resources" FontSize="20" FontWeight="SemiBold"/>
         <TextBlock Text="Create or open a resource, edit its source, then build or playtest it. These tools do not require the engine editor." TextWrapping="Wrap"/>
         <ComboBox x:Name="ResourceType" AutomationProperties.Name="Resource type" HorizontalAlignment="Stretch"/>
+        <TextBox x:Name="NewResourceId" Text="my_content" PlaceholderText="New resource ID" AutomationProperties.Name="New resource ID"/>
         <Grid ColumnDefinitions="*,Auto,Auto">
           <TextBox x:Name="ResourcePath" PlaceholderText="Resource manifest" AutomationProperties.Name="Resource manifest"/>
           <Button Grid.Column="1" Content="Create…" Click="CreateResourceClicked" Margin="8,0,0,0"/>
@@ -20,6 +21,7 @@
         <CheckBox x:Name="ResourceRelease" Content="Release package"/>
         <WrapPanel>
           <Button Content="Edit source" Tag="edit" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+          <Button Content="Content…" Tag="content" Click="ResourceActionClicked" Margin="0,0,8,8"/>
           <Button Content="Open folder" Tag="folder" Click="ResourceActionClicked" Margin="0,0,8,8"/>
           <Button Content="Validate" Tag="validate" Click="ResourceActionClicked" Margin="0,0,8,8"/>
           <Button Content="Build" Tag="build" Click="ResourceActionClicked" Margin="0,0,8,8"/>
