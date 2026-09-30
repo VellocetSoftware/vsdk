@@ -28,7 +28,7 @@ def validate_vertex(root):
                 raise ValueError(f"Missing Vertex application identity or icon: {editor}")
     if any(path.is_symlink() for path in (root / "Editor").rglob("*")):
         raise ValueError("Vertex SDK inputs must not contain symbolic links.")
-    for name in ("Vertex.Core.dll", "Vertex.Contracts.dll", "Vertex.VSig.dll"):
+    for name in ("Vertex.Core.dll", "Vertex.Contracts.dll", "Vertex.VSig.dll", "Vertex.Engine.Unity.dll"):
         library = root / "Libraries" / name
         if not library.is_file() or not library.stat().st_size or library.is_symlink():
             raise ValueError(f"Missing or linked Vertex library: {library}")

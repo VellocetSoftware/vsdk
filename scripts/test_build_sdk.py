@@ -16,7 +16,7 @@ class ToolkitCheck(unittest.TestCase):
             root = Path(directory)
             (root / "vertex-build.json").write_text(json.dumps({"revision": "abc", "runtimes": build.RUNTIMES}))
             (root / "Libraries").mkdir()
-            for name in ("Vertex.Core.dll", "Vertex.Contracts.dll", "Vertex.VSig.dll"):
+            for name in ("Vertex.Core.dll", "Vertex.Contracts.dll", "Vertex.VSig.dll", "Vertex.Engine.Unity.dll"):
                 (root / "Libraries" / name).write_bytes(b"library")
             for runtime in build.RUNTIMES:
                 executable = root / "Editor" / runtime / ("Vertex.exe" if runtime == "win-x64" else "Vertex.app/Contents/MacOS/Vertex")
@@ -30,6 +30,11 @@ class ToolkitCheck(unittest.TestCase):
                     (contents / "Resources").mkdir()
                     (contents / "Resources/Vertex.icns").write_bytes(b"icon")
             self.assertEqual(build.validate_vertex(root)["revision"], "abc")
+            engine = root / "Libraries/Vertex.Engine.Unity.dll"
+            engine.unlink()
+            with self.assertRaisesRegex(ValueError, "Missing or linked Vertex library"):
+                build.validate_vertex(root)
+            engine.write_bytes(b"library")
             icon = contents / "Resources/Vertex.icns"
             icon.unlink()
             with self.assertRaisesRegex(ValueError, "identity or icon"):
