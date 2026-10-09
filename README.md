@@ -89,8 +89,11 @@ preferences, installed game locations and developer connections. Each map retain
 its chosen SDK connection even when another installation of the same game is added.
 
 The [Vellocet SDK wiki](https://developer.vellocetsoftware.com/wiki/Vellocet_SDK)
-is the public documentation. Distribution terms are in `LICENSE.txt`; the Monda
-font license is in `src/VSDK/Assets/Fonts/OFL.txt`.
+is the public documentation. The [license](LICENSE.txt) permits commercial and
+noncommercial use with Vellocet credit. Modification is prohibited. Redistribution is
+limited to unmodified runtime components in compiled form inside finished projects,
+as set out in the license.
+The Monda font license is in `src/VSDK/Assets/Fonts/OFL.txt`.
 
 `src/VSDK` contains the launcher and setup UI; `scripts` contains toolkit packaging.
 Generated builds live in ignored `artifacts/`. TeamCity configuration lives in the
