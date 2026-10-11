@@ -1,0 +1,34 @@
+module spawn_door_set:
+    ref trigger: trigger_multiple
+    ref doors: func_door match Door*
+    ref audio: env_ambient match Audio
+    const open_audio_event = "Play_amb_slidedoors_open"
+    const close_audio_event = "Play_amb_slidedoors_close"
+
+    server on trigger.start_touch:
+        doors.open
+
+    client on doors.open:
+        audio.play(open_audio_event)
+
+    server on trigger.end_touch_all:
+        doors.close
+
+    client on doors.close:
+        audio.play(close_audio_event)
+
+    input restore_initial_state:
+        doors.close
+
+    input open:
+        doors.open
+
+    input close:
+        doors.close
+
+    input enable:
+        trigger.enable
+
+    input disable:
+        trigger.disable
+        trigger.reset

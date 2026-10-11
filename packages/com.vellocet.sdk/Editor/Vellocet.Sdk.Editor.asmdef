@@ -1,0 +1,31 @@
+{
+  "name": "Vellocet.Sdk.Editor",
+  "rootNamespace": "Vellocet.Sdk",
+  "references": [
+    "Vertex.Contracts",
+    "Vertex.VSig",
+    "Vertex.Unity.Editor",
+    "GUID:24d55752787934d0db4f64c2523aec4a",
+    "Unity.Addressables.Editor",
+    "Vertex.Unity",
+    "Unity.Splines",
+    "Unity.Mathematics",
+    "Unity.TextMeshPro",
+    "Unity.AI.Navigation",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.RenderPipelines.Universal.Editor",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.Newtonsoft.Json"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Vellocet.Sdk.Editor.Tests",
+  "rootNamespace": "Vellocet.Sdk.Editor.Tests",
+  "references": [
+    "Vertex.Contracts",
+    "Vertex.VSig",
+    "Vertex.Unity.Editor",
+    "Vellocet.Sdk",
+    "Vellocet.Sdk.Editor",
+    "Unity.Addressables.Editor",
+    "Unity.Splines",
+    "Unity.Mathematics",
+    "Unity.TextMeshPro",
+    "Unity.AI.Navigation",
+    "Vertex.Unity"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
