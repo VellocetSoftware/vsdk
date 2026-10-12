@@ -1,7 +1,10 @@
 using Vertex.Unity;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -26,13 +29,15 @@ namespace Vellocet.Sdk.Editor.Maps
         public static VertexAssetCatalogProfile[] ValidateAuthoring(BuildJob job, Func<string, string> pathFor)
         {
             VertexBakePolicy.Validate(job.Game.Baking);
+            var map = MapAsset.Deserialize(File.ReadAllBytes(pathFor(job.Map)));
             var catalog = VertexEntityCatalogExporter.Create();
             var authored = EntityCatalog.Deserialize(ProfileFiles.Read(pathFor("VertexJob/Catalogs/" + catalog.SdkId + ".vertexentities")));
-            var installed = catalog.Serialize();
-            if (!EntityContract(authored).SequenceEqual(EntityContract(catalog)))
+            if (EntityContractDifference(authored, catalog, map) is { } difference)
             {
-                File.WriteAllBytes(pathFor("VertexJob/installed.vertexentities"), installed);
-                throw new InvalidDataException("The authoring entity catalog differs from the installed SDK. Export the game profile again and reload project resources.");
+                var installedPath = pathFor("VertexJob/installed.vertexentities");
+                File.WriteAllBytes(installedPath, catalog.Serialize());
+                throw new InvalidDataException("The authoring entity catalog differs from the installed SDK: " + difference +
+                    ". Export the game profile from this Unity checkout and reload project resources in Vertex. Installed catalog: " + installedPath);
             }
             var profiles = AssetDatabase.FindAssets("t:VertexAssetCatalogProfile").Select(AssetDatabase.GUIDToAssetPath)
                 .Select(AssetDatabase.LoadAssetAtPath<VertexAssetCatalogProfile>).ToArray();
@@ -42,7 +47,6 @@ namespace Vellocet.Sdk.Editor.Maps
                 if (matches.Length != 1) throw new InvalidDataException("Install exactly one matching asset profile: " + reference.Id + " " + reference.Version);
                 matches[0].Validate();
             }
-            var map = MapAsset.Deserialize(File.ReadAllBytes(pathFor(job.Map)));
             if (map.Objects.Any(mesh => mesh.Lightmap != null && (mesh.Lightmap.GenerateUV2 != job.Game.Baking.GenerateLightmapUVs || mesh.Lightmap.ResolutionScale != job.Game.Baking.LightmapScale)))
                 throw new InvalidDataException("Map lightmap settings must match the game profile.");
             MapSettingsAuthoring.Read(map);
@@ -60,27 +64,94 @@ namespace Vellocet.Sdk.Editor.Maps
             return profiles;
         }
 
+        internal static string EntityContractDifference(EntityCatalog authored, EntityCatalog installed, MapAsset map)
+        {
+            var expected = JObject.Parse(Encoding.UTF8.GetString(EntityContract(authored)));
+            var actual = JObject.Parse(Encoding.UTF8.GetString(EntityContract(installed)));
+            foreach (var field in new[] { "formatVersion", "sdkId", "sdkVersion" })
+                if (Difference(expected[field], actual[field], "Catalog " + field) is { } mismatch) return mismatch;
+            var expectedTypes = Index(expected["entities"], item => (string)item["id"]);
+            var actualTypes = Index(actual["entities"], item => (string)item["id"]);
+            // Unused types may differ between a published SDK and a game checkout. Imported types must retain their contract.
+            foreach (var id in map.Containers.Where(node => node.Entity?.SdkId == installed.SdkId)
+                         .Select(node => node.Entity.TypeId).Distinct().OrderBy(id => id, StringComparer.Ordinal))
+            {
+                if (!expectedTypes.TryGetValue(id, out var before)) return "Entity '" + id + "' is missing from the authoring catalog";
+                if (!actualTypes.TryGetValue(id, out var after)) return "Entity '" + id + "' is missing from the installed SDK";
+                foreach (var members in new[] { "properties", "signals" })
+                {
+                    var mismatch = Members(before[members], after[members],
+                        item => members == "properties" ? (string)item["id"] : item["kind"] + "." + item["name"],
+                        "Entity '" + id + "' " + members);
+                    if (mismatch != null) return mismatch;
+                    ((JObject)before).Remove(members);
+                    ((JObject)after).Remove(members);
+                }
+                if (Difference(before, after, "Entity '" + id + "'") is { } changed) return changed;
+            }
+            // Scripts can use globals without a placed entity, so retain every authored event signature.
+            return Members(expected["globals"], actual["globals"], item => item["source"] + "." + item["name"], "Global event");
+
+            static Dictionary<string, JToken> Index(JToken values, Func<JToken, string> key) =>
+                values.ToDictionary(key, value => value, StringComparer.Ordinal);
+
+            static string Members(JToken before, JToken after, Func<JToken, string> key, string label)
+            {
+                var available = Index(after, key);
+                foreach (var member in before)
+                {
+                    var id = key(member);
+                    if (!available.TryGetValue(id, out var value)) return label + " '" + id + "' is missing from the installed SDK";
+                    if (Difference(member, value, label + " '" + id + "'") is { } mismatch) return mismatch;
+                }
+                return null;
+            }
+
+            static string Difference(JToken before, JToken after, string path)
+            {
+                if (JToken.DeepEquals(before, after)) return null;
+                if (before is JObject first && after is JObject second)
+                    foreach (var name in first.Properties().Select(p => p.Name).Union(second.Properties().Select(p => p.Name)))
+                        if (Difference(first[name], second[name], path + "." + name) is { } mismatch) return mismatch;
+                if (before is JArray a && after is JArray b)
+                    for (var i = 0; i < Math.Max(a.Count, b.Count); i++)
+                        if (Difference(i < a.Count ? a[i] : null, i < b.Count ? b[i] : null, path + "[" + i + "]") is { } mismatch) return mismatch;
+                return path + " differs";
+            }
+        }
+
         internal static byte[] EntityContract(EntityCatalog catalog)
         {
-            // Display text and icons do not change how authored entities compile.
+            // Display metadata and declaration order do not change how authored entities compile.
             catalog = EntityCatalog.Deserialize(catalog.Serialize());
+            catalog.Entities = catalog.Entities.OrderBy(entity => entity.Id, StringComparer.Ordinal).ToArray();
+            catalog.Globals = catalog.Globals.OrderBy(signal => signal.Source, StringComparer.Ordinal)
+                .ThenBy(signal => signal.Name, StringComparer.Ordinal).ToArray();
+            catalog.Diagnostics = Array.Empty<EntityCatalogDiagnostic>();
             foreach (var entity in catalog.Entities)
             {
                 entity.Name = entity.Id;
                 entity.Category = "Entities";
                 entity.IconPng = null;
-                foreach (var property in entity.Properties)
-                {
-                    property.Name = property.Id;
-                    property.Description = null;
-                    property.Group = null;
-                    foreach (var choice in property.Choices) choice.Name = choice.Id;
-                }
-                foreach (var warning in entity.Warnings ?? Array.Empty<EntityWarningDefinition>())
-                    warning.Message = warning.Code;
+                entity.Warnings = null;
+                entity.Properties = entity.Properties.OrderBy(property => property.Id, StringComparer.Ordinal).ToArray();
+                entity.Signals = entity.Signals.OrderBy(signal => signal.Kind).ThenBy(signal => signal.Name, StringComparer.Ordinal).ToArray();
+                foreach (var property in entity.Properties) StripDisplayMetadata(property);
             }
-            foreach (var diagnostic in catalog.Diagnostics) diagnostic.Message = diagnostic.Code;
             return catalog.Serialize();
+
+            static void StripDisplayMetadata(EntityPropertyDefinition property)
+            {
+                property.Name = property.Id;
+                property.Description = null;
+                property.Group = null;
+                property.VisibleWhen = null;
+                property.Choices = property.Choices.OrderBy(choice => choice.Id, StringComparer.Ordinal).ToArray();
+                if (property.Members != null)
+                    property.Members = property.Members.OrderBy(member => member.Id, StringComparer.Ordinal).ToArray();
+                foreach (var choice in property.Choices) choice.Name = choice.Id;
+                foreach (var member in property.Members ?? Array.Empty<EntityPropertyDefinition>()) StripDisplayMetadata(member);
+            }
         }
 
         public static Texture2D LoadThumbnail(string path)
