@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace Vellocet.Sdk.Aneurism.Entities
 {
     [EntityClass("env_aniv_audio_occlusion")]
     [EntityAuthoring("Audio", EntityPlacementKind.Logic, "Audio Occlusion")]
-    [RequireComponent(typeof(AudioSource), typeof(AudioLowPassFilter))]
+    [RequireComponent(typeof(AudioEmitter))]
     public sealed class AudioOcclusionMarker : EntityMarker, IEntityImportGroup
     {
         [SerializeField] private EntityMarker[] probes = Array.Empty<EntityMarker>();

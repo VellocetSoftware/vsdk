@@ -17,6 +17,9 @@ namespace Vellocet.Sdk.Entities
     [DisallowMultipleComponent]
     public sealed class LadderMarker : TriggerVolumeMarkerBase<LadderMarker.Input, LadderMarker.Output>
     {
+        public override Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities SignalCapabilities =>
+            Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities.None;
+
         public enum Input
         {
         }

@@ -83,6 +83,17 @@ namespace Vellocet.Sdk.Entities.Signals
                 builder.AddCapability(marker.SignalCapabilities);
                 AddCommonCapabilities(builder, marker.SignalCapabilities);
                 marker.ConfigureSignalContract(builder);
+            if (marker is IEntityInteractionMarker { SupportsInteraction: true })
+            {
+                builder.AddInput("interact", EntitySignalValueType.String);
+                builder.AddInput("set_interaction_enabled", EntitySignalValueType.Bool);
+                builder.AddOutput("interaction_dispatched", EntitySignalValueType.String);
+                builder.AddOutput("interaction_enabled_changed", EntitySignalValueType.Bool);
+                builder.AddProperty("interaction_enabled", EntitySignalValueType.Bool, true, true);
+                builder.AddProperty("interaction_count", EntitySignalValueType.Int, true, false);
+                builder.AddProperty("entity_id", EntitySignalValueType.String, true, false);
+            }
+
             }
 
             return builder;
@@ -96,6 +107,7 @@ namespace Vellocet.Sdk.Entities.Signals
                 builder.AddInput("kill", EntitySignalValueType.None);
                 builder.AddOutput("killed", EntitySignalValueType.None);
             }
+
 
             if ((capabilities & EntitySignalCapabilities.Operational) == 0)
                 return;

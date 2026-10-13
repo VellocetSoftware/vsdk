@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Vellocet.Sdk.Audio
 {
-    /// <summary>The host-authored Wwise template used to play add-on-owned media.</summary>
+    /// <summary>The host-authored playback template used to play add-on-owned media.</summary>
     public enum AddonAudioTemplate
     {
         Announcer = 0,
@@ -35,12 +35,16 @@ namespace Vellocet.Sdk.Audio
 
         public int schemaVersion = CurrentSchemaVersion;
         public Cue[] cues = Array.Empty<Cue>();
+        public string audioRuntime;
+        public string bank;
 
         [Serializable]
         public sealed class Cue
         {
             public string id;
             public string media;
+            public string eventId;
+            public double duration;
             public string template;
             public float gain = 1f;
         }

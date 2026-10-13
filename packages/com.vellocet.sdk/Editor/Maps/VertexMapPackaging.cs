@@ -63,11 +63,13 @@ namespace Vellocet.Sdk.Editor.Maps
             return inventory.OrderBy(asset => asset.Target, StringComparer.Ordinal).ThenBy(asset => asset.Id, StringComparer.Ordinal).ToArray();
         }
 
-        public static string Package(VertexBuildContext context, MapCompiler.Result compiled, VertexAssetCatalogProfile[] profiles,
+        public static string Package(VertexBuildContext context, MapCompiler.Result compiled,
             string[] resourceRequirements = null)
         {
             context.Report(.65, "Replacing installed base references and collecting reachable custom content…");
             var scene = EditorSceneManager.OpenScene(compiled.CompiledScenePath, OpenSceneMode.Single);
+            // Opening a scene unloads catalogs and preview providers retained only by managed locals.
+            var profiles = VertexMapCompiler.LoadAssetProfiles(context.Job);
             var assets = new MapPackageAssets(profiles, AddressableAssetSettingsDefaultObject.GetSettings(true), context.Job.Content);
             assets.Prepare(scene);
             var ownedRuntime = compiled.RuntimeDependencies.Where(d => !assets.ReferenceInstalled(d.Guid, d.Address)).ToArray();

@@ -40,7 +40,11 @@ namespace Vellocet.Sdk.Entities
         public const string EventNamePrefix = "Play_amb";
 
         [field: Header("Audio")]
-        [field: Tooltip("Wwise Event name posted by this ambient marker.")]
+        [field: SerializeField, Tooltip("Optional game audio event; overrides Event Name. Add-on cues still take priority.")]
+        public Vellocet.Stereoform.AudioEventReference AudioEvent { get; private set; }
+        [field: SerializeField] public bool Loop { get; private set; } = true;
+
+        [field: Tooltip("Named game audio event posted by this ambient marker.")]
         [field: AmbientEventName]
         [field: SerializeField]
         public string EventName { get; private set; } = string.Empty;

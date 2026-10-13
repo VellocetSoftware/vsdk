@@ -12,7 +12,9 @@
     "Unity.Mathematics",
     "Unity.TextMeshPro",
     "Unity.AI.Navigation",
-    "Vertex.Unity"
+    "Vertex.Unity",
+    "Unity.Addressables",
+    "Unity.ResourceManager"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

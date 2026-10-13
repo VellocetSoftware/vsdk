@@ -15,7 +15,8 @@
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Universal.Editor",
     "Unity.RenderPipelines.Core.Runtime",
-    "Unity.Newtonsoft.Json"
+    "Unity.Newtonsoft.Json",
+    "Vellocet.Stereoform"
   ],
   "includePlatforms": [
     "Editor"

@@ -20,10 +20,17 @@ namespace Vellocet.Sdk.Aneurism
         private static void Register() => SdkGame.Register(new AneurismSdk());
 
         public override string Id => GameId;
+        public override string AudioContentTypeId => "stereoform.event";
+        public override string AudioRuntimeCapability => "stereoform/2";
         public override string DisplayName => "ANEURISM IV";
         public override string DefaultModeId => "aneurism";
         public override bool SupportsExternalMods => false;
         public override string DocumentationSection => "ANEURISM_IV";
+        public override IReadOnlyList<Vertex.Contracts.GlobalSignalDefinition> AdditionalGlobalEvents => GlobalEvents;
+        private static readonly Vertex.Contracts.GlobalSignalDefinition[] GlobalEvents =
+        {
+            new("game", "event_changed", new Vertex.Contracts.EntitySignalParameter("event", "string"))
+        };
         public override IReadOnlyList<ModeDescriptor> Modes => GameModes;
         public override SdkAssetRootMapping[] AssetRoots => Roots;
         public override int NavigationMask => ~LayerMask.GetMask("EntitySolid", "EntityClip", "RaycastOnly", "Passthrough");
@@ -31,7 +38,7 @@ namespace Vellocet.Sdk.Aneurism
         public override bool AllowsComponent(string typeName, string assemblyName) =>
             assemblyName == "Vellocet.Sdk" && typeName is "Entities.MapObjects.LightStyle" or "UI.HUD.PointOfInterest" or
                 "Entities.MapObjects.DoorModel" or "Vellocet.Sdk.Aneurism.Entities.PrefabEntityPart" ||
-            assemblyName == "UnityEngine.AudioModule" && typeName == "UnityEngine.AudioLowPassFilter";
+            assemblyName == "Vellocet.Stereoform" && typeName == "Vellocet.Stereoform.AudioEmitter";
 
         public override bool AllowsSourceAsset(string path)
         {
@@ -41,14 +48,14 @@ namespace Vellocet.Sdk.Aneurism
             if (extension.Length == 0) return true;
             if (path.StartsWith("Assets/MapAuthoring/Kits/", StringComparison.Ordinal) && extension is ".prefab" or ".asset")
                 return true;
+            if (path.StartsWith("Assets/Audio/", StringComparison.Ordinal) && extension == ".asset") return true;
             if ((path.StartsWith("Assets/ScriptableObjects/LightStyles/", StringComparison.Ordinal) ||
                  path.StartsWith("Assets/ScriptableObjects/PointOfInterest/", StringComparison.Ordinal) ||
                  path.StartsWith("Assets/ScriptableObjects/Entities/Environment/Doors/", StringComparison.Ordinal)) && extension == ".asset")
                 return true;
             return extension is ".fbx" or ".obj" or ".mat" or ".png" or ".jpg" or ".jpeg" or ".tga" or
                 ".psd" or ".tif" or ".tiff" or ".exr" or ".hdr" or ".cubemap" or ".shader" or ".shadergraph" or
-                ".shadersubgraph" or ".hlsl" or ".cginc" or ".compute" or ".wav" or ".ogg" or ".mp3" or
-                ".aif" or ".aiff" or ".mixer" or ".anim" or ".controller" or ".overridecontroller" or ".mask" or ".ttf" or ".otf";
+                ".shadersubgraph" or ".hlsl" or ".cginc" or ".compute" or ".anim" or ".controller" or ".overridecontroller" or ".mask" or ".ttf" or ".otf";
         }
 
         public override int ResolveLayers(SdkLayerSet layers)
@@ -81,7 +88,7 @@ namespace Vellocet.Sdk.Aneurism
             new("Assets/Art/Models", Constants.SdkManagedContentRoot + "/Models"),
             new("Assets/Art/Textures", Constants.SdkManagedContentRoot + "/Textures"),
             new("Assets/Art/Shaders", Constants.SdkManagedContentRoot + "/Shaders"),
-            new("Assets/Art/Sounds", Constants.SdkManagedContentRoot + "/Sounds"),
+            new("Assets/Audio", Constants.SdkManagedContentRoot + "/Audio"),
             new("Assets/MapAuthoring/Kits", Constants.SdkEntityKitsRoot),
             new("Assets/ScriptableObjects/LightStyles", Constants.SdkManagedContentRoot + "/LightStyles"),
             new("Assets/ScriptableObjects/PointOfInterest", Constants.SdkManagedContentRoot + "/PointOfInterest"),

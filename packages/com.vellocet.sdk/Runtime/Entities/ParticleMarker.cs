@@ -53,6 +53,11 @@ namespace Vellocet.Sdk.Entities
             UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(this);
         }
 #endif
+        public override void ConfigureSignalContract(Vellocet.Sdk.Entities.Signals.EntitySignalContractBuilder builder)
+        {
+            builder.AddProperty("is_playing", Vellocet.Sdk.Entities.Signals.EntitySignalValueType.Bool, true, false);
+            builder.AddState("state", nameof(Vellocet.Sdk.Entities.States.EffectEntityState));
+        }
         public enum Input { Play, Stop, Restart, Trigger }
         public enum Output { }
     }

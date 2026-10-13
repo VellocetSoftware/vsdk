@@ -132,6 +132,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 sourceSceneGuid = sourceSceneGuid ?? string.Empty,
                 sourceSceneHash = sourceSceneHash,
                 sourceDependenciesHash = MapSourceRevision.Compute(sourceScenePath),
+                audioRuntime = SdkGame.Current.AudioRuntimeCapability,
                 skipLightingBake = options?.SkipLightingBake ?? false,
                 skipSpatialOctreeBake = options?.SkipSpatialOctreeBake ?? false,
                 lightmapQuality = MapLightingSettingsUtility.GetDisplayName(

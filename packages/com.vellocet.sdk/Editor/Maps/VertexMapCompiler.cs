@@ -22,8 +22,8 @@ namespace Vellocet.Sdk.Editor.Maps
         public static Func<SdkResourceSnapshot[], string[]> ResourceRequirements { get; set; }
         public static void Compile(VertexBuildContext context)
         {
-            var profiles = ValidateAuthoring(context.Job, context.PathFor);
-            CompileValidated(context, profiles);
+            ValidateAuthoring(context.Job, context.PathFor);
+            CompileValidated(context);
         }
 
         public static VertexAssetCatalogProfile[] ValidateAuthoring(BuildJob job, Func<string, string> pathFor)
@@ -39,14 +39,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 throw new InvalidDataException("The authoring entity catalog differs from the installed SDK: " + difference +
                     ". Export the game profile from this Unity checkout and reload project resources in Vertex. Installed catalog: " + installedPath);
             }
-            var profiles = AssetDatabase.FindAssets("t:VertexAssetCatalogProfile").Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetDatabase.LoadAssetAtPath<VertexAssetCatalogProfile>).ToArray();
-            foreach (var reference in job.Game.AssetCatalogs)
-            {
-                var matches = profiles.Where(p => p && p.catalogId == reference.Id && p.catalogVersion == reference.Version).ToArray();
-                if (matches.Length != 1) throw new InvalidDataException("Install exactly one matching asset profile: " + reference.Id + " " + reference.Version);
-                matches[0].Validate();
-            }
+            var profiles = LoadAssetProfiles(job);
             if (map.Objects.Any(mesh => mesh.Lightmap != null && (mesh.Lightmap.GenerateUV2 != job.Game.Baking.GenerateLightmapUVs || mesh.Lightmap.ResolutionScale != job.Game.Baking.LightmapScale)))
                 throw new InvalidDataException("Map lightmap settings must match the game profile.");
             MapSettingsAuthoring.Read(map);
@@ -62,6 +55,19 @@ namespace Vellocet.Sdk.Editor.Maps
                     false, releaseArtwork, out var thumbnailError))
                 throw new InvalidDataException(thumbnailError);
             return profiles;
+        }
+
+        internal static VertexAssetCatalogProfile[] LoadAssetProfiles(BuildJob job)
+        {
+            var profiles = AssetDatabase.FindAssets("t:VertexAssetCatalogProfile").Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<VertexAssetCatalogProfile>).ToArray();
+            return job.Game.AssetCatalogs.Select(reference =>
+            {
+                var matches = profiles.Where(p => p && p.catalogId == reference.Id && p.catalogVersion == reference.Version).ToArray();
+                if (matches.Length != 1) throw new InvalidDataException("Install exactly one matching asset profile: " + reference.Id + " " + reference.Version);
+                matches[0].Validate();
+                return matches[0];
+            }).ToArray();
         }
 
         internal static string EntityContractDifference(EntityCatalog authored, EntityCatalog installed, MapAsset map)
@@ -172,7 +178,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 ?? throw new InvalidDataException("Could not load map thumbnail: " + path);
         }
 
-        private static void CompileValidated(VertexBuildContext context, VertexAssetCatalogProfile[] profiles)
+        private static void CompileValidated(VertexBuildContext context)
         {
             var lightmaps = VertexBakePolicy.Lightmaps(MapAsset.Deserialize(File.ReadAllBytes(context.Job.Map)), context.Job.Game.Baking);
             context.Policy = "vellocet-sdk/vertex-compile-v1/" + context.Job.Profile;
@@ -207,7 +213,6 @@ namespace Vellocet.Sdk.Editor.Maps
             if (!MapSceneUtility.HasBakedOcclusion()) throw new InvalidDataException("Occlusion bake produced no culling data. Check the map's static geometry and bounds.");
             if (result.Receipt.passes.Any(pass => pass.status != "ok")) throw new InvalidDataException("An SDK compilation pass failed.");
             var package = context.Job.Package ? VertexMapPackaging.Package(context, result,
-                profiles.Where(p => context.Job.Game.AssetCatalogs.Any(reference => reference.Id == p.catalogId)).ToArray(),
                 ResourceRequirements?.Invoke(resources) ?? Array.Empty<string>()) : null;
             context.Complete(outputPath, result.Receipt.passes.Select(pass => pass.name).Concat(package == null
                 ? new[] { "validate-required-bakes" } : new[] { "validate-required-bakes", "audit-bundle-membership", "validate-package-integrity" }), package);

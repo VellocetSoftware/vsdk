@@ -81,6 +81,8 @@ namespace Vellocet.Sdk.Editor.Entities
                         Placement = info.PlacementKind.ToString().ToLowerInvariant(),
                         Geometry = VertexEntityImporter.GeometryRole(info.MarkerType),
                         SurfaceMaterialProperty = marker is global::Vellocet.Sdk.Entities.TriggerWaterMarker ? "surface_material" : null,
+                        DecalMaterialProperty = marker is global::Vellocet.Sdk.Entities.DecalMarker ? "material" : null,
+                        DecalOpacityProperty = marker is global::Vellocet.Sdk.Entities.DecalMarker ? "opacity" : null,
                         PreviewAssetProperty = marker is global::Vellocet.Sdk.Entities.ParticleMarker ? "effect" : null,
                         PreviewScaleProperty = marker is global::Vellocet.Sdk.Entities.ParticleMarker ? "effect_scale" : null,
                         Importable = VertexEntityImporter.GeometryRole(info.MarkerType) != null,
@@ -230,7 +232,7 @@ namespace Vellocet.Sdk.Editor.Entities
             if (typeof(Texture).IsAssignableFrom(type) || type == typeof(Sprite)) return "texture";
             if (type == typeof(Mesh)) return "model";
             if (type == typeof(GameObject)) return "prefab";
-            if (type == typeof(AudioClip)) return "audio";
+            if (type == typeof(AudioClip) || typeof(Vellocet.Stereoform.AudioEventReference).IsAssignableFrom(type)) return "audio";
             if (type == typeof(TextAsset)) return "text";
             if (typeof(ScriptableObject).IsAssignableFrom(type)) return "data";
             return null;

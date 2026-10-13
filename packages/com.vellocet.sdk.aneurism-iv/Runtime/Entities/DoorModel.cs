@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using UnityEngine;
 
 namespace Entities.MapObjects
@@ -10,10 +11,10 @@ namespace Entities.MapObjects
         public Vector3 occlusionPortalSize = new(1, 1, 1);
         public Mesh mesh;
         public Material material;
-        public AudioClip openedSound;
-        public AudioClip closedSound;
-        public AudioClip interactSound;
-        public AudioClip moveSound;
-        public AudioClip lockedSound;
+        public AudioEventReference openedSound;
+        public AudioEventReference closedSound;
+        public AudioEventReference interactSound;
+        public AudioEventReference moveSound;
+        public AudioEventReference lockedSound;
     }
 }

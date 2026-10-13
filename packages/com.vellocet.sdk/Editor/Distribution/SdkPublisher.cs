@@ -58,6 +58,15 @@ namespace Vellocet.Sdk.Editor.Distribution
                     compiler + "/ProjectSettings/VellocetSdkContentOwnership.json");
                 Directory.Delete(content, true);
                 EmbedPackages(compiler);
+                if (SdkGame.Current.AudioRuntimeCapability == Vellocet.Sdk.Audio.AddonAudioBanks.Capability)
+                {
+                    var audioInputs = Path.GetFullPath(Path.Combine(SdkArtifactPathUtility.GetRepositoryRoot(), "Incoming/Stereoform"));
+                    var audioBuild = JObject.Parse(File.ReadAllText(Path.Combine(audioInputs, "runtime-build.json")));
+                    if ((int)audioBuild["abi"] != 2) throw new InvalidDataException("Incompatible Stereoform SDK artifact.");
+                    toolchain["stereoform"] = audioBuild["revision"];
+                    CopyTree(Path.Combine(audioInputs, "Compiler"), compiler + "/StereoformTools");
+                    File.Copy("ProjectSettings/AudioManager.asset", compiler + "/ProjectSettings/AudioManager.asset");
+                }
                 foreach (var setting in new[] { "ProjectVersion.txt", "TagManager.asset", "DynamicsManager.asset", "NavMeshAreas.asset" })
                     File.Copy("ProjectSettings/" + setting, compiler + "/ProjectSettings/" + setting);
 

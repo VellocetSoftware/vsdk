@@ -211,6 +211,12 @@ namespace Vellocet.Sdk.Editor.Audio
                 sources.Add(new SourceRecord(cue, sourcePath, "sounds/" + mediaName));
             }
 
+            if (SdkGame.Current.AudioRuntimeCapability == AddonAudioBanks.Capability)
+            {
+                try { audioContent = StereoformBankBuild.Build(addonId, contentId, title, addonRoot, cues); return true; }
+                catch (Exception ex) { error = "Stereoform bank compilation failed: " + ex.Message; return false; }
+            }
+
             try
             {
                 var contentDirectory = Path.Combine(addonRoot, "audio", contentId);

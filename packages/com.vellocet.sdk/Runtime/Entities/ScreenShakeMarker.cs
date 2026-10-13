@@ -52,6 +52,7 @@ namespace Vellocet.Sdk.Entities
 
         public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
         {
+            builder.AddState("state", nameof(Vellocet.Sdk.Entities.States.EffectEntityState));
             builder.AddInput("set_amplitude", EntitySignalValueType.Float);
             builder.AddInput("set_duration", EntitySignalValueType.Float);
             builder.AddInput("set_frequency", EntitySignalValueType.Float);

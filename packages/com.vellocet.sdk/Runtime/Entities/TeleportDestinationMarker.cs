@@ -11,6 +11,9 @@ namespace Vellocet.Sdk.Entities
     public sealed class TeleportDestinationMarker :
         DirectionalPointMarker<TeleportDestinationMarker.Input, TeleportDestinationMarker.Output>
     {
+        public override Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities SignalCapabilities =>
+            Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities.None;
+
         public enum Input
         {
         }

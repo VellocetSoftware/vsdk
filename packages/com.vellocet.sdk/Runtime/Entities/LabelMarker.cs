@@ -27,6 +27,11 @@ namespace Vellocet.Sdk.Entities
         [field: SerializeField]
         public TextMeshPro Label { get; private set; }
 
+        [SerializeField, Tooltip("Enable for external scripts. VSig references enable this automatically.")]
+        private bool scripted;
+        [SerializeField, HideInInspector] private bool scriptReferenced;
+        public bool RequiresRuntimeEntity => scripted || scriptReferenced;
+
         [SerializeField, HideInInspector] private bool vertexLabel;
         [SerializeField, HideInInspector] private string vertexText;
         [SerializeField, HideInInspector] private Color vertexColor = Color.white;
@@ -55,6 +60,13 @@ namespace Vellocet.Sdk.Entities
         }
 
 #if UNITY_EDITOR
+        public void SetScriptReferenced(bool value)
+        {
+            scriptReferenced = value;
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+        }
+
         public void CaptureVertexLabel()
         {
             // Vertex positions the label's center, not the corner of TMP's default 100-metre text box.

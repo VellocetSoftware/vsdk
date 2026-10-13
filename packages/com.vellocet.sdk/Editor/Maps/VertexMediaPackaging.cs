@@ -51,6 +51,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 File.Copy(Path.Combine(nativeRoot, file.Path), destination, false);
             }
             content.Files = content.Files.Where(file => !nativeFiles.Any(compiled => compiled.Path == file.Path)).Concat(nativeFiles).ToArray();
+            var stereoformAudio = SdkGame.Current.AudioRuntimeCapability == Vellocet.Sdk.Audio.AddonAudioBanks.Capability
+                ? Vellocet.Sdk.Editor.Audio.StereoformBankBuild.BuildVertex(content, sourcePath, root) : null;
             var data = content.Serialize();
             File.WriteAllBytes(Path.Combine(root, ContentManifest.FileName), data);
             var manifestPath = Path.Combine(root, "addon.json");
@@ -58,7 +60,8 @@ namespace Vellocet.Sdk.Editor.Maps
             manifest.requires = (manifest.requires ?? Array.Empty<string>()).Concat(content.Requires).Distinct(StringComparer.Ordinal).ToArray();
             manifest.contents = manifest.contents.Append(AddonMedia.Entry(content, data)).ToArray();
             var audio = AddonMedia.AudioCatalog(content);
-            if (audio.cues.Length > 0)
+            if (stereoformAudio != null) manifest.contents = manifest.contents.Append(stereoformAudio).ToArray();
+            if (audio.cues.Length > 0 && string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability))
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(audio, true));
                 File.WriteAllBytes(Path.Combine(root, "audio.json"), bytes);

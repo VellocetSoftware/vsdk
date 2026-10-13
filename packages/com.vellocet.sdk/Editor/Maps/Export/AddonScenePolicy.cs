@@ -42,6 +42,7 @@ namespace Vellocet.Sdk.Editor.Maps
         private const long MaximumAudioSamples = 2L * 60L * 60L * 48000L * 2L;
         private const int MaximumTextAssetBytes = 8 * 1024 * 1024;
         private const int MaximumSerializedArrayElements = 65536;
+        private const int MaximumOcclusionDataBytes = 8 * 1024 * 1024;
         private const int MaximumSerializedStringCharacters = 8192;
         private const int MaximumAnimationCurveKeys = 4096;
 
@@ -183,6 +184,7 @@ namespace Vellocet.Sdk.Editor.Maps
 
             var fullName = type.FullName ?? string.Empty;
             var assembly = type.Assembly.GetName().Name ?? string.Empty;
+            if (!string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) && (type == typeof(AudioSource) || type == typeof(AudioListener) || type == typeof(AudioReverbZone) || type == typeof(AudioLowPassFilter) || type == typeof(AudioHighPassFilter) || type == typeof(AudioDistortionFilter) || type == typeof(AudioReverbFilter) || type == typeof(AudioChorusFilter) || type == typeof(AudioEchoFilter))) return false;
             if (SdkGame.Current.AllowsComponent(fullName, assembly)) return true;
             if (AllowedNamedComponents.TryGetValue(fullName, out var expectedAssembly))
                 return string.Equals(assembly, expectedAssembly, StringComparison.Ordinal);
@@ -217,7 +219,7 @@ namespace Vellocet.Sdk.Editor.Maps
         }
 
         private static bool TryAuditSerializedData(Object target, string context, out string error,
-            bool allowManagedReferences = false)
+            bool allowManagedReferences = false, bool allowOcclusionData = false)
         {
             error = null;
             try
@@ -228,6 +230,25 @@ namespace Vellocet.Sdk.Editor.Maps
                 while (property.Next(enterChildren))
                 {
                     enterChildren = true;
+                    if (allowOcclusionData && property.propertyPath == "m_PVSData" &&
+                        property.isArray && property.arrayElementType == "byte")
+                    {
+                        if (property.arraySize > MaximumOcclusionDataBytes)
+                        {
+                            error = $"Occlusion data on '{context}' exceeds its byte limit.";
+                            return false;
+                        }
+                        enterChildren = false;
+                        continue;
+                    }
+                    // The typed graph validator checks these arrays together, including indices and memory budgets.
+                    if (target is SpatialOctreeAsset && property.isArray && property.propertyPath is
+                        "nodes" or "acousticData" or "neighborStarts" or "neighborIndices" or "neighborApertures" or
+                        "traversableNodeIndices" or "routingRegions" or "routingNeighborStarts" or "routingNeighborIndices")
+                    {
+                        enterChildren = false;
+                        continue;
+                    }
                     if (target is Vertex.Unity.VertexMapResources resources && property.propertyPath == "sources")
                     {
                         if (property.arraySize > Vertex.Contracts.BuildProtocol.MaximumBytes)
@@ -389,6 +410,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 case Sprite sprite:
                     return !sprite.texture || TryCountTexture(sprite.texture, path, budget, out error);
                 case AudioClip clip:
+                    if (!string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability))
+                    { error = "Unity AudioClip is not valid runtime content. Convert it to a Stereoform event and rebuild."; return false; }
                     if (!budget.AudioClips.Add(clip))
                         return true;
                     var samples = (long)clip.samples * Math.Max(1, clip.channels);
@@ -411,12 +434,16 @@ namespace Vellocet.Sdk.Editor.Maps
                 case Object when asset.GetType().FullName == "UnityEngine.VFX.VisualEffectAsset" &&
                                  asset.GetType().Assembly.GetName().Name == "UnityEngine.VFXModule":
                     return TryAuditSerializedData(asset, path, out error);
+                case SpatialOctreeAsset spatial:
+                    if (!SpatialOctreePerformanceBudget.TryValidate(spatial, SpatialOctreeBakeSettings.Default, out error) ||
+                        !spatial.TryValidateData(out error)) return false;
+                    return TryAuditSerializedData(spatial, path, out error);
                 case ScriptableObject scriptable when IsAllowedSerializedType(scriptable.GetType()):
                     return TryAuditSerializedData(scriptable, path, out error);
                 // Unity exposes baked occlusion data as Object, without a public managed asset type.
                 case Object when asset.GetType() == typeof(Object) &&
                                  string.Equals(path, budget.OcclusionDataPath, StringComparison.Ordinal):
-                    return TryAuditSerializedData(asset, path, out error);
+                    return TryAuditSerializedData(asset, path, out error, allowOcclusionData: true);
                 default:
                     error = $"Addon depends on unsupported asset type '{asset.GetType().FullName}' at '{path}'.";
                     return false;
@@ -425,7 +452,7 @@ namespace Vellocet.Sdk.Editor.Maps
 
         private static bool IsAllowedSerializedType(Type type)
         {
-            return type == typeof(SpatialOctreeAsset) || type == typeof(Vellocet.Sdk.Audio.AddonAudioCue) || IsAllowedComponent(type) ||
+            return (!string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) && (type == typeof(Vellocet.Stereoform.AudioEventReference) || type == typeof(Vellocet.Stereoform.AudioBusReference) || type == typeof(Vellocet.Stereoform.AudioEnvironmentReference))) || type == typeof(SpatialOctreeAsset) || type == typeof(Vellocet.Sdk.Audio.AddonAudioCue) || IsAllowedComponent(type) ||
                    IsAllowedVolumeType(type);
         }
 

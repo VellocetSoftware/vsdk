@@ -114,11 +114,11 @@ namespace Vellocet.Sdk.Entities
             builder.AddInput("set_speed", EntitySignalValueType.Float);
             builder.AddInput("set_progress", EntitySignalValueType.Float);
             builder.AddOutput("progress", EntitySignalValueType.Float);
-            builder.AddProperty("is_active", EntitySignalValueType.Bool, true, true);
-            builder.AddProperty("is_locked", EntitySignalValueType.Bool, true, true);
-            builder.AddProperty("is_reversed", EntitySignalValueType.Bool, true, true);
-            builder.AddProperty("speed", EntitySignalValueType.Float, true, true);
-            builder.AddProperty("progress", EntitySignalValueType.Float, true, true);
+            builder.AddProperty("is_active", EntitySignalValueType.Bool, readable: true, writable: false, authority: EntitySignalAuthority.Any);
+            builder.AddProperty("is_locked", EntitySignalValueType.Bool, readable: true, writable: false, authority: EntitySignalAuthority.Any);
+            builder.AddProperty("is_reversed", EntitySignalValueType.Bool, readable: true, writable: false, authority: EntitySignalAuthority.Any);
+            builder.AddProperty("speed", EntitySignalValueType.Float, readable: true, writable: false, authority: EntitySignalAuthority.Any);
+            builder.AddProperty("progress", EntitySignalValueType.Float, readable: true, writable: false, authority: EntitySignalAuthority.Any);
             builder.AddState("state", nameof(TrackTrainEntityState));
         }
 

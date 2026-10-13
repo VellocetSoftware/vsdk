@@ -10,7 +10,7 @@ namespace Vellocet.Sdk.Audio
     ///     cues retain only the provider addon id and cue id, so shared media is never copied into the map package.
     /// </summary>
     [CreateAssetMenu(fileName = "AddonAudioCue", menuName = "Vellocet/SDK/Audio/Audio Cue", order = 120)]
-    public sealed class AddonAudioCue : ScriptableObject
+    public sealed class AddonAudioCue : Vellocet.Stereoform.AudioEventReference
     {
         [SerializeField] private AddonAudioCueOrigin origin = AddonAudioCueOrigin.Embedded;
         [SerializeField] private string cueId = string.Empty;
@@ -21,6 +21,9 @@ namespace Vellocet.Sdk.Audio
         [SerializeField] [HideInInspector] private byte[] sourceMedia;
         [SerializeField] [HideInInspector] private string mediaExtension;
 
+        public override string Bank => AddonAudioBanks.TryResolve(CueId, out var entry) ? entry.Bank : base.Bank;
+        public override string Id => AddonAudioBanks.TryResolve(CueId, out var entry) ? entry.Event : base.Id;
+        public override float Duration => AddonAudioBanks.TryResolve(CueId, out var entry) ? entry.Duration : base.Duration;
         public AddonAudioCueOrigin Origin => origin;
         public string CueId => cueId?.Trim() ?? string.Empty;
         public AddonAudioTemplate Template => template;

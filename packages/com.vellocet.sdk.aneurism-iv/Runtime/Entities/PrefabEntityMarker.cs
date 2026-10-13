@@ -5,7 +5,7 @@ using Vellocet.Sdk.Entities.Base;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    public abstract class PrefabEntityMarker : EntityMarker, IEntityImportGroup
+    public abstract class PrefabEntityMarker : EntityMarker, IMapModelMarker, IEntityInteractionMarker, IEntityImportGroup
     {
         [Serializable]
         public struct PersistenceEntry

@@ -35,6 +35,7 @@ namespace Vellocet.Sdk.Editor.Addons
             var timestamp = (createdUtc ?? DateTime.UtcNow).ToUniversalTime();
             manifest.schemaVersion = AddonManifest.CurrentSchemaVersion;
             manifest.gameId = SdkGame.Current.Id;
+            manifest.audioRuntime = SdkGame.Current.AudioRuntimeCapability;
             manifest.distributionProfile = AddonMapBuildPolicy.DistributionProfile(profile);
             manifest.distributionPolicy = AddonMapBuildPolicy.DistributionPolicy(profile);
             manifest.buildId = buildId;

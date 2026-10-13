@@ -24,7 +24,7 @@ namespace Vellocet.Sdk.VSig.Runtime
     }
 
     /// <summary>Compatibility bridge for SDK/game callers. Vertex owns all script execution.</summary>
-    public sealed class VSigRuntimeContext : IDisposable
+    public sealed partial class VSigRuntimeContext : IDisposable
     {
         public delegate bool AuthorityResolver(IEntitySignalRuntime runtime, string authority);
         public delegate bool ConsoleVariableResolver(string name, out string value, out string error);
@@ -86,6 +86,7 @@ namespace Vellocet.Sdk.VSig.Runtime
 
             try
             {
+                _deferred = DeferExecution?.Invoke(SceneHandle) == true;
                 var markers = (sceneMarkers ?? Array.Empty<EntityMarker>()).Where(marker => marker &&
                     (!host || marker.gameObject.scene.handle == SceneHandle)).ToArray();
                 var sceneHost = host as VSigSceneRuntime;
@@ -139,7 +140,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         }
         public void Advance(double seconds)
         {
-            if (_disposed) return;
+            if (_disposed || _deferred) return;
             RefreshAuthority(PortableContext.Host);
             PortableContext.Advance(seconds);
             ReportDiagnostics();
@@ -149,6 +150,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         {
             if (_disposed) return;
             _disposed = true;
+            ClearDeferred();
             _trace?.Dispose();
             PortableContext.Dispose();
         }
@@ -158,10 +160,12 @@ namespace Vellocet.Sdk.VSig.Runtime
                 !_scene.Entities.TryGetValue(marker, out var entity)) return;
             if (!runtime.SignalHandle.IsEmpty && !runtime.SignalHandle.Equals(EntitySignalHandle.ForEntity(marker)))
                 throw new ArgumentException("SDK runtime identity does not match its marker.");
+            RegisterDeferredSource(marker, runtime);
             PortableContext.OnRuntimeRegistered(entity, new VSigSceneSnapshot.Runtime(_scene, entity, runtime));
         }
         public void OnRuntimeUnregistered(EntityMarker marker)
         {
+            if (!ReferenceEquals(marker, null)) _startupSources?.Remove(marker);
             if (_scene != null && !ReferenceEquals(marker, null) && _scene.Entities.TryGetValue(marker, out var entity))
                 PortableContext.OnRuntimeUnregistered(entity);
         }
@@ -170,6 +174,12 @@ namespace Vellocet.Sdk.VSig.Runtime
         public void HandleEmit(EntityMarker marker, string output, string parameter, EntitySignalContext context)
         {
             if (_disposed || !marker || _scene == null || !_scene.Entities.TryGetValue(marker, out var entity)) return;
+            if (_deferred) { DeferEntity(marker, output, parameter, context); return; }
+            DispatchEntity(marker, output, parameter, context);
+        }
+        private void DispatchEntity(EntityMarker marker, string output, string parameter, EntitySignalContext context)
+        {
+            if (!marker || !_scene.Entities.TryGetValue(marker, out var entity)) return;
             RefreshAuthority(PortableContext.Host);
             PortableContext.HandleEmit(entity, output, parameter, _scene.ToVertex(context));
             ReportDiagnostics();
@@ -177,6 +187,11 @@ namespace Vellocet.Sdk.VSig.Runtime
         public void HandleGlobalEmit(string source, string output, IReadOnlyList<VSigValue> values = null)
         {
             if (_disposed || string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(output)) return;
+            if (_deferred) { DeferGlobal(source, output, values); return; }
+            DispatchGlobal(source, output, values);
+        }
+        private void DispatchGlobal(string source, string output, IReadOnlyList<VSigValue> values)
+        {
             RefreshAuthority(PortableContext.Host);
             // Mod-to-mod observation remains an SDK bus. Undeclared events never enter the script VM.
             if (!VSigGlobalEvents.Catalog.TryGetSource(source, out var signals) ||

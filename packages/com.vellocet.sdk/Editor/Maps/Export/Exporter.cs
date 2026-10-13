@@ -16,6 +16,7 @@ using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Vellocet.Sdk.Addons;
 using Vellocet.Sdk.Maps;
 
 namespace Vellocet.Sdk.Editor.Maps
@@ -300,9 +301,12 @@ namespace Vellocet.Sdk.Editor.Maps
                 var outDir = Path.Combine(addonsRoot, Constants.MapsFolder, mapId, PlatformFolderName(target));
                 result.OutputDirectory = outDir;
                 Report(reportProgress, log, 0.92f, "Copying built catalogs and bundles.");
-                if (!PackageFromScratch(settings, profileId, outDir, out var catalogPath, out var bundlePaths))
+                var scratchOutput = profiles.EvaluateString(profileId, Constants.ScratchBuild);
+                if (!PackageFromScratch(scratchOutput, outDir, out var catalogPath, out var bundlePaths,
+                        out var packageError))
                 {
-                    result.Error = "Failed to copy built addressable content.";
+                    result.Error = packageError;
+                    Debug.LogError($"[Map Builder] {packageError}");
                     return result;
                 }
 
@@ -461,15 +465,15 @@ namespace Vellocet.Sdk.Editor.Maps
                 log?.Invoke(message.Trim());
         }
 
-        private static bool PackageFromScratch(AddressableAssetSettings settings, string profileId,
-            string outputDirectory, out string catalogPath, out string[] bundlePaths)
+        internal static bool PackageFromScratch(string scratch, string outputDirectory,
+            out string catalogPath, out string[] bundlePaths, out string error)
         {
             catalogPath = null;
             bundlePaths = Array.Empty<string>();
-            var scratch = settings.profileSettings.EvaluateString(profileId, Constants.ScratchBuild);
+            error = null;
             if (string.IsNullOrEmpty(scratch) || !Directory.Exists(scratch))
             {
-                Debug.LogError($"[Map Builder] Scratch build path not found: '{scratch}'.");
+                error = $"Scratch build path not found: '{scratch}'.";
                 return false;
             }
 
@@ -488,21 +492,25 @@ namespace Vellocet.Sdk.Editor.Maps
             var bin = catalogs.FirstOrDefault();
             if (bin == null)
             {
-                Debug.LogError("[Map Builder] No binary catalog (.bin) found in scratch build output.");
+                error = "No binary catalog (.bin) found in scratch build output.";
                 return false;
             }
 
-            SafeCleanDirectory(outputDirectory);
+            // The loader uses this same managed preflight before Addressables reads the catalog.
+            // Validate before replacing any prior output or marking this platform successful.
+            if (!AddonCatalogCompatibility.TryValidateFile(bin, out error))
+                return false;
 
             var bundles = Directory.GetFiles(scratch, "*.bundle", SearchOption.AllDirectories)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
             if (bundles.Length == 0)
             {
-                Debug.LogError("[Map Builder] No asset bundles were found in scratch build output.");
+                error = "No asset bundles were found in scratch build output.";
                 return false;
             }
 
+            SafeCleanDirectory(outputDirectory);
             foreach (var src in bundles)
                 SafeCopy(src, Path.Combine(outputDirectory, Path.GetFileName(src)));
 

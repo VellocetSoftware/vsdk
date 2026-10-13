@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using System;
 using UnityEngine;
 using Vellocet.Sdk.Entities.Base;
@@ -12,13 +13,13 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public enum Reverb { None, InCity, InRoomSmall, InRoomLarge, InTunnel, InUnderground }
         [SerializeField] private string locationName;
         [SerializeField] private bool showTime = true;
-        [SerializeField] private AudioClip soundscape;
+        [SerializeField] private AudioEventReference soundscape;
         [SerializeField] private bool useSnapshot;
         [SerializeField] private Reverb snapshot;
         [SerializeField, Range(0, 4)] private float transitionTime = 1;
         public string LocationName => locationName;
         public bool ShowTime => showTime;
-        public AudioClip Soundscape => soundscape;
+        public AudioEventReference Soundscape => soundscape;
         public bool UseSnapshot => useSnapshot;
         public Reverb Snapshot => snapshot;
         public float TransitionTime => transitionTime;

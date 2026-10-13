@@ -59,6 +59,7 @@ namespace Vellocet.Sdk.Entities
 
         public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
         {
+            builder.AddState("state", nameof(Vellocet.Sdk.Entities.States.EffectEntityState));
             builder.AddInput("set_damage", EntitySignalValueType.Float);
             builder.AddInput("set_radius", EntitySignalValueType.Float);
             builder.AddInput("set_force", EntitySignalValueType.Float);

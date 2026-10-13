@@ -16,6 +16,7 @@ namespace Vellocet.Sdk
         public abstract bool SupportsExternalMods { get; }
         public virtual bool RequiresPackageGameId => true;
         public virtual string AudioContentTypeId => "vellocet.audio";
+        public virtual string AudioRuntimeCapability => "";
         public virtual IReadOnlyList<Vertex.Contracts.GlobalSignalDefinition> AdditionalGlobalEvents =>
             Array.Empty<Vertex.Contracts.GlobalSignalDefinition>();
         public abstract int ResolveLayers(SdkLayerSet layers);

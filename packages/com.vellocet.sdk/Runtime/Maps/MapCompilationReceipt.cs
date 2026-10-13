@@ -12,8 +12,8 @@ namespace Vellocet.Sdk.Maps
     [Serializable]
     public sealed class MapCompilationReceipt
     {
-        public const int CurrentSchemaVersion = 8;
-        public static bool IsSupportedSchemaVersion(int version) => version == 6 || version == 7 || version == CurrentSchemaVersion;
+        public const int CurrentSchemaVersion = 9;
+        public static bool IsSupportedSchemaVersion(int version) => version == 6 || version == 7 || version == 8 || version == CurrentSchemaVersion;
         public const string AddonContentKind = "addon";
         public const string BaseContentKind = "base";
         // Retained engine scene with original asset references. Distribution policy runs when packaging it.
@@ -30,6 +30,7 @@ namespace Vellocet.Sdk.Maps
         public string buildId;
         public string createdUtc;
         public string compilerVersion;
+        public string audioRuntime;
         public string unityVersion;
         public string sourceScenePath;
         public string sourceSceneGuid;
@@ -157,6 +158,7 @@ namespace Vellocet.Sdk.Maps
             var builder = new StringBuilder();
             Append(builder, receipt.mapId);
             Append(builder, receipt.compilerVersion);
+            if (receipt.schemaVersion >= 9) Append(builder, receipt.audioRuntime);
             Append(builder, receipt.sourceDependenciesHash);
             Append(builder, receipt.vsigProgramHash);
             Append(builder, receipt.lightmapQuality);
@@ -181,6 +183,7 @@ namespace Vellocet.Sdk.Maps
             Append(builder, receipt.buildId);
             Append(builder, receipt.createdUtc);
             Append(builder, receipt.compilerVersion);
+            if (receipt.schemaVersion >= 9) Append(builder, receipt.audioRuntime);
             Append(builder, receipt.unityVersion);
             Append(builder, receipt.sourceScenePath);
             Append(builder, receipt.sourceSceneGuid);
