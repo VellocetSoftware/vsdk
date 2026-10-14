@@ -17,13 +17,11 @@ namespace Vellocet.Sdk.Aneurism.Entities
         [SerializeField, Min(-1), Tooltip("Maximum inventory weight; -1 uses the selected prop's default.")] private int capacity = -1;
         [SerializeField] private Access deposits;
         [SerializeField] private Access opening;
-        [SerializeField] private bool audioOcclusion = true;
         public Kind ContainerKind => kind;
         public LootKind Loot => loot;
         public int Capacity => capacity;
         public Access Deposits => deposits;
         public Access Opening => opening;
-        public bool AudioOcclusion => audioOcclusion;
         public override string ArchetypeId => Enum.IsDefined(typeof(Kind), kind) ? "aniv.container." + kind.ToString().ToLowerInvariant() : null;
         public override string[] Inputs => Array.Empty<string>();
         public override string[] Outputs => Array.Empty<string>();

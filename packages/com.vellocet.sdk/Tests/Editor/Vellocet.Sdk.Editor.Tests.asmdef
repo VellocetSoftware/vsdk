@@ -14,7 +14,8 @@
     "Unity.AI.Navigation",
     "Vertex.Unity",
     "Unity.Addressables",
-    "Unity.ResourceManager"
+    "Unity.ResourceManager",
+    "Vellocet.Spatial"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

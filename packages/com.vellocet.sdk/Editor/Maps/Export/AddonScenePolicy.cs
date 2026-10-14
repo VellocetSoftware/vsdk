@@ -15,7 +15,7 @@ using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Entities;
 using Vellocet.Sdk.Entities.Base;
 using Vellocet.Sdk.Maps;
-using Vellocet.Sdk.Spatial;
+using Vellocet.Framework.Runtime.Spatial;
 using Vellocet.Sdk.Tooling;
 using Vellocet.Sdk.VSig;
 using Vellocet.Sdk.VSig.Runtime;
@@ -356,6 +356,13 @@ namespace Vellocet.Sdk.Editor.Maps
                     var assetType = asset is MonoScript script ? script.GetClass() : asset ? asset.GetType() : null;
                     if (assetType?.FullName == "UnityEditor.Rendering.Universal.AssetVersion" &&
                         assetType.Assembly.GetName().Name == "Unity.RenderPipelines.Universal.Editor") continue;
+                    // Import diagnostics are editor metadata attached to otherwise valid assets.
+                    // The player dependency audit below still rejects them if they reach a build.
+                    if (assetType?.FullName == "UnityEditor.AssetImporters.ImportLog" &&
+                        assetType.Assembly == typeof(AssetImporter).Assembly) continue;
+                    // Importer scripts describe source assets; player dependencies are audited separately.
+                    if (asset is MonoScript && assetType != null &&
+                        typeof(AssetImporter).IsAssignableFrom(assetType)) continue;
                     if (!asset || ++budget.DependencyObjects > MaximumDependencyObjects)
                     {
                         error = "Addon exceeds its dependency-object limit.";
@@ -435,7 +442,7 @@ namespace Vellocet.Sdk.Editor.Maps
                                  asset.GetType().Assembly.GetName().Name == "UnityEngine.VFXModule":
                     return TryAuditSerializedData(asset, path, out error);
                 case SpatialOctreeAsset spatial:
-                    if (!SpatialOctreePerformanceBudget.TryValidate(spatial, SpatialOctreeBakeSettings.Default, out error) ||
+                    if (!SpatialOctreePerformanceBudget.TryValidate(spatial, SdkGame.Current.SpatialBakeSettings, out error) ||
                         !spatial.TryValidateData(out error)) return false;
                     return TryAuditSerializedData(spatial, path, out error);
                 case ScriptableObject scriptable when IsAllowedSerializedType(scriptable.GetType()):

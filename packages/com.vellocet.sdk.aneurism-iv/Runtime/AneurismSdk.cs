@@ -23,6 +23,19 @@ namespace Vellocet.Sdk.Aneurism
         public override string AudioContentTypeId => "stereoform.event";
         public override string AudioRuntimeCapability => "stereoform/2";
         public override string DisplayName => "ANEURISM IV";
+        public override Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings SpatialBakeSettings
+        {
+            get
+            {
+                var settings = base.SpatialBakeSettings;
+                settings.OccluderMask = LayerMask.GetMask("Default", "Door", "EntitySolid");
+                // Existing city maps need up to 724k nodes at the original wall resolution.
+                settings.MaxBakedNodeCount = 800000;
+                settings.MaxBakedNeighborEdgeCount = 2000000;
+                settings.MaxEstimatedRuntimeBytes = 192 * 1024 * 1024;
+                return settings.Sanitize();
+            }
+        }
         public override string DefaultModeId => "aneurism";
         public override bool SupportsExternalMods => false;
         public override string DocumentationSection => "ANEURISM_IV";

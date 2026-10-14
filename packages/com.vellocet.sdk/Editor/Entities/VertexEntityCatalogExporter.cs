@@ -37,14 +37,7 @@ namespace Vellocet.Sdk.Editor.Entities
             var bytes = Create().Serialize();
             var destination = Path.GetFullPath(path);
             Directory.CreateDirectory(Path.GetDirectoryName(destination));
-            var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            try
-            {
-                File.WriteAllBytes(temporary, bytes);
-                if (File.Exists(destination)) File.Replace(temporary, destination, null);
-                else File.Move(temporary, destination);
-            }
-            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+            Model.ProfileFiles.Publish(destination, bytes);
         }
 
         private static string Icon(string assetPath)

@@ -12,9 +12,8 @@ namespace Vellocet.Sdk.Entities.Base
     /// <summary>
     ///     Authoring contract for map geometry mounted to a runtime mover.
     /// </summary>
-    public interface IMovingBrushEntityMarker
+    public interface IMovingBrushEntityMarker : Vellocet.Framework.Runtime.Spatial.ISpatialDynamicOccluderSource
     {
-        Transform BrushTransform { get; }
     }
 
     public abstract class MovingBrushEntityMarker<TInput, TOutput> : EntityMarker<TInput, TOutput>,

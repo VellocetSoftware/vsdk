@@ -13,7 +13,9 @@
     "Unity.ResourceManager",
     "Unity.Burst",
     "GUID:e0cd26848372d4e5c891c569017e11f1",
-    "Vellocet.Stereoform"
+    "Vellocet.Stereoform",
+    "Vellocet.Spatial",
+    "Vellocet.Audio.Core"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

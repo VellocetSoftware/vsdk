@@ -13,7 +13,7 @@ using UnityEngine;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Editor.Tools;
 using Vellocet.Sdk.Maps;
-using Vellocet.Sdk.Spatial;
+using Vellocet.Framework.Runtime.Spatial;
 using Vertex.Contracts;
 using Vertex.Unity.Editor;
 using Object = UnityEngine.Object;
@@ -55,7 +55,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 if (oversized)
                     typeof(SpatialOctreeAsset).GetField("nodes", System.Reflection.BindingFlags.Instance |
                         System.Reflection.BindingFlags.NonPublic).SetValue(asset,
-                        new SpatialOctreeNodeData[SpatialOctreeBakeSettings.Default.MaxBakedNodeCount + 1]);
+                        new SpatialOctreeNodeData[SdkGame.Current.SpatialBakeSettings.Sanitize().MaxBakedNodeCount + 1]);
                 Assert.That(AddonScenePolicy.TryValidate(scene, Array.Empty<MapCompiler.RuntimeDependency>(),
                     out var error, new Object[] { asset }), Is.False);
                 Assert.That(error, Does.Contain(oversized ? "Node budget exceeded" : "incomplete or inconsistent"));

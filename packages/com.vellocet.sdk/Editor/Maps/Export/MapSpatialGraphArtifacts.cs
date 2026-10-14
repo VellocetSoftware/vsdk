@@ -10,7 +10,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Maps;
-using Vellocet.Sdk.Spatial;
+using Vellocet.Framework.Runtime.Spatial;
 using Object = UnityEngine.Object;
 
 namespace Vellocet.Sdk.Editor.Maps

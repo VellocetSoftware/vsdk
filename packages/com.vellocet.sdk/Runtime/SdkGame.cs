@@ -21,6 +21,9 @@ namespace Vellocet.Sdk
             Array.Empty<Vertex.Contracts.GlobalSignalDefinition>();
         public abstract int ResolveLayers(SdkLayerSet layers);
         public abstract int NavigationMask { get; }
+        // Installed game policy owns resolution and limits; map authors cannot raise them.
+        public virtual Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings SpatialBakeSettings =>
+            Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings.Default;
         public virtual string DocumentationSection => string.Empty;
         private static readonly string[] SharedMarkerAssemblies = { "Vellocet.Sdk" };
         public virtual IReadOnlyList<string> MarkerAssemblies => SharedMarkerAssemblies;
