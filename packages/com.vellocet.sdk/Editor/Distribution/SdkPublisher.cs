@@ -29,10 +29,14 @@ namespace Vellocet.Sdk.Editor.Distribution
 
         public void Build(string outputRoot, string toolsRoot)
         {
-            var output = SdkArtifactPathUtility.ToAbsolutePath(outputRoot);
+            var output = SdkArtifactPathUtility.ToAbsolutePath(outputRoot)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             SdkArtifactPathUtility.EnsurePathWithinRepository(output);
-            if (!outputRoot.Replace('\\', '/').StartsWith("Builds/", StringComparison.Ordinal))
-                throw new InvalidDataException("SDK distributions must be written under Builds/.");
+            var generatedRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Generated")) + Path.DirectorySeparatorChar;
+            var buildsRoot = Path.GetFullPath(Path.Combine(SdkArtifactPathUtility.GetRepositoryRoot(), "Builds")) + Path.DirectorySeparatorChar;
+            if (!output.StartsWith(generatedRoot, StringComparison.Ordinal) &&
+                !output.StartsWith(buildsRoot, StringComparison.Ordinal))
+                throw new InvalidDataException("SDK distributions must be written inside the Unity project Generated directory or repository Builds directory.");
             var toolchain = JObject.Parse(File.ReadAllText(Path.Combine(toolsRoot, "toolchain.json")));
             ValidateTools(toolsRoot);
             toolchain[SdkGame.Current.Id] = SourceRevision();
