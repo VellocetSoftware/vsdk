@@ -25,7 +25,7 @@ namespace Vellocet.Sdk.Editor.Spatial
     public static class SpatialOctreeBaker
     {
         private const string DefaultOutputFolder = "Assets/GameContent/Spatial";
-        private const string BakeAlgorithmVersion = "v9-solid-cell-pruning";
+        private const string BakeAlgorithmVersion = "v10-adaptive-rectangular-cells";
 
         public static SpatialOctreeAsset BakeActiveScene()
         {
@@ -134,6 +134,7 @@ namespace Vellocet.Sdk.Editor.Spatial
                 $"[SpatialOctreeBaker] Baked '{assetPath}' nodes={nodes.Length}, traversable={traversableLeafCount}, " +
                 $"components={componentCount}, regions={routingRegions.Length}, edges={neighborIndices.Length}, " +
                 $"coldBakeMs={coldBakeMilliseconds}, subdivisionMs={subdivisionMilliseconds}, address='{address}', " +
+                $"bounds={rootBounds.size}, effectiveMaxOpenNode={bakeBudget.OpenNodeSize:0.###}, " +
                 $"settings={DescribeSettings(settings)}.");
             return asset;
         }
@@ -231,10 +232,44 @@ namespace Vellocet.Sdk.Editor.Spatial
             if (!hasBounds)
                 return new Bounds(Vector3.zero, Vector3.one * Mathf.Max(settings.MinNodeSize, 16f));
 
-            var size = Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z)) +
-                       settings.BoundsPadding * 2f;
-            size = Mathf.Max(size, settings.MinNodeSize);
-            return new Bounds(bounds.center, Vector3.one * size);
+            // A wide, shallow map must not acquire a map-width column of empty air.
+            var size = bounds.size + Vector3.one * (settings.BoundsPadding * 2f);
+            return new Bounds(bounds.center, Vector3.Max(size, Vector3.one * settings.MinNodeSize));
+        }
+
+        internal static float ResolveOpenNodeSize(Bounds bounds, SpatialOctreeBakeSettings settings)
+        {
+            settings = settings.Sanitize();
+            // MaxOpenNodeSize is the preferred open-space resolution. Reserve most of the budgets
+            // for surface refinement instead of spending them on a uniform grid of empty cells.
+            // Allow six directed edges and a conservative 512 runtime bytes per open node.
+            var nodeBudget = Math.Max(1, Math.Min(settings.MaxBakedNodeCount / 4,
+                Math.Min(settings.MaxBakedNeighborEdgeCount / 24, settings.MaxEstimatedRuntimeBytes / 2048)));
+            var size = settings.MaxOpenNodeSize;
+            while (EstimateOpenNodeCount(bounds.size, size, settings.MaxDepth, nodeBudget) > nodeBudget)
+                size *= 2f;
+            return size;
+        }
+
+        private static long EstimateOpenNodeCount(Vector3 size, float leafSize, int maxDepth, int budget)
+        {
+            long levelCount = 1;
+            long nodeCount = 1;
+            for (var depth = 0; depth < maxDepth; depth++)
+            {
+                var children = 1;
+                for (var axis = 0; axis < 3; axis++)
+                    if (size[axis] > leafSize)
+                    {
+                        size[axis] *= 0.5f;
+                        children *= 2;
+                    }
+                if (children == 1) break;
+                levelCount *= children;
+                nodeCount += levelCount;
+                if (nodeCount > budget) break;
+            }
+            return nodeCount;
         }
 
         private static void EncapsulateFallbackColliderBounds(Scene scene, SpatialOctreeBakeSettings settings,
@@ -305,6 +340,7 @@ namespace Vellocet.Sdk.Editor.Spatial
             CellOverlapTester overlapTester,
             BakeBudgetGuard bakeBudget)
         {
+            if (parent < 0) bakeBudget.ConfigureRoot(bounds, settings, colliders.Count);
             bakeBudget.ThrowIfCannotAdd(nodes.Count, 1);
             var index = nodes.Count;
             nodes.Add(default);
@@ -325,31 +361,45 @@ namespace Vellocet.Sdk.Editor.Spatial
         {
             var occupied = colliders.Count > 0;
             var largestAxis = Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z));
-            var targetLeafSize = occupied ? settings.MinNodeSize : settings.MaxOpenNodeSize;
+            var targetLeafSize = occupied ? settings.MinNodeSize : bakeBudget.OpenNodeSize;
             var leaf = depth >= settings.MaxDepth || largestAxis <= targetLeafSize ||
                        CellOverlapTester.IsFullyBlocked(bounds, colliders);
             nodes[index] = new MutableNode(bounds, parent, depth, leaf, leaf && occupied);
             if (leaf)
                 return;
 
-            bakeBudget.ThrowIfCannotAdd(nodes.Count, 8);
+            // Keep short axes at their requested resolution. Child bits are packed in X/Y/Z order
+            // across only the split axes, so branches can have two, four, or eight children.
+            var childSize = bounds.size;
+            var childCount = 1;
+            for (var axis = 0; axis < 3; axis++)
+                if (childSize[axis] > targetLeafSize)
+                {
+                    childSize[axis] *= 0.5f;
+                    childCount *= 2;
+                }
+
+            bakeBudget.ThrowIfCannotAdd(nodes.Count, childCount);
             var firstChild = nodes.Count;
-            for (var i = 0; i < 8; i++)
+            for (var i = 0; i < childCount; i++)
                 nodes.Add(default);
 
             var node = nodes[index];
             node.FirstChildIndex = firstChild;
-            node.ChildCount = 8;
+            node.ChildCount = childCount;
             nodes[index] = node;
 
-            var childSize = bounds.size * 0.5f;
             var offset = bounds.size * 0.25f;
-            for (var i = 0; i < 8; i++)
+            for (var i = 0; i < childCount; i++)
             {
                 var center = bounds.center;
-                center.x += (i & 1) == 0 ? -offset.x : offset.x;
-                center.y += (i & 2) == 0 ? -offset.y : offset.y;
-                center.z += (i & 4) == 0 ? -offset.z : offset.z;
+                var bit = 1;
+                for (var axis = 0; axis < 3; axis++)
+                    if (childSize[axis] < bounds.size[axis])
+                    {
+                        center[axis] += (i & bit) == 0 ? -offset[axis] : offset[axis];
+                        bit <<= 1;
+                    }
                 var childBounds = new Bounds(center, childSize);
                 var childColliders = ListPool<Collider>.Get();
                 try
@@ -363,6 +413,15 @@ namespace Vellocet.Sdk.Editor.Spatial
                     ListPool<Collider>.Release(childColliders);
                 }
             }
+
+            // Flat surfaces can cover every fine cell without containing the whole parent solid.
+            // Merge only when every child is already a blocked leaf: this preserves the exact
+            // occupancy at the requested resolution, including gaps and doorways.
+            for (var i = 0; i < childCount; i++)
+                if (!nodes[firstChild + i].IsLeaf || !nodes[firstChild + i].IsBlocked)
+                    return;
+            nodes[index] = new MutableNode(bounds, parent, depth, true, true);
+            nodes.RemoveRange(firstChild, nodes.Count - firstChild);
         }
 
         private static void CollectIntersectingColliders(Bounds bounds, IReadOnlyList<Collider> candidates,
@@ -462,7 +521,6 @@ namespace Vellocet.Sdk.Editor.Spatial
             // positive sibling. This locates the only subtree that can touch the source's positive
             // face without rescanning the octree root for every leaf.
             var currentIndex = sourceIndex;
-            var axisBit = 1 << axis;
             while ((uint)currentIndex < (uint)nodes.Length)
             {
                 var parentIndex = nodes[currentIndex].ParentIndex;
@@ -474,7 +532,8 @@ namespace Vellocet.Sdk.Editor.Spatial
                 if ((uint)childOffset >= (uint)parent.ChildCount)
                     return;
 
-                if ((childOffset & axisBit) == 0)
+                var axisBit = SplitAxisBit(nodes, parent, axis);
+                if (axisBit != 0 && (childOffset & axisBit) == 0)
                 {
                     var candidateIndex = parent.FirstChildIndex + (childOffset | axisBit);
                     CollectNegativeFaceLeaves(nodes, candidateIndex, sourceIndex, axis, edges);
@@ -515,7 +574,7 @@ namespace Vellocet.Sdk.Editor.Spatial
             if (firstChild < 0)
                 return;
 
-            var axisBit = 1 << axis;
+            var axisBit = SplitAxisBit(nodes, candidate, axis);
             var endChild = Mathf.Min(firstChild + candidate.ChildCount, nodes.Length);
             for (var childIndex = firstChild; childIndex < endChild; childIndex++)
             {
@@ -523,6 +582,19 @@ namespace Vellocet.Sdk.Editor.Spatial
                 if ((childOffset & axisBit) == 0)
                     CollectNegativeFaceLeaves(nodes, childIndex, sourceIndex, axis, edges);
             }
+        }
+
+        private static int SplitAxisBit(SpatialOctreeNodeData[] nodes, SpatialOctreeNodeData parent, int axis)
+        {
+            var childSize = nodes[parent.FirstChildIndex].Bounds.size;
+            var bit = 1;
+            for (var currentAxis = 0; currentAxis <= axis; currentAxis++)
+                if (childSize[currentAxis] < parent.Bounds.size[currentAxis])
+                {
+                    if (currentAxis == axis) return bit;
+                    bit <<= 1;
+                }
+            return 0;
         }
 
         private static bool OverlapsOnProjectedFace(Bounds a, Bounds b, int axis, float epsilon)
@@ -661,6 +733,7 @@ namespace Vellocet.Sdk.Editor.Spatial
                 .Append(settings.TriggerInteraction).Append('|')
                 .Append(settings.MinNodeSize).Append('|')
                 .Append(settings.MaxOpenNodeSize).Append('|')
+                .Append(BitConverter.SingleToInt32Bits(ResolveOpenNodeSize(rootBounds, settings))).Append('|')
                 .Append(settings.BoundsPadding).Append('|')
                 .Append(settings.MaxDepth).Append('|')
                 .Append(settings.RoutingRegionDepth).Append('|')
@@ -881,7 +954,9 @@ namespace Vellocet.Sdk.Editor.Spatial
             private readonly int _maxBakeMilliseconds;
             private readonly int _maxNodeCount;
             private readonly Stopwatch _stopwatch;
-            private int _nextTimeCheckNodeCount;
+            private int _nodesUntilTimeCheck;
+            private string _context;
+            public float OpenNodeSize { get; private set; }
 
             public BakeBudgetGuard(SpatialOctreeBakeSettings settings, Stopwatch stopwatch)
             {
@@ -889,7 +964,15 @@ namespace Vellocet.Sdk.Editor.Spatial
                 _maxNodeCount = settings.MaxBakedNodeCount;
                 _maxBakeMilliseconds = settings.MaxBakeMilliseconds;
                 _stopwatch = stopwatch;
-                _nextTimeCheckNodeCount = TimeCheckNodeInterval;
+                _nodesUntilTimeCheck = TimeCheckNodeInterval;
+            }
+
+            public void ConfigureRoot(Bounds bounds, SpatialOctreeBakeSettings settings, int colliderCount)
+            {
+                OpenNodeSize = ResolveOpenNodeSize(bounds, settings);
+                _context = $"bounds={bounds.size} Unity units, colliders={colliderCount}, " +
+                           $"minNode={settings.MinNodeSize:0.###}, effectiveMaxOpenNode={OpenNodeSize:0.###}, " +
+                           $"maxDepth={settings.MaxDepth}";
             }
 
             public void ThrowIfCannotAdd(int currentNodeCount, int additionalNodeCount)
@@ -898,12 +981,14 @@ namespace Vellocet.Sdk.Editor.Spatial
                 if (requestedNodeCount > _maxNodeCount)
                     throw new InvalidOperationException(
                         "Spatial octree node budget exceeded during subdivision: " +
-                        $"{requestedNodeCount} > {_maxNodeCount}.");
+                        $"{requestedNodeCount} > {_maxNodeCount} ({_context}).");
 
-                if (requestedNodeCount < _nextTimeCheckNodeCount)
+                // Count work, not retained nodes: merging blocked children can shrink the list.
+                _nodesUntilTimeCheck -= additionalNodeCount;
+                if (_nodesUntilTimeCheck > 0)
                     return;
 
-                _nextTimeCheckNodeCount = currentNodeCount + TimeCheckNodeInterval;
+                _nodesUntilTimeCheck = TimeCheckNodeInterval;
                 var elapsedMilliseconds = _stopwatch.ElapsedMilliseconds;
                 if (elapsedMilliseconds > _maxBakeMilliseconds)
                     throw new InvalidOperationException(

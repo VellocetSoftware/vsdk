@@ -14,6 +14,7 @@ namespace Vellocet.Sdk.Spatial
         public LayerMask OccluderMask;
         public QueryTriggerInteraction TriggerInteraction;
         public float MinNodeSize;
+        [Tooltip("Preferred open-space cell size. Large maps may use coarser empty cells to reserve bake budgets for geometry.")]
         public float MaxOpenNodeSize;
         public float BoundsPadding;
         public int MaxDepth;

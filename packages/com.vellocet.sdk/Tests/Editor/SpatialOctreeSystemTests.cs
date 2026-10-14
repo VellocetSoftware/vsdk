@@ -39,6 +39,194 @@ namespace Vellocet.Sdk.Tests.Editor
         }
 
         [Test]
+        public void RootBounds_PreservesMapProportionsAndPadding()
+        {
+            var collider = CreateGameObject("MapBounds").AddComponent<BoxCollider>();
+            collider.size = new Vector3(16000f, 2000f, 13000f) * 0.0254f;
+            collider.transform.position = new Vector3(120f, -40f, 50f);
+            Physics.SyncTransforms();
+            var settings = SpatialOctreeBakeSettings.Default;
+            var bounds = (Bounds)typeof(SpatialOctreeBaker)
+                .GetMethod("CalculateRootBounds", BindingFlags.NonPublic | BindingFlags.Static)
+                .Invoke(null, new object[] { _testScene, new[] { collider }, settings });
+
+            Assert.That(bounds.center, Is.EqualTo(collider.bounds.center));
+            Assert.That(bounds.size, Is.EqualTo(collider.bounds.size + Vector3.one * 4f));
+        }
+
+        [TestCase(1f)]
+        [TestCase(0.0254f)]
+        public void CreateNode_LargeOpenMapReservesBudgetForGeometry(float metersPerUnit)
+        {
+            var bounds = new Bounds(Vector3.zero, new Vector3(16000f, 2000f, 13000f) * metersPerUnit);
+            var settings = SpatialOctreeBakeSettings.Default;
+            var nodes = BakeNodes(bounds, Array.Empty<Collider>(), settings);
+            SpatialOctreeBaker.BuildNeighbors(nodes, out _, out var edges, settings.MaxBakedNeighborEdgeCount);
+
+            Assert.That(nodes.Length, Is.LessThan(settings.MaxBakedNodeCount / 4));
+            Assert.That(edges.Length, Is.LessThan(settings.MaxBakedNeighborEdgeCount / 4));
+            Assert.That(nodes.Where(node => node.IsLeaf).All(node => node.IsTraversable), Is.True);
+            var volume = nodes.Where(node => node.IsLeaf)
+                .Sum(node => (double)node.Bounds.size.x * node.Bounds.size.y * node.Bounds.size.z);
+            Assert.That(volume, Is.EqualTo((double)bounds.size.x * bounds.size.y * bounds.size.z).Within(volume * 0.00001));
+            TestContext.WriteLine($"open map scale={metersPerUnit}: nodes={nodes.Length}, edges={edges.Length}");
+        }
+
+        [TestCase(1f)]
+        [TestCase(0.0254f)]
+        public void CreateNode_ShallowMapWithFloorFitsDefaultBudgets(float metersPerUnit)
+        {
+            var size = new Vector3(16000f, 2000f, 13000f) * metersPerUnit;
+            var floor = CreateGameObject("Floor").AddComponent<BoxCollider>();
+            floor.size = new Vector3(size.x, 1f, size.z);
+            floor.transform.position = new Vector3(0f, -size.y * 0.5f, 0f);
+            var ceiling = CreateGameObject("Ceiling").AddComponent<BoxCollider>();
+            ceiling.size = floor.size;
+            ceiling.transform.position = new Vector3(0f, size.y * 0.5f, 0f);
+            Physics.SyncTransforms();
+            var settings = SpatialOctreeBakeSettings.Default;
+            var bounds = new Bounds(Vector3.zero, size + new Vector3(4f, 5f, 4f));
+            var nodes = BakeNodes(bounds, new[] { floor, ceiling }, settings);
+            SpatialOctreeBaker.BuildNeighbors(nodes, out var starts, out var edges, settings.MaxBakedNeighborEdgeCount);
+
+            Assert.That(nodes.Length, Is.LessThan(settings.MaxBakedNodeCount));
+            Assert.That(nodes.Any(node => node.IsBlocked && node.Bounds.Contains(floor.bounds.center)), Is.True);
+            Assert.That(nodes.Any(node => node.IsTraversable && node.Bounds.Contains(Vector3.zero)), Is.True);
+            var flags = BindingFlags.NonPublic | BindingFlags.Static;
+            typeof(SpatialOctreeBaker).GetMethod("AssignComponents", flags)
+                .Invoke(null, new object[] { nodes, starts, edges });
+            SpatialOctreeRoutingMetadata.Build(nodes, starts, edges, settings.RoutingRegionDepth,
+                out var traversable, out var regions, out var regionStarts, out var regionIndices);
+            var apertures = SpatialOctreeAcousticMetadata.BuildNeighborApertures(nodes, starts, edges);
+            var acoustics = SpatialOctreeAcousticMetadata.Build(nodes, starts, edges, apertures, bounds);
+            var asset = CreateAsset(bounds, nodes, starts, edges, apertures, traversable, regions,
+                regionStarts, regionIndices, acoustics, settings);
+            try
+            {
+                Assert.That(SpatialOctreePerformanceBudget.TryValidate(asset, out var message), Is.True, message);
+                TestContext.WriteLine($"shallow map scale={metersPerUnit}: {message}");
+            }
+            finally { Object.DestroyImmediate(asset); }
+        }
+
+        [Test]
+        public void CreateNode_MergesBlockedSurfaceCellsButPreservesDoorway()
+        {
+            var left = CreateGameObject("LeftWall").AddComponent<BoxCollider>();
+            left.size = new Vector3(6f, 0.2f, 8f);
+            left.transform.position = new Vector3(-5f, 0f, 0f);
+            var right = CreateGameObject("RightWall").AddComponent<BoxCollider>();
+            right.size = left.size;
+            right.transform.position = new Vector3(5f, 0f, 0f);
+            Physics.SyncTransforms();
+            var nodes = BakeNodes(new Bounds(Vector3.zero, new Vector3(16f, 0.5f, 8f)),
+                new[] { left, right }, SpatialOctreeBakeSettings.Default);
+
+            Assert.That(nodes.Length, Is.LessThan(100));
+            Assert.That(nodes.Any(node => node.IsBlocked && node.Bounds.size.x > 1f && node.Bounds.size.z > 1f), Is.True);
+            // Test centers of every 1-unit cell against the unmerged occupancy, including the gap.
+            for (var x = -7.5f; x < 8f; x += 1f)
+            for (var z = -3.5f; z < 4f; z += 1f)
+            {
+                var point = new Vector3(x, 0f, z);
+                var leaf = nodes.Single(node => node.IsLeaf && node.Bounds.Contains(point));
+                var cell = new Bounds(point, new Vector3(1f, 0.5f, 1f));
+                var blocked = cell.Intersects(left.bounds) || cell.Intersects(right.bounds);
+                Assert.That(leaf.IsBlocked, Is.EqualTo(blocked), $"Occupancy at {point}");
+            }
+        }
+
+        [Test]
+        public void OpenResolution_PreservesSmallMapSettingsAndInvalidatesCacheWhenBudgetChanges()
+        {
+            var settings = SpatialOctreeBakeSettings.Default;
+            var small = new Bounds(Vector3.zero, Vector3.one * 16f);
+            Assert.That(SpatialOctreeBaker.ResolveOpenNodeSize(small, settings), Is.EqualTo(settings.MaxOpenNodeSize));
+            var large = new Bounds(Vector3.zero, new Vector3(16000f, 2000f, 13000f));
+            var originalHash = SpatialOctreeBaker.ComputeGeometryHash(Array.Empty<Collider>(), settings, large, out _);
+            var originalSize = SpatialOctreeBaker.ResolveOpenNodeSize(large, settings);
+            settings.MaxBakedNodeCount = 1024;
+            Assert.That(SpatialOctreeBaker.ResolveOpenNodeSize(large, settings), Is.GreaterThan(originalSize));
+            Assert.That(SpatialOctreeBaker.ComputeGeometryHash(Array.Empty<Collider>(), settings, large, out _),
+                Is.Not.EqualTo(originalHash));
+        }
+
+        [Test]
+        public void BuildNeighbors_AdaptiveAxesMatchGeometricFaceAdjacency()
+        {
+            var collider = CreateGameObject("PartialWall").AddComponent<BoxCollider>();
+            collider.size = new Vector3(1f, 3f, 4f);
+            collider.transform.position = new Vector3(-3f, 0f, 1f);
+            Physics.SyncTransforms();
+            var settings = SpatialOctreeBakeSettings.Default;
+            settings.MaxOpenNodeSize = 4f;
+            var bounds = new Bounds(Vector3.zero, new Vector3(16f, 3f, 8f));
+            var nodes = BakeNodes(bounds, new[] { collider }, settings);
+            SpatialOctreeBaker.BuildNeighbors(nodes, out var starts, out var indices);
+            Assert.That(nodes.Where(node => !node.IsLeaf).Select(node => node.ChildCount).Distinct(),
+                Is.EquivalentTo(new[] { 2, 4, 8 }));
+
+            for (var i = 0; i < nodes.Length; i++)
+            {
+                var expected = Enumerable.Range(0, nodes.Length).Where(j => i != j &&
+                    nodes[i].IsTraversable && nodes[j].IsTraversable && ShareFace(nodes[i].Bounds, nodes[j].Bounds));
+                Assert.That(indices[starts[i]..starts[i + 1]], Is.EquivalentTo(expected), $"Neighbors of node {i}");
+            }
+
+            typeof(SpatialOctreeBaker).GetMethod("AssignComponents", BindingFlags.NonPublic | BindingFlags.Static)
+                .Invoke(null, new object[] { nodes, starts, indices });
+            SpatialOctreeRoutingMetadata.Build(nodes, starts, indices, settings.RoutingRegionDepth,
+                out var traversable, out var regions, out var regionStarts, out var regionIndices);
+            var apertures = SpatialOctreeAcousticMetadata.BuildNeighborApertures(nodes, starts, indices);
+            var acoustics = SpatialOctreeAcousticMetadata.Build(nodes, starts, indices, apertures, bounds);
+            var asset = CreateAsset(bounds, nodes, starts, indices, apertures, traversable, regions,
+                regionStarts, regionIndices, acoustics, settings);
+            try
+            {
+                Assert.That(asset.TryValidateData(out var error), Is.True, error);
+                using var graph = new SpatialOctreeGraph(asset);
+                var from = new Vector3(-7f, 0f, -3f);
+                var to = new Vector3(7f, 0f, 3f);
+                Assert.That(graph.EstimateRoute(from, to).Succeeded, Is.True);
+                using var queries = new NativeArray<SpatialOctreePathQuery>(
+                    new[] { new SpatialOctreePathQuery(from, to) }, Allocator.TempJob);
+                using var scheduled = graph.SchedulePathEstimates(queries, 1, Allocator.TempJob);
+                scheduled.Complete();
+                Assert.That(scheduled.Results[0].Succeeded, Is.True);
+            }
+            finally { Object.DestroyImmediate(asset); }
+        }
+
+        private static bool ShareFace(Bounds a, Bounds b)
+        {
+            for (var axis = 0; axis < 3; axis++)
+            {
+                if (Mathf.Abs(a.max[axis] - b.min[axis]) > 0.001f &&
+                    Mathf.Abs(b.max[axis] - a.min[axis]) > 0.001f) continue;
+                var u = (axis + 1) % 3;
+                var v = (axis + 2) % 3;
+                if (Mathf.Min(a.max[u], b.max[u]) > Mathf.Max(a.min[u], b.min[u]) + 0.001f &&
+                    Mathf.Min(a.max[v], b.max[v]) > Mathf.Max(a.min[v], b.min[v]) + 0.001f) return true;
+            }
+            return false;
+        }
+
+        private static SpatialOctreeNodeData[] BakeNodes(Bounds bounds, IReadOnlyList<Collider> colliders,
+            SpatialOctreeBakeSettings settings)
+        {
+            var baker = typeof(SpatialOctreeBaker);
+            var flags = BindingFlags.NonPublic | BindingFlags.Static;
+            var nodes = Activator.CreateInstance(typeof(List<>).MakeGenericType(
+                baker.GetNestedType("MutableNode", BindingFlags.NonPublic)));
+            var budget = Activator.CreateInstance(baker.GetNestedType("BakeBudgetGuard", BindingFlags.NonPublic),
+                settings, System.Diagnostics.Stopwatch.StartNew());
+            using var overlapTester = new SpatialOctreeBaker.CellOverlapTester();
+            baker.GetMethod("CreateNode", flags).Invoke(null, new object[]
+                { bounds, -1, 0, settings, colliders, nodes, overlapTester, budget });
+            return (SpatialOctreeNodeData[])baker.GetMethod("FinalizeNodes", flags).Invoke(null, new[] { nodes });
+        }
+
+        [Test]
         public void CreateNode_SolidInteriorStopsBeforeExceedingSubdivisionBudget()
         {
             var collider = CreateGameObject("LargeSolid").AddComponent<BoxCollider>();
