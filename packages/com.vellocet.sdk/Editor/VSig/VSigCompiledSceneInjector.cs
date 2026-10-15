@@ -233,7 +233,7 @@ namespace Vellocet.Sdk.Editor.VSig
             return false;
         }
 
-        private static void RemoveExistingRuntimes(Scene scene, VSigCompiledSceneInjectionOptions options)
+        internal static void RemoveExistingRuntimes(Scene scene, VSigCompiledSceneInjectionOptions options)
         {
             var objectName = ResolveRuntimeObjectName(options);
             var parent = ResolveRuntimeParent(scene, options);
