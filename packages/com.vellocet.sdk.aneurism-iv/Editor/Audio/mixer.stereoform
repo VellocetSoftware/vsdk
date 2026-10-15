@@ -93,22 +93,29 @@
   "switches": [
     {
       "values": [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10"
+        "Concrete",
+        "Dirt",
+        "Glass",
+        "Grass",
+        "Metal",
+        "Wood",
+        "Water",
+        "Energy",
+        "Flesh",
+        "Gravel",
+        "Fabric",
+        "Stone",
+        "Tile",
+        "Plastic",
+        "Asphalt",
+        "Brick",
+        "Soil",
+        "Void"
       ],
-      "default": "0",
+      "default": "Void",
       "scope": "Instance",
-      "id": "material",
-      "name": "Material"
+      "id": "surface-type",
+      "name": "Surface"
     },
     {
       "values": [

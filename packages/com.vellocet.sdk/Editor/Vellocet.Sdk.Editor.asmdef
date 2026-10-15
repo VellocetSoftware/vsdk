@@ -18,7 +18,8 @@
     "Unity.Newtonsoft.Json",
     "Vellocet.Stereoform",
     "Vellocet.Spatial",
-    "Vellocet.Spatial.Editor"
+    "Vellocet.Spatial.Editor",
+    "Vellocet.Content.Core"
   ],
   "includePlatforms": [
     "Editor"

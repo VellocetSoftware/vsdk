@@ -49,6 +49,8 @@ namespace Vellocet.Sdk.Editor.Maps
         private static readonly Dictionary<string, string> AllowedNamedComponents = new(StringComparer.Ordinal)
         {
             ["UnityEngine.MultiplayerRolesData"] = "UnityEngine.MultiplayerModule",
+            ["Vellocet.Framework.Runtime.Content.Surfaces.SurfaceProvider"] = "Vellocet.Content.Core",
+            ["Vellocet.Framework.Runtime.Content.Surfaces.SurfaceTag"] = "Vellocet.Content.Core",
             ["Unity.AI.Navigation.NavMeshSurface"] = "Unity.AI.Navigation",
             ["Unity.AI.Navigation.NavMeshModifier"] = "Unity.AI.Navigation",
             ["Unity.AI.Navigation.NavMeshModifierVolume"] = "Unity.AI.Navigation",
