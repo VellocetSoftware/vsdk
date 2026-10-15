@@ -62,7 +62,7 @@ namespace Vellocet.Sdk
         public const string BaseGroupName = "Base";
         public const string TempGroupPrefix = "Temp_MapExport_";
 
-        public const string AddonsToken = "Addons";
+        public const string AddonsToken = "addons";
         public const string ScratchBuild = "Library/MapExporterBuild/[BuildTarget]";
 
         public const string RemoteBuildVar = "Remote.BuildPath";
