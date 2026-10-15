@@ -27,13 +27,11 @@ namespace Vellocet.Sdk.Editor.Tests
 
         [TestCase(6)]
         [TestCase(7)]
-        public void LegacyReceiptSealsDoNotDependOnNewRevisionFields(int schema)
+        public void LegacyReceiptRequiresRecompilation(int schema)
         {
             var receipt = new MapCompilationReceipt { schemaVersion = schema, mapId = "author.city" };
-            MapCompilationReceiptUtility.Seal(receipt);
-            receipt.sourceDependenciesHash = "new-field";
-            receipt.contentRevision = "new-revision";
-            Assert.That(MapCompilationReceiptUtility.HasValidSeal(receipt), Is.True);
+            Assert.Throws<System.InvalidOperationException>(() => MapCompilationReceiptUtility.Seal(receipt));
+            Assert.That(MapCompilationReceiptUtility.HasValidSeal(receipt), Is.False);
         }
     }
 }

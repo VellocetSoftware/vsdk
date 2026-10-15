@@ -50,9 +50,17 @@ namespace Vellocet.Sdk.Editor.Tests
                 var built = JsonUtility.FromJson<Vellocet.Sdk.Addons.AddonManifest>(File.ReadAllText(output + "/addon.json"));
                 CollectionAssert.AreEquivalent(new[] { "media", "audio" }, built.contents.Select(entry => entry.kind));
                 CollectionAssert.AreEqual(new[] { "shared_sounds" }, built.requires);
-                Assert.That(Directory.GetFiles(output, "*.wav", SearchOption.AllDirectories), Has.Length.EqualTo(1));
-                Assert.That(File.ReadAllText(output + "/audio.json"), Does.Contain("asset:media_map/wind"));
-                CollectionAssert.AreEqual(sound, File.ReadAllBytes(output + "/" + relative));
+                Assert.That(Directory.GetFiles(output, "*.wav", SearchOption.AllDirectories), Is.Empty);
+                var audioEntry = built.contents.Single(entry => entry.kind == "audio");
+                var catalogPath = Path.Combine(output, audioEntry.audio.catalog);
+                var audioCatalog = JsonUtility.FromJson<Vellocet.Sdk.Audio.AddonAudioCatalog>(File.ReadAllText(catalogPath));
+                Assert.That(audioCatalog.cues, Has.Length.EqualTo(1));
+                Assert.That(audioCatalog.cues[0].id, Is.EqualTo("asset:media_map/wind"));
+                var bank = Path.Combine(Path.GetDirectoryName(catalogPath), audioCatalog.bank);
+                Assert.That(File.Exists(Path.Combine(bank, "catalog.json")), Is.True);
+                Assert.That(Directory.GetFiles(bank, "*.sfmedia", SearchOption.AllDirectories), Has.Length.EqualTo(1));
+                var descriptor = Directory.GetFiles(output, "*.sfevent", SearchOption.AllDirectories).Single();
+                Assert.That(File.ReadAllText(descriptor), Does.Contain(audioCatalog.cues[0].eventId));
             }
             finally { AssetDatabase.DeleteAsset(root); if (Directory.Exists(output)) Directory.Delete(output, true); }
         }

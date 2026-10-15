@@ -3,7 +3,7 @@
 
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using Vellocet.Sdk.Spatial;
+using Vellocet.Framework.Runtime.Spatial;
 
 namespace Vellocet.Sdk.Maps
 {

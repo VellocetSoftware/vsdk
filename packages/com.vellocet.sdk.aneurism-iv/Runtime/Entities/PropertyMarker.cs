@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using System;
 using UnityEngine;
 using Vellocet.Sdk.Entities.Base;
@@ -18,7 +19,7 @@ namespace Vellocet.Sdk.Aneurism.Entities
         [SerializeField, Tooltip("The entity/group containing this property's doors. Defaults to this property.")]
         private EntityMarker doorRoot;
         [SerializeField] private PropertyUpgradeMarker[] upgrades = Array.Empty<PropertyUpgradeMarker>();
-        [SerializeField] private AudioClip buildSound;
+        [SerializeField] private AudioEventReference buildSound;
         [SerializeField, Tooltip("Optional entity with an authored AudioSource for upgrade sounds.")]
         private EntityMarker buildSoundEmitter;
         [SerializeField, HideInInspector] private string legacyPersistenceId;
@@ -29,7 +30,7 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public int Price => price;
         public EntityMarker DoorRoot => doorRoot;
         public PropertyUpgradeMarker[] Upgrades => upgrades;
-        public AudioClip BuildSound => buildSound;
+        public AudioEventReference BuildSound => buildSound;
         public EntityMarker BuildSoundEmitter => buildSoundEmitter;
         public string LegacyPersistenceId => legacyPersistenceId;
         public override string[] Inputs => Array.Empty<string>();

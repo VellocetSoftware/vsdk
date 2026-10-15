@@ -36,6 +36,7 @@ namespace Vellocet.Sdk.Tests
             {
                 schemaVersion = AddonManifest.CurrentSchemaVersion,
                 gameId = SdkGame.Current.Id,
+                audioRuntime = SdkGame.Current.AudioRuntimeCapability,
                 id = "tests.audio",
                 contents = new[]
                 {
@@ -505,6 +506,7 @@ namespace Vellocet.Sdk.Tests
             {
                 schemaVersion = AddonManifest.CurrentSchemaVersion,
                 gameId = SdkGame.Current.Id,
+                audioRuntime = SdkGame.Current.AudioRuntimeCapability,
                 id = mapId,
                 title = "Release Policy Test",
                 author = "Test",

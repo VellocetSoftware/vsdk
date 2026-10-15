@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
 using UnityEngine;
+using Entities.MapObjects;
 using Vellocet.Sdk.Entities.Base;
 
 namespace Vellocet.Sdk.Entities
@@ -12,7 +13,7 @@ namespace Vellocet.Sdk.Entities
     public sealed class LightMarker : EntityMarker<LightMarker.Input, LightMarker.Output>, ILightEntityMarker
     {
         public enum LightingMode { Baked, Mixed, Dynamic }
-        public enum LightEffect { None, Flicker, Strobe, Candle }
+        public enum LightEffect { None, Flicker, Strobe, Candle, Custom }
 
         [SerializeField, Tooltip("Effects or scripts change Baked point/spot lights to Dynamic. Mixed keeps baked indirect light.")]
         private LightingMode lighting = LightingMode.Baked;
@@ -21,6 +22,11 @@ namespace Vellocet.Sdk.Entities
         private bool scripted;
         [SerializeField, HideInInspector] private bool scriptReferenced;
 
+        [SerializeField, Tooltip("Optional authored intensity curve, sampled locally at 10 Hz.")]
+        private LightStyle style;
+        [SerializeField, Min(.001f)] private float cycleDuration = 5f;
+        public LightStyle Style => style;
+        public float CycleDuration => cycleDuration;
         public bool SupportsAreaLight => true;
         public LightEffect Effect => effect;
         public bool RequiresRuntimeEntity => scripted || scriptReferenced;
@@ -78,6 +84,13 @@ namespace Vellocet.Sdk.Entities
             UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(light);
         }
 #endif
+
+        public override void ConfigureSignalContract(Vellocet.Sdk.Entities.Signals.EntitySignalContractBuilder builder)
+        {
+            builder.AddProperty("is_on", Vellocet.Sdk.Entities.Signals.EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("color", Vellocet.Sdk.Entities.Signals.EntitySignalValueType.String, true, false);
+            builder.AddState("state", nameof(Vellocet.Sdk.Entities.States.LightEntityState));
+        }
 
         public enum Input
         {

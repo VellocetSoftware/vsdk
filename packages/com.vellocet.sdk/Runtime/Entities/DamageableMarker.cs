@@ -93,6 +93,8 @@ namespace Vellocet.Sdk.Entities
 
         public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
         {
+            builder.AddInput("damage", EntitySignalValueType.Float);
+            builder.AddInput("heal", EntitySignalValueType.Float);
             builder.AddOutput("health_changed", EntitySignalValueType.Float);
             builder.AddState("state", nameof(DamageableEntityState));
             builder.AddProperty("health", EntitySignalValueType.Float, true, false);

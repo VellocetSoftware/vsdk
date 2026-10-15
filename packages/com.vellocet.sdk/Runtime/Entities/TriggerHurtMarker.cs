@@ -90,6 +90,11 @@ namespace Vellocet.Sdk.Entities
         [field: Min(0f)]
         public float DamageCapPerSecond { get; private set; }
 
+        public override void ConfigureSignalContract(Vellocet.Sdk.Entities.Signals.EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("set_damage", Vellocet.Sdk.Entities.Signals.EntitySignalValueType.Float);
+        }
+
         protected override Color GizmoFillColor => new(0.92f, 0.18f, 0.18f, 0.14f);
         protected override Color GizmoWireColor => new(0.92f, 0.18f, 0.18f, 0.9f);
     }

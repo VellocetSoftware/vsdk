@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,14 +18,14 @@ namespace Vellocet.Sdk.Aneurism.Entities
         [SerializeField] private string openText = string.Empty;
         [Tooltip("Leave empty to use the game's localized message.")]
         [SerializeField] private string closedText = string.Empty;
-        [SerializeField] private AudioClip completionSound;
-        [SerializeField] private AudioClip eventSound;
+        [SerializeField] private AudioEventReference completionSound;
+        [SerializeField] private AudioEventReference eventSound;
         public IReadOnlyList<WarheadMarker> Stations => stations;
         public LabelMarker Display => display;
         public string OpenText => openText;
         public string ClosedText => closedText;
-        public AudioClip CompletionSound => completionSound;
-        public AudioClip EventSound => eventSound;
+        public AudioEventReference CompletionSound => completionSound;
+        public AudioEventReference EventSound => eventSound;
         public override string ArchetypeId => "aniv.wartime-factory";
         public override string[] Inputs => Array.Empty<string>();
         public override string[] Outputs => Array.Empty<string>();

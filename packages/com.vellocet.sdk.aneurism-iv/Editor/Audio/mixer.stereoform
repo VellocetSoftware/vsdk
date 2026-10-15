@@ -1,0 +1,4193 @@
+{
+  "version": 1,
+  "name": "ANEURISM IV",
+  "voiceLimit": 64,
+  "cacheBudgetMb": 256,
+  "mixSampleRate": 24000,
+  "sounds": [],
+  "events": [],
+  "streamInputs": [],
+  "eventGroups": [],
+  "parameters": [
+    {
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "scope": "Instance",
+      "id": "footstep-intensity",
+      "name": "Footstep intensity"
+    },
+    {
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "scope": "Instance",
+      "id": "weapon-ammo",
+      "name": "Weapon ammo"
+    },
+    {
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "scope": "Global",
+      "id": "room_size",
+      "name": "Room size"
+    },
+    {
+      "id": "playback-intensity",
+      "name": "Playback intensity",
+      "min": 0,
+      "max": 4,
+      "default": 1,
+      "scope": "Instance"
+    },
+    {
+      "id": "playback-rate",
+      "name": "Playback rate",
+      "min": 0.0625,
+      "max": 16,
+      "default": 1,
+      "scope": "Instance"
+    },
+    {
+      "id": "audio-variation",
+      "name": "Variation",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "scope": "Instance"
+    },
+    {
+      "id": "explosion-radius",
+      "name": "Explosion size",
+      "min": 0.125,
+      "max": 32,
+      "default": 12,
+      "scope": "Instance"
+    },
+    {
+      "id": "machine-progress",
+      "name": "Machine progress",
+      "min": 0,
+      "max": 1,
+      "default": 0.3333333333333333,
+      "scope": "Instance"
+    },
+    {
+      "id": "ambient-extent",
+      "name": "Ambient extent",
+      "min": 0.01,
+      "max": 10000,
+      "default": 10,
+      "scope": "Instance"
+    },
+    {
+      "id": "voice-volume",
+      "name": "Received voice level",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "scope": "Instance"
+    }
+  ],
+  "switches": [
+    {
+      "values": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "default": "0",
+      "scope": "Instance",
+      "id": "material",
+      "name": "Material"
+    },
+    {
+      "values": [
+        "normal",
+        "digital",
+        "low",
+        "banker",
+        "spirit",
+        "vomit-coffin",
+        "masked-deep",
+        "cortex-1",
+        "cortex-2",
+        "masked",
+        "liquidator"
+      ],
+      "default": "normal",
+      "scope": "Instance",
+      "id": "voice-style",
+      "name": "Voice style"
+    },
+    {
+      "values": [
+        "Off",
+        "On"
+      ],
+      "default": "Off",
+      "scope": "Instance",
+      "id": "radio",
+      "name": "Radio"
+    },
+    {
+      "id": "playback-mode",
+      "name": "Playback mode",
+      "values": [
+        "Inherited",
+        "One shot",
+        "Loop"
+      ],
+      "default": "Inherited",
+      "scope": "Instance"
+    },
+    {
+      "id": "ambient-placement",
+      "name": "Ambient placement",
+      "values": [
+        "Outside",
+        "Inside"
+      ],
+      "default": "Outside",
+      "scope": "Instance"
+    },
+    {
+      "id": "voice-mode",
+      "name": "Voice mode",
+      "values": [
+        "Proximity",
+        "Radio",
+        "Loopback",
+        "Preview"
+      ],
+      "default": "Proximity",
+      "scope": "Instance"
+    }
+  ],
+  "buses": [
+    {
+      "inputEffects": [],
+      "parentId": "",
+      "gainDb": 0,
+      "mute": false,
+      "solo": false,
+      "sends": [],
+      "effects": [
+        {
+          "switchId": "",
+          "switchValue": "",
+          "kind": "Limiter",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -1,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.25,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "master-limit",
+          "name": "master-limit"
+        }
+      ],
+      "id": "master",
+      "name": "Master"
+    },
+    {
+      "inputEffects": [],
+      "parentId": "master",
+      "gainDb": 0,
+      "mute": false,
+      "solo": false,
+      "sends": [],
+      "effects": [
+        {
+          "switchId": "",
+          "switchValue": "",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 4500,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 16,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "game-pcm-bandwidth",
+          "name": "PCM input bandwidth"
+        },
+        {
+          "switchId": "",
+          "switchValue": "",
+          "kind": "RetroPCM",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 11025,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 16,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "game-retro-pcm",
+          "name": "Retro PCM"
+        }
+      ],
+      "id": "gameplay",
+      "name": "Game Audio"
+    },
+    {
+      "inputEffects": [
+        {
+          "switchId": "voice-style",
+          "switchValue": "digital",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.5,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "digital-drive",
+          "name": "Digital \u00b7 Distortion"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "spirit",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 5,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "spirit-pitch",
+          "name": "Spirit \u00b7 PitchShift"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "spirit",
+          "kind": "Delay",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 110,
+          "feedback": 0.2,
+          "mix": 0.16,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "spirit-delay",
+          "name": "Spirit \u00b7 Delay"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-1",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": -1.75,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-1-pitch",
+          "name": "Vocal weight"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-1",
+          "kind": "HighPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 360,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-1-high",
+          "name": "Radio low cut"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-1",
+          "kind": "Compressor",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -24,
+          "ratio": 8,
+          "attackMs": 1,
+          "releaseMs": 75,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-1-compression",
+          "name": "Transmission compression"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-1",
+          "kind": "Phaser",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 960,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.6,
+          "mix": 0.55,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 9,
+          "depth": 0.22,
+          "id": "cortex-1-phaser",
+          "name": "Metallic modulation"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-1",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.65,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 12,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-1-drive",
+          "name": "Transmission grit"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-1",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 3100,
+          "q": 0.8,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-1-low",
+          "name": "Radio high cut"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-2",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": -3,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-2-pitch",
+          "name": "Vocal weight"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-2",
+          "kind": "HighPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 360,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-2-high",
+          "name": "Radio low cut"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-2",
+          "kind": "Compressor",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -24,
+          "ratio": 8,
+          "attackMs": 1,
+          "releaseMs": 75,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-2-compression",
+          "name": "Transmission compression"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-2",
+          "kind": "Phaser",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 720,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.6,
+          "mix": 0.55,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 7.5,
+          "depth": 0.22,
+          "id": "cortex-2-phaser",
+          "name": "Metallic modulation"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-2",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.65,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 12,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-2-drive",
+          "name": "Transmission grit"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "cortex-2",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 3100,
+          "q": 0.8,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "cortex-2-low",
+          "name": "Radio high cut"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "masked",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 4400,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "mask-low",
+          "name": "Masked / Light muffle"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "masked-deep",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 3442.35706482374,
+          "q": 0.5,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "masked-deep-low",
+          "name": "Deeper mask / Light muffle"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "masked-deep",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": -1,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "masked-deep-pitch",
+          "name": "Deeper mask / Pitch"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "low",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": -3,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "low-pitch",
+          "name": "Zealot / Pitch"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "banker",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.5,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 6,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "banker-rasp",
+          "name": "Banker / Rasp"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "banker",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 4,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "banker-pitch",
+          "name": "Banker / Pitch"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "vomit-coffin",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": -7,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "coffin-pitch",
+          "name": "Vomit Coffin / Pitch"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "vomit-coffin",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.48,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 12,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "coffin-drive",
+          "name": "Vomit Coffin / Distortion"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "liquidator",
+          "kind": "PitchShift",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 1.5,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "liquidator-pitch",
+          "name": "Liquidator / Pitch"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "liquidator",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.12,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 3,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "liquidator-drive",
+          "name": "Liquidator / Saturation"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "liquidator",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1502.82276481322,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "liquidator-low",
+          "name": "Liquidator / Light muffle"
+        },
+        {
+          "switchId": "radio",
+          "switchValue": "On",
+          "kind": "HighPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 500,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.25,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "radio-high",
+          "name": "Radio \u00b7 HighPass"
+        },
+        {
+          "switchId": "radio",
+          "switchValue": "On",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 3000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.25,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "radio-low-pass",
+          "name": "Radio \u00b7 LowPass"
+        },
+        {
+          "switchId": "radio",
+          "switchValue": "On",
+          "kind": "Distortion",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.12,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 3,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "radio-drive",
+          "name": "Radio \u00b7 Distortion"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "digital",
+          "kind": "BitCrusher",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.5,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 6,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "74e05e272b6643008a6ea9288afd4af2",
+          "name": "BitCrusher"
+        },
+        {
+          "switchId": "voice-style",
+          "switchValue": "digital",
+          "kind": "HighPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 824.463683372996,
+          "q": 3.13268239735586,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.25,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "533a0729b22e4b1e895ea99d66c7a77a",
+          "name": "HighPass"
+        }
+      ],
+      "parentId": "gameplay",
+      "gainDb": 0,
+      "mute": false,
+      "solo": false,
+      "sends": [],
+      "effects": [
+        {
+          "switchId": "",
+          "switchValue": "",
+          "kind": "Compressor",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -18,
+          "ratio": 3,
+          "attackMs": 4,
+          "releaseMs": 140,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.25,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "voice-level",
+          "name": "voice-level"
+        }
+      ],
+      "id": "voice",
+      "name": "Voice chat"
+    },
+    {
+      "inputEffects": [],
+      "parentId": "gameplay",
+      "gainDb": 0,
+      "mute": false,
+      "solo": false,
+      "sends": [],
+      "effects": [],
+      "id": "world-media",
+      "name": "World audio",
+      "duckingBusId": "voice",
+      "duckingDb": -8,
+      "duckingThresholdDb": -45,
+      "duckingAttackMs": 40,
+      "duckingReleaseMs": 700
+    },
+    {
+      "inputEffects": [],
+      "parentId": "master",
+      "gainDb": 0,
+      "mute": false,
+      "solo": false,
+      "sends": [],
+      "effects": [
+        {
+          "switchId": "",
+          "switchValue": "",
+          "kind": "Reverb",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 1000,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 1,
+          "decay": 1.4,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "environment-reverb",
+          "name": "environment-reverb"
+        },
+        {
+          "switchId": "",
+          "switchValue": "",
+          "kind": "LowPass",
+          "bypass": false,
+          "gainDb": 0,
+          "pan": 0,
+          "frequency": 4200,
+          "q": 0.707,
+          "thresholdDb": -12,
+          "ratio": 4,
+          "attackMs": 10,
+          "releaseMs": 100,
+          "delayMs": 250,
+          "feedback": 0.3,
+          "mix": 0.25,
+          "decay": 1.5,
+          "pitch": 0,
+          "drive": 1,
+          "bitDepth": 12,
+          "rateHz": 0.5,
+          "depth": 0.5,
+          "id": "environment-low",
+          "name": "Room reflection bandwidth \u00b7 4.2 kHz"
+        }
+      ],
+      "id": "environment",
+      "name": "Room reflections",
+      "duckingBusId": "voice",
+      "duckingDb": -6,
+      "duckingThresholdDb": -45,
+      "duckingAttackMs": 40,
+      "duckingReleaseMs": 700
+    },
+    {
+      "inputEffects": [],
+      "parentId": "master",
+      "gainDb": 0,
+      "mute": false,
+      "solo": false,
+      "sends": [],
+      "effects": [],
+      "id": "music",
+      "name": "Music"
+    }
+  ],
+  "mappings": [
+    {
+      "parameterId": "room_size",
+      "targetId": "environment-reverb",
+      "property": "decay",
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null,
+      "points": [
+        {
+          "x": 0,
+          "y": 0.35
+        },
+        {
+          "x": 0.15,
+          "y": 0.6
+        },
+        {
+          "x": 0.5,
+          "y": 1.8
+        },
+        {
+          "x": 0.8,
+          "y": 3.1
+        },
+        {
+          "x": 1,
+          "y": 0.8
+        }
+      ]
+    },
+    {
+      "parameterId": "room_size",
+      "targetId": "environment",
+      "property": "gainDb",
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null,
+      "points": [
+        {
+          "x": 0,
+          "y": -16
+        },
+        {
+          "x": 0.15,
+          "y": -10
+        },
+        {
+          "x": 0.5,
+          "y": -3
+        },
+        {
+          "x": 0.8,
+          "y": 0
+        },
+        {
+          "x": 1,
+          "y": -34
+        }
+      ]
+    },
+    {
+      "parameterId": "room_size",
+      "targetId": "environment-low",
+      "property": "frequency",
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null,
+      "points": [
+        {
+          "x": 0,
+          "y": 5000
+        },
+        {
+          "x": 0.15,
+          "y": 6000
+        },
+        {
+          "x": 0.5,
+          "y": 7000
+        },
+        {
+          "x": 0.8,
+          "y": 4500
+        },
+        {
+          "x": 1,
+          "y": 10000
+        }
+      ]
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/radio",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/radio",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/radio",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/broadcast",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/broadcast",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/broadcast",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/market",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/market",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/market",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/club",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/club",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/club",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/small-machine",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/small-machine",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/small-machine",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/large-machine",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/large-machine",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/large-machine",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/object",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/object",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/object",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/footsteps",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/footsteps",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/footsteps",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/player",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/player",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/player",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/weapon",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/weapon",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/weapon",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/rifle",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/rifle",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/rifle",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/weapon-loop",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/weapon-loop",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/weapon-loop",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/explosion",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/explosion",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/explosion",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/alarm",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/alarm",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/alarm",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/ied",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/ied",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/ied",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/ui",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/ui",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/music",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/music",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/soundscape",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/soundscape",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/impact",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/impact",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/impact",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.8
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.2
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/cinema",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/cinema",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/clock",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/clock",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/voice",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/voice",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-intensity",
+      "targetId": "aneurism/profile/ambient",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "playback-rate",
+      "targetId": "aneurism/profile/ambient",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0.0625,
+          "y": 0.0625
+        },
+        {
+          "x": 16,
+          "y": 16
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "audio-variation",
+      "targetId": "aneurism/profile/ambient",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.9
+        },
+        {
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1.1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "explosion-radius",
+      "targetId": "aneurism/profile/explosion",
+      "property": "maxDistance",
+      "operation": "Replace",
+      "points": [
+        {
+          "x": 0.125,
+          "y": 2.01
+        },
+        {
+          "x": 0.25125,
+          "y": 2.01
+        },
+        {
+          "x": 32,
+          "y": 256
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "ambient-extent",
+      "targetId": "aneurism/profile/ambient",
+      "property": "minDistance",
+      "operation": "Replace",
+      "points": [
+        {
+          "x": 0.01,
+          "y": 0.01
+        },
+        {
+          "x": 10000,
+          "y": 10000
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "ambient-extent",
+      "targetId": "aneurism/profile/ambient",
+      "property": "maxDistance",
+      "operation": "Replace",
+      "points": [
+        {
+          "x": 0.01,
+          "y": 40
+        },
+        {
+          "x": 10,
+          "y": 40
+        },
+        {
+          "x": 10000,
+          "y": 40000
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "voice-volume",
+      "targetId": "aneurism/profile/voice",
+      "property": "gain",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 1,
+          "y": 1
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    },
+    {
+      "parameterId": "machine-progress",
+      "targetId": "aneurism/profile/object",
+      "property": "pitchRatio",
+      "operation": "Multiply",
+      "points": [
+        {
+          "x": 0,
+          "y": 0.5
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 2
+        }
+      ],
+      "interpolation": "Linear",
+      "displayUnit": "",
+      "viewMinY": null,
+      "viewMaxY": null
+    }
+  ],
+  "addonRoutes": {
+    "sfx2d": {
+      "busId": "gameplay",
+      "gainDb": -4,
+      "profileId": "aneurism/profile/ui"
+    },
+    "sfx3d": {
+      "busId": "gameplay",
+      "gainDb": -4,
+      "profileId": "aneurism/profile/object"
+    },
+    "ambientLoop": {
+      "busId": "world-media",
+      "gainDb": -10,
+      "profileId": "aneurism/profile/ambient"
+    },
+    "ambience2dLoop": {
+      "busId": "world-media",
+      "gainDb": -10,
+      "profileId": "aneurism/profile/soundscape"
+    },
+    "announcer": {
+      "busId": "music",
+      "gainDb": 0,
+      "profileId": "aneurism/profile/cinema"
+    },
+    "musicLoop": {
+      "busId": "music",
+      "gainDb": 0,
+      "profileId": "aneurism/profile/music"
+    }
+  },
+  "playbackProfiles": [
+    {
+      "id": "aneurism/profile/radio",
+      "name": "World / Radios and music boxes",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -8,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 10,
+      "doppler": 0,
+      "priority": 30,
+      "loop": 1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 3.25,
+          "y": 0.42
+        },
+        {
+          "x": 5.5,
+          "y": 0.12
+        },
+        {
+          "x": 7.75,
+          "y": 0.02
+        },
+        {
+          "x": 10,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/broadcast",
+      "name": "World / Telescreen broadcasts",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -8,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 12,
+      "doppler": 0,
+      "priority": 30,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 3.75,
+          "y": 0.42
+        },
+        {
+          "x": 6.5,
+          "y": 0.12
+        },
+        {
+          "x": 9.25,
+          "y": 0.02
+        },
+        {
+          "x": 12,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/market",
+      "name": "World / Market ambience",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 3,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 8,
+      "doppler": 0,
+      "priority": 25,
+      "loop": 1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 2.75,
+          "y": 0.42
+        },
+        {
+          "x": 4.5,
+          "y": 0.12
+        },
+        {
+          "x": 6.25,
+          "y": 0.02
+        },
+        {
+          "x": 8,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/club",
+      "name": "World / Club music",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -6,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 4,
+      "maxDistance": 28,
+      "doppler": 0,
+      "priority": 35,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 4,
+          "y": 1
+        },
+        {
+          "x": 10.0,
+          "y": 0.42
+        },
+        {
+          "x": 16.0,
+          "y": 0.12
+        },
+        {
+          "x": 22.0,
+          "y": 0.02
+        },
+        {
+          "x": 28,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/small-machine",
+      "name": "World / Small machines",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -11,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 8,
+      "doppler": 0,
+      "priority": 35,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 2.75,
+          "y": 0.42
+        },
+        {
+          "x": 4.5,
+          "y": 0.12
+        },
+        {
+          "x": 6.25,
+          "y": 0.02
+        },
+        {
+          "x": 8,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/large-machine",
+      "name": "World / Large machines",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -11,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 2,
+      "maxDistance": 20,
+      "doppler": 0,
+      "priority": 40,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 6.5,
+          "y": 0.42
+        },
+        {
+          "x": 11.0,
+          "y": 0.12
+        },
+        {
+          "x": 15.5,
+          "y": 0.02
+        },
+        {
+          "x": 20,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/object",
+      "name": "Gameplay / Nearby interactions",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 3,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 8,
+      "doppler": 0,
+      "priority": 60,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 2.75,
+          "y": 0.42
+        },
+        {
+          "x": 4.5,
+          "y": 0.12
+        },
+        {
+          "x": 6.25,
+          "y": 0.02
+        },
+        {
+          "x": 8,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/footsteps",
+      "name": "Gameplay / Footsteps",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -3,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 12,
+      "doppler": 0,
+      "priority": 75,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 3.75,
+          "y": 0.42
+        },
+        {
+          "x": 6.5,
+          "y": 0.12
+        },
+        {
+          "x": 9.25,
+          "y": 0.02
+        },
+        {
+          "x": 12,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/player",
+      "name": "Gameplay / Player cues",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 0,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 12,
+      "doppler": 0,
+      "priority": 85,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 3.75,
+          "y": 0.42
+        },
+        {
+          "x": 6.5,
+          "y": 0.12
+        },
+        {
+          "x": 9.25,
+          "y": 0.02
+        },
+        {
+          "x": 12,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/weapon",
+      "name": "Gameplay / Gunfire",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 6,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 2,
+      "maxDistance": 96,
+      "doppler": 0,
+      "priority": 90,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 25.5,
+          "y": 0.42
+        },
+        {
+          "x": 49.0,
+          "y": 0.12
+        },
+        {
+          "x": 72.5,
+          "y": 0.02
+        },
+        {
+          "x": 96,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/rifle",
+      "name": "Gameplay / Rifles",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 6,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 2,
+      "maxDistance": 128,
+      "doppler": 0,
+      "priority": 90,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 33.5,
+          "y": 0.42
+        },
+        {
+          "x": 65.0,
+          "y": 0.12
+        },
+        {
+          "x": 96.5,
+          "y": 0.02
+        },
+        {
+          "x": 128,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/weapon-loop",
+      "name": "Gameplay / Sustained tools",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 0,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 2,
+      "maxDistance": 20,
+      "doppler": 0,
+      "priority": 75,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 6.5,
+          "y": 0.42
+        },
+        {
+          "x": 11.0,
+          "y": 0.12
+        },
+        {
+          "x": 15.5,
+          "y": 0.02
+        },
+        {
+          "x": 20,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/explosion",
+      "name": "Gameplay / Explosions",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 6,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 2,
+      "maxDistance": 96,
+      "doppler": 0,
+      "priority": 95,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 25.5,
+          "y": 0.42
+        },
+        {
+          "x": 49.0,
+          "y": 0.12
+        },
+        {
+          "x": 72.5,
+          "y": 0.02
+        },
+        {
+          "x": 96,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/alarm",
+      "name": "Gameplay / Danger alarms",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 3,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 2,
+      "maxDistance": 64,
+      "doppler": 0,
+      "priority": 95,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 17.5,
+          "y": 0.42
+        },
+        {
+          "x": 33.0,
+          "y": 0.12
+        },
+        {
+          "x": 48.5,
+          "y": 0.02
+        },
+        {
+          "x": 64,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/ied",
+      "name": "Gameplay / IED warning",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 0,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 16,
+      "doppler": 0,
+      "priority": 90,
+      "loop": 1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0.0,
+          "y": 1.0
+        },
+        {
+          "x": 1.0666666666666667,
+          "y": 1.0
+        },
+        {
+          "x": 2.1333333333333333,
+          "y": 0.897571325302124
+        },
+        {
+          "x": 3.2,
+          "y": 0.71413654088974
+        },
+        {
+          "x": 4.266666666666667,
+          "y": 0.5575063228607178
+        },
+        {
+          "x": 5.333333333333333,
+          "y": 0.42556995153427124
+        },
+        {
+          "x": 6.4,
+          "y": 0.3162165880203247
+        },
+        {
+          "x": 7.466666666666667,
+          "y": 0.22733545303344727
+        },
+        {
+          "x": 8.533333333333333,
+          "y": 0.15681594610214233
+        },
+        {
+          "x": 9.6,
+          "y": 0.102547287940979
+        },
+        {
+          "x": 10.666666666666666,
+          "y": 0.06241863965988159
+        },
+        {
+          "x": 11.733333333333333,
+          "y": 0.034319281578063965
+        },
+        {
+          "x": 12.8,
+          "y": 0.016138434410095215
+        },
+        {
+          "x": 13.866666666666667,
+          "y": 0.00576549768447876
+        },
+        {
+          "x": 14.933333333333334,
+          "y": 0.0010895729064941406
+        },
+        {
+          "x": 16.0,
+          "y": 0.0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/ui",
+      "name": "Foreground / UI and notifications",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 3,
+      "pitch": 0,
+      "spatial": false,
+      "minDistance": 1,
+      "maxDistance": 8,
+      "doppler": 0,
+      "priority": 100,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 2.75,
+          "y": 0.42
+        },
+        {
+          "x": 4.5,
+          "y": 0.12
+        },
+        {
+          "x": 6.25,
+          "y": 0.02
+        },
+        {
+          "x": 8,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/music",
+      "name": "Foreground / Soundtrack",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -6,
+      "pitch": 0,
+      "spatial": false,
+      "minDistance": 1,
+      "maxDistance": 40,
+      "doppler": 0,
+      "priority": 45,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 2,
+      "fadeOutSeconds": 2,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 10.75,
+          "y": 0.42
+        },
+        {
+          "x": 20.5,
+          "y": 0.12
+        },
+        {
+          "x": 30.25,
+          "y": 0.02
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "music",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/soundscape",
+      "name": "Foreground / Zone ambience",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -13,
+      "pitch": 0,
+      "spatial": false,
+      "minDistance": 1,
+      "maxDistance": 40,
+      "doppler": 0,
+      "priority": 20,
+      "loop": 1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 2,
+      "fadeOutSeconds": 2,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 10.75,
+          "y": 0.42
+        },
+        {
+          "x": 20.5,
+          "y": 0.12
+        },
+        {
+          "x": 30.25,
+          "y": 0.02
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/impact",
+      "name": "Gameplay / Punch impacts",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 3,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 8,
+      "doppler": 0,
+      "priority": 60,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 2.75,
+          "y": 0.42
+        },
+        {
+          "x": 4.5,
+          "y": 0.12
+        },
+        {
+          "x": 6.25,
+          "y": 0.02
+        },
+        {
+          "x": 8,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "gameplay",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/cinema",
+      "name": "Foreground / Cinematic dialogue",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 0,
+      "pitch": 0,
+      "spatial": false,
+      "minDistance": 1,
+      "maxDistance": 40,
+      "doppler": 0,
+      "priority": 90,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 10.75,
+          "y": 0.42
+        },
+        {
+          "x": 20.5,
+          "y": 0.12
+        },
+        {
+          "x": 30.25,
+          "y": 0.02
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "music",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/clock",
+      "name": "Synchronization / Silent media clock",
+      "gain": 0,
+      "pitchRatio": 1,
+      "gainDb": 0,
+      "pitch": 0,
+      "spatial": false,
+      "minDistance": 1,
+      "maxDistance": 40,
+      "doppler": 0,
+      "priority": 0,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 10.75,
+          "y": 0.42
+        },
+        {
+          "x": 20.5,
+          "y": 0.12
+        },
+        {
+          "x": 30.25,
+          "y": 0.02
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/voice",
+      "name": "Voice / Player speech",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": 0,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 14,
+      "doppler": 0,
+      "priority": 100,
+      "loop": -1,
+      "sleepWhenDistant": false,
+      "obstructionGainDb": -9.118639,
+      "obstructionCutoff": 800,
+      "fadeInSeconds": 0,
+      "fadeOutSeconds": 0,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 4.25,
+          "y": 0.42
+        },
+        {
+          "x": 7.5,
+          "y": 0.12
+        },
+        {
+          "x": 10.75,
+          "y": 0.02
+        },
+        {
+          "x": 14,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        },
+        {
+          "switchId": "voice-mode",
+          "switchValue": "Radio",
+          "spatial": false
+        },
+        {
+          "switchId": "voice-mode",
+          "switchValue": "Loopback",
+          "spatial": false
+        },
+        {
+          "switchId": "voice-mode",
+          "switchValue": "Preview",
+          "spatial": false
+        }
+      ],
+      "busId": "voice",
+      "profileId": "",
+      "overrides": null
+    },
+    {
+      "id": "aneurism/profile/ambient",
+      "name": "World / Ambient geometry",
+      "gain": 1,
+      "pitchRatio": 1,
+      "gainDb": -11,
+      "pitch": 0,
+      "spatial": true,
+      "minDistance": 1,
+      "maxDistance": 40,
+      "doppler": 0,
+      "priority": 20,
+      "loop": -1,
+      "sleepWhenDistant": true,
+      "obstructionGainDb": -18,
+      "obstructionCutoff": 1200,
+      "fadeInSeconds": 0.08,
+      "fadeOutSeconds": 0.15,
+      "distanceCurve": [
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        },
+        {
+          "x": 10.75,
+          "y": 0.42
+        },
+        {
+          "x": 20.5,
+          "y": 0.12
+        },
+        {
+          "x": 30.25,
+          "y": 0.02
+        },
+        {
+          "x": 40,
+          "y": 0
+        }
+      ],
+      "playbackStates": [
+        {
+          "switchId": "playback-mode",
+          "switchValue": "One shot",
+          "loop": 0
+        },
+        {
+          "switchId": "playback-mode",
+          "switchValue": "Loop",
+          "loop": 1
+        },
+        {
+          "switchId": "ambient-placement",
+          "switchValue": "Inside",
+          "spatial": false
+        }
+      ],
+      "busId": "world-media",
+      "profileId": "",
+      "overrides": null
+    }
+  ]
+}

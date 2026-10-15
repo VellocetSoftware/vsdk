@@ -16,10 +16,14 @@ namespace Vellocet.Sdk
         public abstract bool SupportsExternalMods { get; }
         public virtual bool RequiresPackageGameId => true;
         public virtual string AudioContentTypeId => "vellocet.audio";
+        public virtual string AudioRuntimeCapability => "";
         public virtual IReadOnlyList<Vertex.Contracts.GlobalSignalDefinition> AdditionalGlobalEvents =>
             Array.Empty<Vertex.Contracts.GlobalSignalDefinition>();
         public abstract int ResolveLayers(SdkLayerSet layers);
         public abstract int NavigationMask { get; }
+        // Installed game policy owns resolution and limits; map authors cannot raise them.
+        public virtual Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings SpatialBakeSettings =>
+            Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings.Default;
         public virtual string DocumentationSection => string.Empty;
         private static readonly string[] SharedMarkerAssemblies = { "Vellocet.Sdk" };
         public virtual IReadOnlyList<string> MarkerAssemblies => SharedMarkerAssemblies;

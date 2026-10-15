@@ -32,6 +32,8 @@
     "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.splines": "2.8.2",
     "com.unity.ugui": "2.0.0",
-    "com.unity.visualeffectgraph": "17.3.0"
+    "com.unity.visualeffectgraph": "17.3.0",
+    "com.vellocet.stereoform": "0.2.0",
+    "com.vellocet.framework": "0.1.0"
   }
 }

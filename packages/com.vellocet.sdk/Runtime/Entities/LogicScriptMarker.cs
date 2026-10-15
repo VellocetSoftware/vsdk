@@ -11,6 +11,9 @@ namespace Vellocet.Sdk.Entities
     [EntityAuthoring("Logic", EntityPlacementKind.Logic, "Logic Script")]
     public sealed class LogicScriptMarker : EntityMarker<LogicScriptMarker.Input, LogicScriptMarker.Output>
     {
+        public override Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities SignalCapabilities =>
+            Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities.None;
+
         public enum Input
         {
         }
@@ -20,7 +23,7 @@ namespace Vellocet.Sdk.Entities
         }
 
         [field: Header("Module")]
-        [field: Tooltip("A .vsiglib TextAsset containing the module.")]
+        [field: Tooltip("Optional .vsiglib TextAsset. Empty uses the standard Logic modules.")]
         [field: SerializeField]
         public TextAsset Library { get; private set; }
 

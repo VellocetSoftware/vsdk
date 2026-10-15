@@ -9,8 +9,6 @@ namespace Vellocet.Sdk.Aneurism.Entities
     [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Musicbox")]
     public sealed class MusicboxMarker : PrefabEntityMarker
     {
-        [SerializeField, Tooltip("Entity locations used to sample sound occlusion.")] private EntityMarker[] audioProbes = Array.Empty<EntityMarker>();
-        public System.Collections.Generic.IReadOnlyList<EntityMarker> AudioProbes => audioProbes;
         public override string ArchetypeId => "aniv.musicbox";
         public override string[] Inputs => Array.Empty<string>();
         public override string[] Outputs => Array.Empty<string>();

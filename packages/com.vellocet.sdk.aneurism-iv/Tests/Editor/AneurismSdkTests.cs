@@ -39,7 +39,7 @@ namespace Vellocet.Sdk.Aneurism.Tests
             Assert.That(sdk.GetType("Vellocet.Sdk.Entities.CapturePointMarker"), Is.Null);
             Assert.That(sdk.GetType("Vellocet.Sdk.VSig.VSigGlobalEvents+Gravewar"), Is.Null);
             Assert.That(VSig.VSigGlobalEvents.Catalog.Signals.Any(signal => signal.Source == "gravewar"), Is.False);
-            Assert.That(Addons.AddonMedia.AudioType, Is.EqualTo("vellocet.audio"));
+            Assert.That(Addons.AddonMedia.AudioType, Is.EqualTo("stereoform.event"));
             Assert.That(SdkGame.Current.SupportsExternalMods, Is.False);
             Assert.That(ModeIdPolicy.SafeFallbackModeId, Is.EqualTo("aneurism"));
             Assert.That(Maps.MapMusicSets.Name(default), Is.EqualTo("Unassigned"));

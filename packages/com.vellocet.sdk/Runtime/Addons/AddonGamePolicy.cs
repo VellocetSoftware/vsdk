@@ -14,6 +14,8 @@ namespace Vellocet.Sdk.Addons
             if (!string.Equals(manifest.gameId, game.Id, StringComparison.Ordinal) &&
                 (game.RequiresPackageGameId || !string.IsNullOrEmpty(manifest.gameId)))
                 error = $"This package targets '{manifest.gameId ?? "an unspecified game"}', not {game.DisplayName}.";
+            else if (!string.IsNullOrEmpty(game.AudioRuntimeCapability) && manifest.audioRuntime != game.AudioRuntimeCapability)
+                error = $"This content uses an incompatible audio runtime. Rebuild it with the current {game.DisplayName} SDK ({game.AudioRuntimeCapability}).";
             else if (!game.SupportsExternalMods && (manifest.contents ?? Array.Empty<AddonManifest.ContentEntry>())
                          .Any(entry => entry != null && (entry.mod != null ||
                              string.Equals(entry.kind, AddonManifest.ModContentKind, StringComparison.OrdinalIgnoreCase))))

@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using System;
 using UnityEngine;
 using Vellocet.Sdk.Entities.Base;
@@ -9,19 +10,12 @@ namespace Vellocet.Sdk.Aneurism.Entities
     [EntityAuthoring("Audio", EntityPlacementKind.Volume, "Location and Soundscape")]
     public sealed class ZoneMarker : EntityMarker, IBoundedEntityMarker
     {
-        public enum Reverb { None, InCity, InRoomSmall, InRoomLarge, InTunnel, InUnderground }
         [SerializeField] private string locationName;
         [SerializeField] private bool showTime = true;
-        [SerializeField] private AudioClip soundscape;
-        [SerializeField] private bool useSnapshot;
-        [SerializeField] private Reverb snapshot;
-        [SerializeField, Range(0, 4)] private float transitionTime = 1;
+        [SerializeField] private AudioEventReference soundscape;
         public string LocationName => locationName;
         public bool ShowTime => showTime;
-        public AudioClip Soundscape => soundscape;
-        public bool UseSnapshot => useSnapshot;
-        public Reverb Snapshot => snapshot;
-        public float TransitionTime => transitionTime;
+        public AudioEventReference Soundscape => soundscape;
         public override string[] Inputs => Array.Empty<string>();
         public override string[] Outputs => Array.Empty<string>();
         public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;

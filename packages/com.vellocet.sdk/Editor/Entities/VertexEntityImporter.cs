@@ -18,11 +18,18 @@ namespace Vellocet.Sdk.Editor.Entities
     {
         internal static string GeometryRole(Type type)
         {
-            if (typeof(IMovingBrushEntityMarker).IsAssignableFrom(type) || typeof(IEntityImportGroup).IsAssignableFrom(type) || type == typeof(DamageableMarker)) return "brushes";
+            if (typeof(IMovingBrushEntityMarker).IsAssignableFrom(type) || typeof(IEntityImportGroup).IsAssignableFrom(type) || type == typeof(DamageableMarker) || type == typeof(ButtonMarker)) return "brushes";
             if (typeof(IBoundedEntityMarker).IsAssignableFrom(type)) return "bounds";
             return "none";
         }
         static VertexEntityImporter() => VertexSdkRegistry.Register("com.vellocet.sdk", Import);
+
+        private static bool CanOwnEntity(Type owner, Type child) =>
+            typeof(IEntityImportGroup).IsAssignableFrom(owner) ||
+            typeof(IMovingBrushEntityMarker).IsAssignableFrom(owner) &&
+            (child == typeof(AmbientMarker) || child == typeof(LightMarker) ||
+             child == typeof(LabelMarker) || child == typeof(ParticleMarker) || child == typeof(TriggerHurtMarker) ||
+             child == typeof(DecalMarker));
 
         public static void Import(VertexEntityBuildContext context)
         {
@@ -41,7 +48,7 @@ namespace Vellocet.Sdk.Editor.Entities
                     for (var parent = source.ParentId; parent.HasValue; parent = containers[parent.Value].ParentId)
                         if (containers[parent.Value].Entity is { } owner &&
                             (owner.SdkId != source.Entity.SdkId || owner.TypeId != "logic_script" &&
-                                (!bindings.TryGetValue(owner.TypeId, out var ownerType) || !typeof(IEntityImportGroup).IsAssignableFrom(ownerType))))
+                                (!bindings.TryGetValue(owner.TypeId, out var ownerType) || !CanOwnEntity(ownerType, binding))))
                             throw new InvalidDataException("Nested SDK entities need an explicit ownership binding. Move this entity outside its entity parent.");
                     var go = context.Objects[source.Id];
                     var marker = (EntityMarker)go.AddComponent(binding);
@@ -68,7 +75,8 @@ namespace Vellocet.Sdk.Editor.Entities
                         var field = fields[definition.Id];
                         field.SetValue(marker, ConvertValue(field.FieldType, value, markers, context));
                     }
-                    if (GeometryRole(marker.GetType()) == "brushes" && marker is not IEntityImportGroup)
+                    if (GeometryRole(marker.GetType()) == "brushes" && marker is not IEntityImportGroup &&
+                        marker is not ButtonMarker { Model: not "" })
                     {
                         // Damageable's required root collider is only a legacy authoring default. Owned geometry is authoritative.
                         if (marker is DamageableMarker) marker.GetComponent<BoxCollider>().enabled = false;
@@ -97,6 +105,26 @@ namespace Vellocet.Sdk.Editor.Entities
                         (light.RequiresRuntimeEntity || light.Effect != LightMarker.LightEffect.None))
                         throw new InvalidDataException("Area lights are baked-only and cannot use scripting or effects. Choose Point or Spot.");
                     if (marker is LabelMarker label) label.CaptureVertexLabel();
+                    if (marker is DecalMarker decal)
+                    {
+                        if (!decal.Material || !float.IsFinite(decal.Opacity) || decal.Opacity is < 0 or > 1 ||
+                            !float.IsFinite(decal.DrawDistance) || decal.DrawDistance is < 1 or > 1000)
+                            throw new InvalidDataException("A decal needs a material, opacity between 0 and 1, and draw distance between 1 and 1000 metres.");
+                        var projector = marker.gameObject.AddComponent<UnityEngine.Rendering.Universal.DecalProjector>();
+                        projector.material = decal.Material;
+                        // Material.FindPass depends on the currently active render pipeline. Imports also
+                        // run before the first camera and on headless build workers; inspect shader data.
+                        if (!IsDecalMaterial(decal.Material))
+                            throw new InvalidDataException("Choose a material with a supported URP decal shader.");
+                        // Bounds follow the SDK bottom-centre convention; native projection is local +Z
+                        // (local -Z in Vertex). No collider or network entity is required.
+                        projector.scaleMode = UnityEngine.Rendering.Universal.DecalScaleMode.ScaleInvariant;
+                        projector.size = marker.transform.localScale;
+                        projector.pivot = Vector3.up * (projector.size.y / 2);
+                        projector.fadeFactor = decal.Opacity;
+                        projector.drawDistance = decal.DrawDistance;
+                        projector.enabled = marker.enabled;
+                    }
                     if (marker is ParticleMarker particle)
                     {
                         if (!particle.Effect) throw new InvalidDataException("Choose an effect prefab.");
@@ -140,6 +168,19 @@ namespace Vellocet.Sdk.Editor.Entities
                 marker.transform.SetParent(owner.transform, true);
             }
             Vellocet.Sdk.Editor.Maps.VertexMapPolicy.Apply(context.Map, context.Root);
+        }
+
+        private static bool IsDecalMaterial(Material material)
+        {
+            var data = ShaderUtil.GetShaderData(material.shader);
+            for (var i = 0; i < data.SubshaderCount; i++)
+            {
+                var subshader = data.GetSubshader(i);
+                for (var j = 0; j < subshader.PassCount; j++)
+                    if (subshader.GetPass(j).Name is "DBufferProjector" or "DecalProjectorForwardEmissive" or
+                        "DecalScreenSpaceProjector" or "DecalGBufferProjector") return true;
+            }
+            return false;
         }
 
         private static object ConvertValue(Type type, object value, IReadOnlyDictionary<Guid, EntityMarker> markers, VertexEntityBuildContext context)

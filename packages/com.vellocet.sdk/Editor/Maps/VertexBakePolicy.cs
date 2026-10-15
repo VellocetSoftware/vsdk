@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Vellocet.Sdk.Spatial;
+using Vellocet.Framework.Runtime.Spatial;
 using Vertex.Contracts;
 
 namespace Vellocet.Sdk.Editor.Maps
@@ -20,7 +20,7 @@ namespace Vellocet.Sdk.Editor.Maps
             {
                 Setting("occlusion.smallestOccluder", 5), Setting("occlusion.smallestHole", .25), Setting("occlusion.backfaceThreshold", 100)
             };
-            var spatial = SpatialOctreeBakeSettings.Default.Sanitize();
+            var spatial = SdkGame.Current.SpatialBakeSettings.Sanitize();
             foreach (var field in typeof(SpatialOctreeBakeSettings).GetFields())
             {
                 var value = field.GetValue(spatial);

@@ -1,3 +1,4 @@
+using Vellocet.Stereoform;
 using System;
 using Entities.MapObjects;
 using UnityEngine;
@@ -43,9 +44,9 @@ namespace Vellocet.Sdk.Aneurism.Entities
         [SerializeField, Tooltip("Fate attribute flags allowed to operate this standalone lock.")]
         private int allowedFateAttributes;
         [Header("Audio")]
-        [SerializeField] private AudioClip lockSound;
-        [SerializeField] private AudioClip unlockSound;
-        [SerializeField] private AudioClip[] breakSounds = Array.Empty<AudioClip>();
+        [SerializeField] private AudioEventReference lockSound;
+        [SerializeField] private AudioEventReference unlockSound;
+        [SerializeField] private AudioEventReference[] breakSounds = Array.Empty<AudioEventReference>();
         [SerializeField, HideInInspector] private LocalizedText localizedName;
         [SerializeField, HideInInspector] private LocalizedText localizedDescription;
 
@@ -81,9 +82,9 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public bool AllowStandaloneLocking => allowStandaloneLocking;
         public bool StartLocked => startLocked;
         public int AllowedFateAttributes => allowedFateAttributes;
-        public AudioClip LockSound => lockSound;
-        public AudioClip UnlockSound => unlockSound;
-        public AudioClip[] BreakSounds => breakSounds;
+        public AudioEventReference LockSound => lockSound;
+        public AudioEventReference UnlockSound => unlockSound;
+        public AudioEventReference[] BreakSounds => breakSounds;
         public LocalizedText LocalizedName => localizedName;
         public LocalizedText LocalizedDescription => localizedDescription;
         public override string ArchetypeId => style switch {

@@ -17,6 +17,7 @@ namespace Vellocet.Sdk.Addons
 
         public int schemaVersion;
         public string gameId;
+        public string audioRuntime;
         public string id;
         public string title;
         public string author;

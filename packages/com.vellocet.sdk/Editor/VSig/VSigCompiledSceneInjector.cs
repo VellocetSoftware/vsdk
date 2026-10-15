@@ -153,6 +153,8 @@ namespace Vellocet.Sdk.Editor.VSig
             RemoveExistingRuntimes(scene, options);
             foreach (var light in markers.OfType<Vellocet.Sdk.Entities.LightMarker>())
                 light.SetScriptReferenced(referencedLights.Contains(light));
+            foreach (var label in markers.OfType<Vellocet.Sdk.Entities.LabelMarker>())
+                label.SetScriptReferenced(referenced.Contains(label));
             foreach (var particle in markers.OfType<Vellocet.Sdk.Entities.ParticleMarker>())
                 particle.SetScriptReferenced(referenced.Contains(particle));
             var host = FindOrCreateRuntimeHost(scene, options);

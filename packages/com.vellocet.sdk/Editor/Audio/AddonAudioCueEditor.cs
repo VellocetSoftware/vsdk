@@ -34,7 +34,7 @@ namespace Vellocet.Sdk.Editor.Audio
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("template"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("gain"),
-                    new GUIContent("Default Gain", "Per-cue gain applied before the player's Wwise bus volume."));
+                    new GUIContent("Default Gain", "Per-cue gain applied before the player's audio bus volume."));
 
                 var guidProperty = serializedObject.FindProperty("sourceAssetGuid");
                 var sourcePath = AssetDatabase.GUIDToAssetPath(guidProperty.stringValue);
@@ -60,7 +60,7 @@ namespace Vellocet.Sdk.Editor.Audio
                         MessageType.Error);
                 SdkEditorGui.DrawCallout(
                     "Use a lowercase cue ID owned by this add-on, such as author.package.wind_loop. " +
-                    "This package includes the audio file; Wwise plays it in game.",
+                    "This package includes the audio file; the game plays the compiled cue.",
                     MessageType.Info);
             }
 

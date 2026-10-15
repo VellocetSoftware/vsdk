@@ -13,6 +13,7 @@ using UnityEngine;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Editor.Tools;
 using Vellocet.Sdk.Maps;
+using Vellocet.Framework.Runtime.Spatial;
 using Vertex.Contracts;
 using Vertex.Unity.Editor;
 using Object = UnityEngine.Object;
@@ -21,6 +22,96 @@ namespace Vellocet.Sdk.Tests.Editor
 {
     public sealed class MapPackageAssetsTests
     {
+        [Test]
+        public void AuthoredArrays_StillRejectMoreThan65536Elements()
+        {
+            var setup = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var line = new GameObject("Oversized authored line", typeof(LineRenderer)).GetComponent<LineRenderer>();
+                line.positionCount = 65537;
+                Assert.That(AddonScenePolicy.TryValidate(scene, Array.Empty<MapCompiler.RuntimeDependency>(),
+                    out var error, Array.Empty<Object>()), Is.False);
+                Assert.That(error, Does.Contain("element limit"));
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                if (setup.Any(scene => scene.isActive && scene.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void SpatialGraphs_RejectInvalidStructureAndExcessiveNodeCounts(bool oversized)
+        {
+            var setup = EditorSceneManager.GetSceneManagerSetup();
+            SpatialOctreeAsset asset = null;
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                asset = ScriptableObject.CreateInstance<SpatialOctreeAsset>();
+                if (oversized)
+                    typeof(SpatialOctreeAsset).GetField("nodes", System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic).SetValue(asset,
+                        new SpatialOctreeNodeData[SdkGame.Current.SpatialBakeSettings.Sanitize().MaxBakedNodeCount + 1]);
+                Assert.That(AddonScenePolicy.TryValidate(scene, Array.Empty<MapCompiler.RuntimeDependency>(),
+                    out var error, new Object[] { asset }), Is.False);
+                Assert.That(error, Does.Contain(oversized ? "Node budget exceeded" : "incomplete or inconsistent"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(asset);
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                if (setup.Any(scene => scene.isActive && scene.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
+            }
+        }
+
+        [Test]
+        public void SceneSwitch_ReloadsPersistentCatalogAndMaterialPreviewProvidersForPackaging()
+        {
+            var root = "Assets/VertexCatalogLifetimeCheck-" + Guid.NewGuid().ToString("N");
+            var setup = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                AssetDatabase.CreateFolder("Assets", Path.GetFileName(root));
+                var provider = ScriptableObject.CreateInstance<VertexPropertyMaterialPreview>();
+                AssetDatabase.CreateAsset(provider, root + "/Preview.asset");
+                var profile = ScriptableObject.CreateInstance<VertexAssetCatalogProfile>();
+                profile.catalogId = "checks.catalog-lifetime";
+                profile.folders = new[] { new VertexAssetFolder { folder = root, ownership = "base" } };
+                profile.materialPreviews = new[] { new VertexMaterialPreviewRule
+                {
+                    shader = Shader.Find("Universal Render Pipeline/Lit"), provider = provider
+                } };
+                AssetDatabase.CreateAsset(profile, root + "/Profile.asset");
+                AssetDatabase.SaveAssets();
+                var job = new BuildJob { Game = new GameProfile { AssetCatalogs = new[]
+                {
+                    new ProfileReference { Id = profile.catalogId, Version = profile.catalogVersion, Path = "Catalog.vertexassets" }
+                } } };
+                Assert.That(VertexMapCompiler.LoadAssetProfiles(job), Has.Length.EqualTo(1));
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var scenePath = root + "/Compiled.unity";
+                Assert.That(EditorSceneManager.SaveScene(scene, scenePath), Is.True);
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                EditorUtility.UnloadUnusedAssetsImmediate();
+
+                var reloaded = VertexMapCompiler.LoadAssetProfiles(job);
+                Assert.That(reloaded, Has.Length.EqualTo(1));
+                Assert.That(reloaded[0].materialPreviews[0].provider, Is.Not.Null);
+                Assert.That(EditorUtility.IsPersistent(reloaded[0].materialPreviews[0].provider), Is.True);
+                Assert.DoesNotThrow(() => new MapPackageAssets(reloaded, null));
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(root);
+                if (setup.Any(scene => scene.isActive && scene.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
+            }
+        }
+
         [Test]
         public void NestedPrefabSourcesAreNotDependenciesOfTheCompiledScene()
         {

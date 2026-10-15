@@ -15,6 +15,9 @@ namespace Vellocet.Sdk.Entities
     public sealed class TriggerWaterMarker :
         TriggerVolumeMarkerBase<TriggerWaterMarker.Input, TriggerWaterMarker.Output>
     {
+        public override Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities SignalCapabilities =>
+            Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities.None;
+
         public enum Input
         {
         }

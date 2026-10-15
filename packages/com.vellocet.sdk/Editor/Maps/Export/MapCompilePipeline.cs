@@ -12,7 +12,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Vellocet.Sdk.Editor.Spatial;
+using Vellocet.Framework.Editor.Spatial;
 using Vellocet.Sdk.Editor.VSig;
 using Vellocet.Sdk.Maps;
 using Vellocet.Sdk.Utilities;
@@ -461,7 +461,7 @@ namespace Vellocet.Sdk.Editor.Maps
                     context.Receipt.sceneAddress,
                     assetPath,
                     address,
-                    out var reusedCachedAsset, context.Options?.BakePolicy != null ? Vellocet.Sdk.Spatial.SpatialOctreeBakeSettings.Default : (Vellocet.Sdk.Spatial.SpatialOctreeBakeSettings?)null);
+                    out var reusedCachedAsset, context.Options?.BakePolicy != null ? SdkGame.Current.SpatialBakeSettings : (Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings?)null);
 
                 if (!bakedAsset)
                     return MapCompilePassResult.Fail("Spatial octree baker did not return a baked asset.");

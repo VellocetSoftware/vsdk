@@ -279,6 +279,11 @@ namespace Vellocet.Sdk.Addons
             AddonManifest.ContentEntry content, out string error)
         {
             error = null;
+            if (SdkGame.Current.AudioRuntimeCapability == AddonAudioBanks.Capability)
+            {
+                try { AddonAudioBanks.Validate(addonRoot, manifest, content); return true; }
+                catch (Exception ex) { error = "Invalid Stereoform audio: " + ex.Message; return false; }
+            }
             var audio = content.audio;
             if (audio == null)
             {

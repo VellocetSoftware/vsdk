@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using Vellocet.Sdk.Addons;
 using Vellocet.Sdk.Editor.Addons;
-using Vellocet.Sdk.Editor.Spatial;
+using Vellocet.Framework.Editor.Spatial;
 using Vellocet.Sdk.Editor.Tools;
 
 namespace Vellocet.Sdk.Editor.Workbench
