@@ -114,7 +114,7 @@ namespace Vellocet.Sdk.Editor.Entities
                         projector.material = decal.Material;
                         // Material.FindPass depends on the currently active render pipeline. Imports also
                         // run before the first camera and on headless build workers; inspect shader data.
-                        if (!IsDecalMaterial(decal.Material))
+                        if (!VertexAssetCatalogExporter.IsDecalMaterial(decal.Material))
                             throw new InvalidDataException("Choose a material with a supported URP decal shader.");
                         // Bounds follow the SDK bottom-centre convention; native projection is local +Z
                         // (local -Z in Vertex). No collider or network entity is required.
@@ -168,19 +168,6 @@ namespace Vellocet.Sdk.Editor.Entities
                 marker.transform.SetParent(owner.transform, true);
             }
             Vellocet.Sdk.Editor.Maps.VertexMapPolicy.Apply(context.Map, context.Root);
-        }
-
-        private static bool IsDecalMaterial(Material material)
-        {
-            var data = ShaderUtil.GetShaderData(material.shader);
-            for (var i = 0; i < data.SubshaderCount; i++)
-            {
-                var subshader = data.GetSubshader(i);
-                for (var j = 0; j < subshader.PassCount; j++)
-                    if (subshader.GetPass(j).Name is "DBufferProjector" or "DecalProjectorForwardEmissive" or
-                        "DecalScreenSpaceProjector" or "DecalGBufferProjector") return true;
-            }
-            return false;
         }
 
         private static object ConvertValue(Type type, object value, IReadOnlyDictionary<Guid, EntityMarker> markers, VertexEntityBuildContext context)

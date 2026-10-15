@@ -126,6 +126,8 @@ namespace Vellocet.Sdk.Editor.Entities
                     // These fields are SDK-owned: canonical collision layers and the entity's owned break subtree.
                     if (field.FieldType == typeof(LayerMask) || marker is Vellocet.Sdk.Entities.DamageableMarker && id == "break_root") continue;
                     var definition = VertexEntityProperties.Describe(marker, id) ?? Describe(field, id, name, field.GetValue(marker));
+                    if (marker is global::Vellocet.Sdk.Entities.DecalMarker && id == "material")
+                        definition.AssetRole = "decal";
                     definition.Group ??= group ?? "Properties";
                     definition.Validate();
                     if (!result.TryAdd(id, definition)) throw new ArgumentException("Multiple serialized fields produce the same property ID.");
