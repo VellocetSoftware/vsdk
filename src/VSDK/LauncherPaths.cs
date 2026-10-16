@@ -12,9 +12,10 @@ internal sealed class LauncherPaths
         var current = new DirectoryInfo(executableDirectory);
         for (var i = 0; sdk == null && i < 8 && current != null; i++, current = current.Parent)
         {
-            var manifests = current.GetFiles("*.vertexsdk");
-            if (manifests.Length == 1) sdk = manifests[0].FullName;
+            sdk = FindManifest(current.FullName);
         }
+        if (sdk != null && Directory.Exists(sdk))
+            sdk = FindManifest(sdk) ?? throw new FileNotFoundException("No SDK manifest found in " + sdk);
         Manifest = Path.GetFullPath(sdk ?? Path.Combine(executableDirectory, "Game.vertexsdk"));
         InstallRoot = Path.GetDirectoryName(Manifest)!;
         var platform = OperatingSystem.IsMacOS() ? "osx" : OperatingSystem.IsWindows() ? "win" : "linux";
@@ -24,6 +25,16 @@ internal sealed class LauncherPaths
         VertexApplication = OperatingSystem.IsMacOS() && editor.EndsWith(".app", StringComparison.OrdinalIgnoreCase) ? editor : null;
         VertexExecutable = VertexApplication == null ? editor : Path.Combine(editor, "Contents", "MacOS", "Vertex");
     }
+    private static string? FindManifest(string directory)
+    {
+        var manifests = Directory.GetFiles(directory, "*.vertexsdk").ToList();
+        var workspace = Path.Combine(directory, "Vertex");
+        if (Directory.Exists(workspace)) manifests.AddRange(Directory.GetFiles(workspace, "*.vertexsdk"));
+        if (manifests.Count > 1)
+            throw new InvalidDataException("Multiple SDK manifests found; select one with --sdk: " + directory);
+        return manifests.SingleOrDefault();
+    }
+
     public string Manifest { get; }
     public string InstallRoot { get; }
     public string VertexExecutable { get; }

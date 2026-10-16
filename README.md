@@ -16,7 +16,10 @@ game checkout through Unity's **Tools → Vertex → Open Map Editor**, then use
 
 These choices come from the game's profile and SDK connection. Studios can expose
 an editor project publicly when their game permits it. VSDK discovers any single
-`.vertexsdk` beside or above the launcher; it has no hardcoded game identity.
+`.vertexsdk` beside or above the launcher, including a repository's `Vertex/`
+folder. `--sdk` accepts a manifest, the `Vertex/` folder, or the repository root;
+select a manifest explicitly when several exist. Developer connections use a local
+editor selected with `--vertex`.
 
 ## Standalone resources
 
