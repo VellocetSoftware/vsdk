@@ -77,16 +77,27 @@ internal sealed class LauncherService(LauncherPaths paths)
         using var sdk = JsonDocument.Parse(File.ReadAllBytes(Paths.Manifest));
         var root = sdk.RootElement;
         if (root.GetProperty("formatVersion").GetInt32() != 1) throw new InvalidDataException("Update the game SDK launcher to read this SDK version.");
-        var gamePath = Resolve(root.GetProperty("game").GetProperty("path").GetString());
+        var projectRoot = Paths.InstallRoot;
+        if (root.TryGetProperty("projectRoot", out var configuredRoot))
+        {
+            var directory = new DirectoryInfo(projectRoot);
+            if (configuredRoot.GetString() != ".." ||
+                !root.TryGetProperty("editorProject", out var editor) || editor.ValueKind != JsonValueKind.String ||
+                directory.Name != "Vertex" || directory.Parent == null ||
+                (directory.Attributes & FileAttributes.ReparsePoint) != 0)
+                throw new InvalidDataException("Repository SDK connections must be developer installations inside Vertex.");
+            projectRoot = directory.Parent.FullName;
+        }
+        var gamePath = Resolve(projectRoot, root.GetProperty("game").GetProperty("path").GetString());
         using var profile = JsonDocument.Parse(File.ReadAllBytes(gamePath));
         var game = profile.RootElement;
         if (root.GetProperty("game").GetProperty("id").GetString() != game.GetProperty("id").GetString() ||
             root.GetProperty("game").GetProperty("version").GetString() != game.GetProperty("version").GetString())
             throw new InvalidDataException("The installed game profile does not match the SDK. Reinstall the SDK.");
-        var compiler = Resolve(root.GetProperty("compilerProject").GetString());
+        var compiler = Resolve(projectRoot, root.GetProperty("compilerProject").GetString());
         var version = game.GetProperty("engineVersion").GetString();
         if (!Directory.Exists(compiler)) throw new InvalidDataException("The SDK compiler is missing. Reinstall the SDK.");
-        if (!root.TryGetProperty("editorProject", out _) && !File.Exists(Resolve(root.GetProperty("compilerInputs").GetString())))
+        if (!root.TryGetProperty("editorProject", out _) && !File.Exists(Resolve(projectRoot, root.GetProperty("compilerInputs").GetString())))
             throw new InvalidDataException("The SDK compiler inventory is missing. Reinstall the SDK.");
         if (!File.Exists(Paths.VertexExecutable)) throw new FileNotFoundException("Vertex is missing for this computer. Reinstall the matching game SDK distribution.", Paths.VertexExecutable);
         return $"{game.GetProperty("name").GetString()} SDK ready · {game.GetProperty("engineId").GetString()} {version}";
@@ -115,11 +126,11 @@ internal sealed class LauncherService(LauncherPaths paths)
         }
     }
 
-    private string Resolve(string? relative)
+    private static string Resolve(string directory, string? relative)
     {
         if (string.IsNullOrWhiteSpace(relative) || Path.IsPathRooted(relative) || relative.Contains('\\') ||
             relative.Split('/').Any(segment => segment is "" or "." or "..")) throw new InvalidDataException("The SDK contains an invalid installation path.");
-        return Path.GetFullPath(Path.Combine(Paths.InstallRoot, relative));
+        return Path.GetFullPath(Path.Combine(directory, relative));
     }
 }
 
