@@ -60,6 +60,9 @@ namespace Vellocet.Sdk.Tests.Editor
             var scene = EditorSceneManager.OpenScene(ScenePath);
             var unityContent = scene.GetRootGameObjects().Single(root => root.name == "Unity Content");
             var floor = Identities(scene).Single(item => item.ObjectId == _map.Objects[0].Id);
+            var floorRenderer = floor.GetComponent<MeshRenderer>();
+            floorRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(floorRenderer);
             var authored = new GameObject("Lighting rig");
             var light = new GameObject("Accent", typeof(Light)).GetComponent<Light>();
             light.transform.SetParent(authored.transform, false);
@@ -103,6 +106,8 @@ namespace Vellocet.Sdk.Tests.Editor
             var identities = Identities(scene);
             floor = identities.Single(item => item.ObjectId == _map.Objects[0].Id);
             Assert.That(floor.name, Is.EqualTo("Updated floor"));
+            Assert.That(floor.GetComponent<MeshRenderer>().shadowCastingMode, Is.EqualTo(ShadowCastingMode.Off),
+                "Updating authored labels must preserve overrides on the generated prefab.");
             Assert.That(floor.GetComponent<MeshFilter>().sharedMesh.bounds.size.x, Is.EqualTo(9));
             Assert.That(identities.Any(item => item.ObjectId == removed), Is.False);
             Assert.That(identities.Count(item => item.ObjectId == _map.Objects[1].Id), Is.EqualTo(1));

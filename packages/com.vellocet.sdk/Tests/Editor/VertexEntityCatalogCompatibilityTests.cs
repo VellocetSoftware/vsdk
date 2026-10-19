@@ -104,6 +104,22 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.Throws<InvalidDataException>(() => VertexMapCompiler.EntityContractDifference(authored, installed, Map()));
         }
 
+        [Test]
+        public void AvatarModelsDoNotChangeTheCompilationContract()
+        {
+            var authored = Catalog();
+            var installed = Catalog();
+            foreach (var catalog in new[] { authored, installed })
+            {
+                catalog.Entities[0].Placement = "point";
+                catalog.Entities[0].Geometry = "none";
+            }
+            authored.Entities[0].AvatarModel = "asset:game.models/old";
+            installed.Entities[0].AvatarModel = "asset:game.models/new";
+            CollectionAssert.AreEqual(VertexMapCompiler.EntityContract(authored), VertexMapCompiler.EntityContract(installed));
+            Assert.That(VertexMapCompiler.EntityContractDifference(authored, installed, Map("test_entity")), Is.Null);
+        }
+
         private static EntityCatalog Catalog() => new() { SdkId = "com.vellocet.sdk", SdkVersion = "1",
             Entities = new[] { Definition("test_entity") },
             Globals = new[] { new GlobalEventDefinition { Source = "game", Name = "ready" } } };

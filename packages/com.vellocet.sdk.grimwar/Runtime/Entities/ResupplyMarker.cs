@@ -7,7 +7,7 @@ using Vellocet.Sdk.Entities.Base;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("func_resupply")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Point, "Resupply Locker")]
+    [EntityAuthoring("Gameplay", EntityPlacementKind.Point, "Resupply Locker", AvatarModel = "asset:grimwar.base/988418fe095ea444198938b49c0c02aa.5863650252929523565")]
     [DisallowMultipleComponent]
     public sealed class ResupplyMarker : EntityMarker<ResupplyMarker.Input, ResupplyMarker.Output>
     {

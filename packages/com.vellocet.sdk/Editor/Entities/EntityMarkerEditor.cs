@@ -108,6 +108,7 @@ namespace Vellocet.Sdk.Editor.Entities
             DrawMovingBrushGeometry(marker);
             DrawVSigAuthoring(marker);
             DrawMarkerSpecificProperties(marker);
+            if (marker is DoorMarker door) DoorAuthoringEditor.Draw(door);
             if (marker is LightMarker lightMarker) DrawLight(lightMarker);
             DrawAdvanced(marker);
 
@@ -477,7 +478,7 @@ namespace Vellocet.Sdk.Editor.Entities
             EditorGUI.showMixedValue = type.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
             var selected = EditorGUILayout.IntPopup("Light type", type.intValue,
-                new[] { "Point", "Spot", "Area" }, new[] { (int)LightType.Point, (int)LightType.Spot, (int)LightType.Rectangle });
+                new[] { "Point", "Spot", "Rectangle", "Disc" }, new[] { (int)LightType.Point, (int)LightType.Spot, (int)LightType.Rectangle, (int)LightType.Disc });
             if (EditorGUI.EndChangeCheck()) type.intValue = selected;
             EditorGUI.showMixedValue = false;
             foreach (var name in new[] { "m_Color", "m_Intensity", "m_Range", "m_SpotAngle", "m_AreaSize", "m_Enabled", "m_Cookie" })

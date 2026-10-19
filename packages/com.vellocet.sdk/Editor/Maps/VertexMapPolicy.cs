@@ -27,7 +27,7 @@ namespace Vellocet.Sdk.Editor.Maps
                         throw new InvalidDataException($"Model '{source.Name}' [{source.Id}] contains unsupported gameplay/physics component '{component?.GetType().Name ?? "missing"}'. Use a decorative model or an SDK entity that owns its runtime behavior.");
                 }
                 var movable = model.GetComponentsInChildren<Transform>(true).Any(MapRendererOptimizationUtility.HasRuntimeMotionRisk);
-                SetMobility(model.gameObject, movable);
+                if (movable || source.Model.Rendering == null) SetMobility(model.gameObject, movable);
                 // Scene-only bake metadata must not become unregistered scripted-importer subassets.
                 if (compiling && movable)
                     (model.GetComponent<NavMeshModifier>() ?? model.gameObject.AddComponent<NavMeshModifier>()).ignoreFromBuild = true;

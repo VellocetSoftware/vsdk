@@ -9,6 +9,8 @@ namespace Vellocet.Sdk.Tests.Editor
     {
         private sealed class MapOnlyGame : SdkGameDefinition
         {
+            public string MinimumVersion;
+            public override string MinimumMapSdkVersion => MinimumVersion;
             public override string Id => "com.vellocet.aneurism-iv";
             public override string DisplayName => "ANEURISM IV";
             public override string DefaultModeId => "aneurism";
@@ -36,6 +38,21 @@ namespace Vellocet.Sdk.Tests.Editor
             manifest.contents[0].kind = AddonManifest.MapContentKind;
             manifest.contents[0].mod = new AddonManifest.ModContent();
             Assert.That(AddonGamePolicy.TryValidate(manifest, game, out _), Is.False);
+        }
+
+        [TestCase("2.9.0", false)]
+        [TestCase("3.0.0", true)]
+        [TestCase("3.1.0", true)]
+        [TestCase(null, false)]
+        public void MapPackagesRequireTheGamesMinimumSdkWhileAudioOnlyPackagesRemainCompatible(string version, bool accepted)
+        {
+            var game = new MapOnlyGame { MinimumVersion = "3.0.0" };
+            var manifest = new AddonManifest { gameId = game.Id, sdkVersion = version,
+                contents = new[] { new AddonManifest.ContentEntry { kind = AddonManifest.MapContentKind } } };
+            Assert.That(AddonGamePolicy.TryValidate(manifest, game, out var error), Is.EqualTo(accepted));
+            if (!accepted) Assert.That(error, Does.Contain("rebuilding"));
+            manifest.contents = new[] { new AddonManifest.ContentEntry { kind = AddonManifest.AudioContentKind, audio = new AddonManifest.AudioContent() } };
+            Assert.That(AddonGamePolicy.TryValidate(manifest, game, out _), Is.True);
         }
 
         [TestCase("mods/server.DLL", true)]

@@ -16,6 +16,8 @@ namespace Vellocet.Sdk.Grimwar
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Register() => SdkGame.Register(new GrimwarSdk());
 
+        public override string MinimumMapSdkVersion => "4.0.0";
+        public override string AudioRuntimeCapability => "wwise";
         public override string Id => "com.vellocet.grimwar";
         public override string DisplayName => "Grimwar";
         public override string DefaultModeId => ModeCatalog.KothId;

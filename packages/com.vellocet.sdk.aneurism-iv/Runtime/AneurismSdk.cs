@@ -19,10 +19,13 @@ namespace Vellocet.Sdk.Aneurism
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Register() => SdkGame.Register(new AneurismSdk());
 
+        public override string MinimumMapSdkVersion => "4.0.0";
         public override string Id => GameId;
         public override string AudioContentTypeId => "stereoform.event";
         public override string AudioRuntimeCapability => "stereoform/2";
         public override string DisplayName => "ANEURISM IV";
+        public override Type DoorSettingsComponentType => typeof(Entities.AnivDoorSettings);
+        public override Type DoorPropertyMarkerType => typeof(Entities.PropertyMarker);
         public override Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings SpatialBakeSettings
         {
             get
@@ -50,7 +53,7 @@ namespace Vellocet.Sdk.Aneurism
 
         public override bool AllowsComponent(string typeName, string assemblyName) =>
             assemblyName == "Vellocet.Sdk" && typeName is "Entities.MapObjects.LightStyle" or "UI.HUD.PointOfInterest" or
-                "Entities.MapObjects.DoorModel" or "Vellocet.Sdk.Aneurism.Entities.PrefabEntityPart" ||
+                "Vellocet.Sdk.Entities.Doors.DoorSoundSet" or "Vellocet.Sdk.Aneurism.Entities.AnivDoorSettings" or "Vellocet.Sdk.Aneurism.Entities.PrefabEntityPart" ||
             assemblyName == "Vellocet.Stereoform" && typeName == "Vellocet.Stereoform.AudioEmitter";
 
         public override bool AllowsSourceAsset(string path)
@@ -64,7 +67,7 @@ namespace Vellocet.Sdk.Aneurism
             if (path.StartsWith("Assets/Audio/", StringComparison.Ordinal) && extension == ".asset") return true;
             if ((path.StartsWith("Assets/ScriptableObjects/LightStyles/", StringComparison.Ordinal) ||
                  path.StartsWith("Assets/ScriptableObjects/PointOfInterest/", StringComparison.Ordinal) ||
-                 path.StartsWith("Assets/ScriptableObjects/Entities/Environment/Doors/", StringComparison.Ordinal)) && extension == ".asset")
+                 path.StartsWith("Assets/ScriptableObjects/Environment/Skies/", StringComparison.Ordinal)) && extension == ".asset")
                 return true;
             return extension is ".fbx" or ".obj" or ".mat" or ".png" or ".jpg" or ".jpeg" or ".tga" or
                 ".psd" or ".tif" or ".tiff" or ".exr" or ".hdr" or ".cubemap" or ".shader" or ".shadergraph" or
@@ -105,7 +108,7 @@ namespace Vellocet.Sdk.Aneurism
             new("Assets/MapAuthoring/Kits", Constants.SdkEntityKitsRoot),
             new("Assets/ScriptableObjects/LightStyles", Constants.SdkManagedContentRoot + "/LightStyles"),
             new("Assets/ScriptableObjects/PointOfInterest", Constants.SdkManagedContentRoot + "/PointOfInterest"),
-            new("Assets/ScriptableObjects/Entities/Environment/Doors", Constants.SdkManagedContentRoot + "/DoorModels")
+            new("Assets/ScriptableObjects/Environment/Skies", Constants.SdkManagedContentRoot + "/Environment/Skies"),
         };
     }
 }

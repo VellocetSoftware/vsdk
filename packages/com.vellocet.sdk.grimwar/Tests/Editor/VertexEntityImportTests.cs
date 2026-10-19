@@ -561,7 +561,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 Assert.That(markers.OfType<TriggerMarker>().Single().GetComponentsInChildren<Collider>(true), Is.Empty);
                 var entrance = markers.OfType<DoorMarker>().Single(marker => marker.GetComponent<VertexObjectIdentity>().AuthoredName == "entrance");
                 var exit = markers.OfType<DoorMarker>().Single(marker => marker.GetComponent<VertexObjectIdentity>().AuthoredName == "exit");
-                Assert.That(entrance.LinkedDoors, Is.EqualTo(new[] { exit }));
+                Assert.That(entrance.Guid, Is.Not.EqualTo(exit.Guid));
                 Assert.That(prefab.GetComponentsInChildren<MeshRenderer>(true), Has.Length.EqualTo(2), "Entity bounds must not produce render meshes");
                 Assert.That(prefab.GetComponentsInChildren<BoxCollider>(true), Has.Length.EqualTo(2), "Only the two door brushes have blocking collision");
                 foreach (var marker in markers.Where(marker => marker is DoorMarker || marker is SpawnMarker))
@@ -596,7 +596,7 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(trigger.GetBoundsXYZ(), Is.EqualTo(new Vector3(4, 2, 6)));
             Assert.That(trigger.GetComponentsInChildren<Collider>(true), Is.Empty, "SDK runtime creates the trigger, not a blocking level collider");
             Assert.That(door.Speed, Is.EqualTo(9));
-            Assert.That(door.LinkedDoors, Is.EqualTo(new[] { linked }));
+            Assert.That(door.Guid, Is.Not.EqualTo(linked.Guid));
             Assert.That(door.GetWorldOpenDirection().x, Is.EqualTo(-1).Within(0.00001));
             var geometry = identities[map.Objects[0].Id];
             Assert.That(geometry.transform.position, Is.EqualTo(new Vector3(5, 2, -3)));
@@ -658,7 +658,7 @@ namespace Vellocet.Sdk.Tests.Editor
                     var markers = instance.GetComponentsInChildren<EntityMarker>(true);
                     foreach (var marker in markers) marker.ValidateVertexImport();
                     var door = markers.OfType<DoorMarker>().Single(value => value.GetComponent<VertexObjectIdentity>().AuthoredName == "Renamed Door");
-                    Assert.That(door.LinkedDoors[0].Guid, Is.EqualTo(map.Containers.Single(value => value.Name == "Other").Id));
+                    Assert.That(markers.OfType<DoorMarker>().Single(value=>value!=door).Guid, Is.EqualTo(map.Containers.Single(value => value.Name == "Other").Id));
                     Assert.That(markers.All(marker => marker.Guid == marker.GetComponent<VertexObjectIdentity>().ObjectId), Is.True);
                 }
                 finally { Object.DestroyImmediate(instance); }
@@ -673,7 +673,7 @@ namespace Vellocet.Sdk.Tests.Editor
             map.Containers[2].Entity.Properties[0].Value = "fast";
             var error = Assert.Throws<InvalidDataException>(() => VertexMapBuilder.Build(map, null));
             Assert.That(error.Message, Does.Contain(map.Containers[2].Id.ToString()));
-            map = Fixture(); map.Containers[2].Entity.Properties[1].Value = new object[] { Guid.NewGuid().ToString("D") };
+            map = Fixture(); map.Containers[2].Entity.Properties = new[] { new EntityPropertyValue { Id="linked_doors",Value=new object[] {Guid.NewGuid().ToString("D")} } };
             Assert.Throws<InvalidDataException>(() => VertexMapBuilder.Build(map, null));
             map = Fixture(); map.Objects[0].ParentId = map.Containers[1].Id;
             Assert.Throws<InvalidDataException>(() => VertexMapBuilder.Build(map, null));
@@ -693,8 +693,7 @@ namespace Vellocet.Sdk.Tests.Editor
             var door = Entity("Door", "func_door", new(10, 4, 6));
             door.Entity.Rotation = new(0, Math.Sqrt(0.5), 0, Math.Sqrt(0.5));
             var other = Entity("Other", "func_door", new(20, 4, 6));
-            door.Entity.Properties = new[] { new EntityPropertyValue { Id = "speed", Value = 9d },
-                new EntityPropertyValue { Id = "linked_doors", Value = new object[] { other.Id.ToString("D") } } };
+            door.Entity.Properties = new[] { new EntityPropertyValue { Id = "speed", Value = 9d } };
             return new MapAsset { MapId = Guid.NewGuid(), MetersPerUnit = 0.5, Containers = new[] { spawn, trigger, door, other },
                 Objects = new[] { Geometry(door), Geometry(other) } };
         }

@@ -30,7 +30,7 @@ namespace Vellocet.Sdk.Entities
         public bool SupportsAreaLight => true;
         public LightEffect Effect => effect;
         public bool RequiresRuntimeEntity => scripted || scriptReferenced;
-        public LightingMode EffectiveLighting => GetComponent<Light>().type == LightType.Rectangle
+        public LightingMode EffectiveLighting => GetComponent<Light>().type is LightType.Rectangle or LightType.Disc
             ? LightingMode.Baked
             : lighting == LightingMode.Baked && (RequiresRuntimeEntity || effect != LightEffect.None)
                 ? LightingMode.Dynamic : lighting;
@@ -39,7 +39,7 @@ namespace Vellocet.Sdk.Entities
         {
 #if !UNITY_SERVER
             var light = GetComponent<Light>();
-            if (effect != LightEffect.None && light.type != LightType.Rectangle &&
+            if (effect != LightEffect.None && light.type is not (LightType.Rectangle or LightType.Disc) &&
                 SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
                 gameObject.AddComponent<LightEffectPlayer>();
 #endif
@@ -72,7 +72,7 @@ namespace Vellocet.Sdk.Entities
         {
             var light = GetComponent<Light>();
             if (!light) return;
-            if (light.type != LightType.Point && light.type != LightType.Spot && light.type != LightType.Rectangle)
+            if (light.type is not (LightType.Point or LightType.Spot or LightType.Rectangle or LightType.Disc))
                 light.type = LightType.Point;
             light.lightmapBakeType = EffectiveLighting switch
             {

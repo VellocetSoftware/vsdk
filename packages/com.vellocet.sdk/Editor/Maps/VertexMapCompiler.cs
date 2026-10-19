@@ -139,6 +139,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 entity.Name = entity.Id;
                 entity.Category = "Entities";
                 entity.IconPng = null;
+                entity.AvatarModel = null;
+                entity.AvatarVariants = null;
                 entity.Warnings = null;
                 entity.Properties = entity.Properties.OrderBy(property => property.Id, StringComparer.Ordinal).ToArray();
                 entity.Signals = entity.Signals.OrderBy(signal => signal.Kind).ThenBy(signal => signal.Name, StringComparer.Ordinal).ToArray();

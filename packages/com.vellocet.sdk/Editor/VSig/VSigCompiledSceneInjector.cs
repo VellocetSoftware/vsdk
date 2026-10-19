@@ -111,7 +111,7 @@ namespace Vellocet.Sdk.Editor.VSig
             var referenced = new HashSet<EntityMarker>(VSigSceneCompiler.ResolveAliases(program, markers, diagnostics).Values.SelectMany(values => values));
             var referencedLights = referenced.OfType<Vellocet.Sdk.Entities.LightMarker>().ToArray();
             foreach (var light in referencedLights)
-                if (light.GetComponent<Light>().type == LightType.Rectangle)
+                if (light.GetComponent<Light>().type is LightType.Rectangle or LightType.Disc)
                 {
                     message = $"Area light '{light.name}' is referenced by VSig. Area lights are baked-only; choose Point or Spot for scripting.";
                     return false;

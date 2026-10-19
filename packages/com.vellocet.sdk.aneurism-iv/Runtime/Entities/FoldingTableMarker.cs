@@ -6,7 +6,7 @@ using Vellocet.Sdk.Entities.Signals;
 namespace Vellocet.Sdk.Aneurism.Entities
 {
     [EntityClass("prop_folding_table")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Folding Table")]
+    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Folding Table", AvatarModel = "asset:aniv.base/985e817d6863749b8b2ca7710a06ecae.5716299378049042518")]
     public sealed class FoldingTableMarker : PrefabEntityMarker
     {
         public override string ArchetypeId => "aniv.folding-table";

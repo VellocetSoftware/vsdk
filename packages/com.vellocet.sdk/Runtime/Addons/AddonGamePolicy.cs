@@ -16,6 +16,11 @@ namespace Vellocet.Sdk.Addons
                 error = $"This package targets '{manifest.gameId ?? "an unspecified game"}', not {game.DisplayName}.";
             else if (!string.IsNullOrEmpty(game.AudioRuntimeCapability) && manifest.audioRuntime != game.AudioRuntimeCapability)
                 error = $"This content uses an incompatible audio runtime. Rebuild it with the current {game.DisplayName} SDK ({game.AudioRuntimeCapability}).";
+            else if (!string.IsNullOrEmpty(game.MinimumMapSdkVersion) &&
+                     (manifest.contents ?? Array.Empty<AddonManifest.ContentEntry>()).Any(entry => entry?.kind == AddonManifest.MapContentKind) &&
+                     (!Version.TryParse(manifest.sdkVersion, out var actual) ||
+                      !Version.TryParse(game.MinimumMapSdkVersion, out var minimum) || actual < minimum))
+                error = $"This map package requires rebuilding with the current {game.DisplayName} SDK ({game.MinimumMapSdkVersion} or newer).";
             else if (!game.SupportsExternalMods && (manifest.contents ?? Array.Empty<AddonManifest.ContentEntry>())
                          .Any(entry => entry != null && (entry.mod != null ||
                              string.Equals(entry.kind, AddonManifest.ModContentKind, StringComparison.OrdinalIgnoreCase))))

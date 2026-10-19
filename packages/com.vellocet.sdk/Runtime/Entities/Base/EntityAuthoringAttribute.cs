@@ -18,7 +18,12 @@ namespace Vellocet.Sdk.Entities.Base
         }
 
         public string Category { get; }
+        public string Description { get; set; }
+        public bool HiddenFromPlacement { get; set; }
         public string DisplayName { get; }
         public EntityPlacementKind PlacementKind { get; }
+
+        /// <summary>Optional asset:&lt;catalog&gt;/&lt;model&gt; reference used only for the Vertex viewport.</summary>
+        public string AvatarModel { get; set; }
     }
 }

@@ -74,9 +74,7 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(Convert.ToDouble(properties["speed"].DefaultValue), Is.EqualTo(6));
             Assert.That(properties["speed"].Minimum, Is.EqualTo(0.01).Within(0.000001));
             Assert.That(properties["move_direction"].Choices, Has.Length.EqualTo(6));
-            Assert.That(properties["linked_doors"].Type, Is.EqualTo("entity"));
-            Assert.That(properties["linked_doors"].IsArray, Is.True);
-            Assert.That(properties["linked_doors"].ReferenceType, Is.EqualTo(door.Id));
+            Assert.That(properties.ContainsKey("linked_doors"),Is.False,"Door groups use VSig connections.");
             Assert.That(catalog.Entities.SelectMany(entity => entity.Properties).All(field => !string.IsNullOrWhiteSpace(field.Group)), Is.True);
             foreach (var type in new[] { "func_tracktrain", "game_blitz_tank" })
             {

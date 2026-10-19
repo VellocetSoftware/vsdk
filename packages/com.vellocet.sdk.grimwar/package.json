@@ -1,11 +1,11 @@
 {
   "name": "com.vellocet.sdk.grimwar",
   "displayName": "Grimwar SDK",
-  "version": "2.0.0",
+  "version": "4.0.0",
   "unity": "6000.3",
   "unityRelease": "17f1",
   "description": "Grimwar authoring contracts and game profile for the shared Vellocet SDK.",
   "dependencies": {
-    "com.vellocet.sdk": "2.0.0"
+    "com.vellocet.sdk": "4.0.0"
   }
 }

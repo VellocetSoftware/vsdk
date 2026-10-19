@@ -6,7 +6,10 @@ namespace Vellocet.Sdk
 {
     public abstract class SdkGameDefinition
     {
+        public virtual string MinimumMapSdkVersion => null;
         public abstract string Id { get; }
+        public virtual Type DoorSettingsComponentType => null;
+        public virtual Type DoorPropertyMarkerType => null;
         public abstract string DisplayName { get; }
         public abstract string DefaultModeId { get; }
         public virtual string FallbackModeId => DefaultModeId;

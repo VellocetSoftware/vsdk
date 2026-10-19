@@ -26,6 +26,7 @@ namespace Vellocet.Sdk.Editor.Entities
 
         private static bool CanOwnEntity(Type owner, Type child) =>
             typeof(IEntityImportGroup).IsAssignableFrom(owner) ||
+            typeof(IEntityImportHierarchy).IsAssignableFrom(owner) ||
             typeof(IMovingBrushEntityMarker).IsAssignableFrom(owner) &&
             (child == typeof(AmbientMarker) || child == typeof(LightMarker) ||
              child == typeof(LabelMarker) || child == typeof(ParticleMarker) || child == typeof(TriggerHurtMarker) ||
@@ -51,12 +52,19 @@ namespace Vellocet.Sdk.Editor.Entities
                                 (!bindings.TryGetValue(owner.TypeId, out var ownerType) || !CanOwnEntity(ownerType, binding))))
                             throw new InvalidDataException("Nested SDK entities need an explicit ownership binding. Move this entity outside its entity parent.");
                     var go = context.Objects[source.Id];
-                    var marker = (EntityMarker)go.AddComponent(binding);
-                    // AddComponent/Reset can change a marker's transform. The map owns the authored pose.
-                    go.transform.localScale = Vector3.one;
-                    go.transform.SetPositionAndRotation(VertexMapBuilder.Position(source.Entity.Position, context.Map.MetersPerUnit),
-                        VertexMapBuilder.Rotation(source.Entity.Rotation));
-                    marker.ValidateVertexImport();
+                    var children = go.transform.Cast<Transform>().ToArray();
+                    foreach (var child in children) child.SetParent(context.Root.transform, true);
+                    EntityMarker marker;
+                    try
+                    {
+                        marker = (EntityMarker)go.AddComponent(binding);
+                        // AddComponent/Reset can change a marker's transform. The map owns the authored pose.
+                        go.transform.localScale = Vector3.one;
+                        go.transform.SetPositionAndRotation(VertexMapBuilder.Position(source.Entity.Position, context.Map.MetersPerUnit),
+                            VertexMapBuilder.Rotation(source.Entity.Rotation));
+                        marker.ValidateVertexImport();
+                    }
+                    finally { foreach (var child in children) child.SetParent(go.transform, true); }
                     markers.Add(source.Id, marker);
                 }
                 catch (Exception exception) { throw Error(source, exception); }
@@ -72,6 +80,7 @@ namespace Vellocet.Sdk.Editor.Entities
                         var property = source.Entity.Properties.FirstOrDefault(value => value.Id == definition.Id);
                         var value = property != null ? property.Value : definition.DefaultValue;
                         if (VertexEntityProperties.Apply(marker, definition.Id, value, source, context)) continue;
+                        if (DoorGameProperties.Apply(marker, definition.Id, value, markers, context)) continue;
                         var field = fields[definition.Id];
                         field.SetValue(marker, ConvertValue(field.FieldType, value, markers, context));
                     }
@@ -80,7 +89,7 @@ namespace Vellocet.Sdk.Editor.Entities
                     {
                         // Damageable's required root collider is only a legacy authoring default. Owned geometry is authoritative.
                         if (marker is DamageableMarker) marker.GetComponent<BoxCollider>().enabled = false;
-                        if (!marker.GetComponentsInChildren<Collider>(true).Any(collider => collider.enabled))
+                        if (marker is not RotateMarker && !marker.GetComponentsInChildren<Collider>(true).Any(collider => collider.enabled))
                             throw new InvalidDataException("This entity needs owned collision. Parent its geometry/proxies under this entity.");
                         foreach (var transform in marker.GetComponentsInChildren<Transform>(true))
                             GameObjectUtility.SetStaticEditorFlags(transform.gameObject, 0);
@@ -89,19 +98,27 @@ namespace Vellocet.Sdk.Editor.Entities
                     }
                     else
                     {
-                        if (marker.transform.childCount != 0 && marker is not (LogicScriptMarker or IEntityImportGroup))
+                        if (marker is not (LogicScriptMarker or IEntityImportGroup or IEntityImportHierarchy or ISplineEntityMarker) &&
+                            marker.GetComponentsInChildren<Component>(true).Any(component => component is MeshRenderer or Collider &&
+                                component.transform != marker.transform && component.GetComponentInParent<EntityMarker>() == marker))
                             throw new InvalidDataException("Point/volume entities cannot own brush geometry. Use their authored bounds for volumes.");
                         if (GeometryRole(marker.GetType()) == "bounds" || marker is AmbientMarker { IsVolumetric: true })
                         {
                             var size = source.Entity.Size;
                             var scale = (float)context.Map.MetersPerUnit;
+                            var children = marker.transform.Cast<Transform>().ToArray();
+                            foreach (var child in children) child.SetParent(context.Root.transform, true);
                             marker.transform.position -= marker.transform.up * ((float)size.Y * scale / 2);
                             marker.transform.localScale = new Vector3((float)size.X * scale, (float)size.Y * scale, (float)size.Z * scale);
+                            foreach (var child in children) child.SetParent(marker.transform, true);
                             // The SDK runtime creates its trigger collider. No blocking level collider is imported here.
                         }
                     }
+                    VertexEntityProperties.RestoreVolume(marker, source);
+                    VertexEntityProperties.RestoreAudioEmitter(marker, source, context);
+                    marker.enabled = source.State?.MarkerDisabled != true;
                     marker.ValidateVertexImport();
-                    if (marker is LightMarker light && light.GetComponent<Light>().type == LightType.Rectangle &&
+                    if (marker is LightMarker light && light.GetComponent<Light>().type is LightType.Rectangle or LightType.Disc &&
                         (light.RequiresRuntimeEntity || light.Effect != LightMarker.LightEffect.None))
                         throw new InvalidDataException("Area lights are baked-only and cannot use scripting or effects. Choose Point or Spot.");
                     if (marker is LabelMarker label) label.CaptureVertexLabel();
@@ -170,7 +187,7 @@ namespace Vellocet.Sdk.Editor.Entities
             Vellocet.Sdk.Editor.Maps.VertexMapPolicy.Apply(context.Map, context.Root);
         }
 
-        private static object ConvertValue(Type type, object value, IReadOnlyDictionary<Guid, EntityMarker> markers, VertexEntityBuildContext context)
+        internal static object ConvertValue(Type type, object value, IReadOnlyDictionary<Guid, EntityMarker> markers, VertexEntityBuildContext context)
         {
             if (type.IsArray)
             {

@@ -14,6 +14,9 @@ namespace Vellocet.Sdk.Aneurism.Tests
         [TestCase("Assets/Art/Models/entities/door.fbx", true)]
         [TestCase("Assets/Art/Materials/door.mat", true)]
         [TestCase("Assets/MapAuthoring/Kits/Door.prefab", true)]
+        [TestCase("Assets/ScriptableObjects/Environment/Skies/ANIVSky.asset", true)]
+        [TestCase("Assets/ScriptableObjects/Environment/Skies/ANIVSky.asset.meta", true)]
+        [TestCase("Assets/ScriptableObjects/Environment/Private.asset", false)]
         public void OnlyPublicArtAndAuthoringKitsEnterTheSdk(string path, bool allowed)
         {
             Assert.That(SdkContentPathUtility.TryMapSourceToInstalledPath(path, out var installed), Is.EqualTo(allowed));

@@ -155,6 +155,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 "Preparing compiled scene contract.",
                 ctx =>
                 {
+                    if (!MapGeneratedGeometryUtility.Validate(ctx.Scene, out var geometryMessage))
+                        return MapCompilePassResult.Fail(geometryMessage);
                     MapSceneUtility.UnpackPrefabInstances(ctx.Scene);
                     var sceneContext = MapSceneUtility.EnsureSceneContract(ctx.Scene, true, out var summary);
                     if (ctx.Options?.BakePolicy != null) VertexBakePolicy.Apply(ctx.Scene, ctx.Options.BakePolicy);
@@ -166,6 +168,14 @@ namespace Vellocet.Sdk.Editor.Maps
                         ? "Scene contract verified."
                         : summary);
                 });
+
+            yield return new DelegateMapCompilePass(
+                "persist-generated-geometry",
+                0.18f,
+                "Storing generated geometry with the compiled scene.",
+                ctx => MapGeneratedGeometryUtility.Persist(ctx.Scene, ctx.CompiledScenePath, out var message)
+                    ? MapCompilePassResult.Pass(message)
+                    : MapCompilePassResult.Fail(message));
 
             yield return new DelegateMapCompilePass(
                 "optimize-mesh-colliders",
@@ -367,6 +377,9 @@ namespace Vellocet.Sdk.Editor.Maps
 
         private static bool ValidateRuntimeDependencies(MapCompileContext context, out string message)
         {
+            if (!MapGeneratedGeometryUtility.Validate(context?.Scene ?? default, out message))
+                return false;
+
             if (context?.Options?.SkipSpatialOctreeBake ?? false)
                 return MapSpatialGraphArtifacts.TryValidateSkippedSceneRuntimeDependency(
                     context.Scene, out message);

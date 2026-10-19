@@ -15,7 +15,8 @@
     "Vertex.Unity",
     "Unity.Addressables",
     "Unity.ResourceManager",
-    "Vellocet.Spatial"
+    "Vellocet.Spatial",
+    "Unity.RenderPipelines.Universal.Runtime"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

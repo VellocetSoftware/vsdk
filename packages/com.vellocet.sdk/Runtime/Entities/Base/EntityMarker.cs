@@ -50,6 +50,9 @@ namespace Vellocet.Sdk.Entities.Base
 
         public virtual string IconPath => GetIconPath(GetType());
 
+        /// <summary>Authoring-only model key; never instantiated by the runtime entity.</summary>
+        public virtual string AvatarModel => GetType().GetCustomAttribute<EntityAuthoringAttribute>(false)?.AvatarModel;
+
         public abstract string[] Outputs { get; }
         public abstract string[] Inputs { get; }
 

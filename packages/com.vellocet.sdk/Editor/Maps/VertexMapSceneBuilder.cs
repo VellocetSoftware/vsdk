@@ -24,8 +24,13 @@ namespace Vellocet.Sdk.Editor.Maps
             if (EditorSceneManager.GetSceneByPath(scenePath).isLoaded)
                 throw new InvalidDataException("Close the authoring scene before updating it: " + scenePath);
             // SDK setup can change render-pipeline settings and invalidate model artifacts. Finish that import before reading the map.
-            AssetDatabase.ImportAsset(mapAssetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(mapAssetPath);
+            if (!prefab)
+            {
+                AssetDatabase.ImportAsset(mapAssetPath, ImportAssetOptions.ForceSynchronousImport);
+                prefab = AssetDatabase.LoadAssetAtPath<GameObject>(mapAssetPath);
+            }
             var source = AssetDatabase.LoadAssetAtPath<TextAsset>(scriptAssetPath);
             if (!prefab || !prefab.TryGetComponent<VertexObjectIdentity>(out var identity) || identity.MapId == Guid.Empty)
                 throw new InvalidDataException("Import a valid .vertexmesh map before creating its SDK scene.");
@@ -52,11 +57,20 @@ namespace Vellocet.Sdk.Editor.Maps
                 // Reimport updates the existing prefab's geometry and preserves scene object references and overrides.
                 if (!instance) instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
                 // Stable importer names keep prefab file IDs intact; scene instances can show authored labels.
-                foreach (var item in instance.GetComponentsInChildren<VertexObjectIdentity>(true))
-                {
-                    item.gameObject.name = item.AuthoredName;
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(item.gameObject);
-                }
+                var identities = instance.GetComponentsInChildren<VertexObjectIdentity>(true);
+                foreach (var item in identities) item.gameObject.name = item.AuthoredName;
+                var labels = identities.Select(item => new PropertyModification
+                    {
+                        target = PrefabUtility.GetCorrespondingObjectFromSource(item.gameObject),
+                        propertyPath = "m_Name", value = item.AuthoredName
+                    }).ToArray();
+                var named = labels.Select(label => label.target).ToHashSet();
+                var overrides = PrefabUtility.GetPropertyModifications(instance) ?? Array.Empty<PropertyModification>();
+                // Recording each name separately repeatedly scans a whole large prefab instance.
+                // Apply the label overrides once, retaining every other saved authoring override.
+                PrefabUtility.SetPropertyModifications(instance, overrides
+                    .Where(value => value.propertyPath != "m_Name" || !named.Contains(value.target))
+                    .Concat(labels).ToArray());
                 var map = MapAsset.Deserialize(File.ReadAllBytes(mapAssetPath));
                 var contentDirectory = Path.GetDirectoryName(mapAssetPath).Replace('\\', '/') + "/Content";
                 var content = Directory.Exists(contentDirectory) ? Directory.GetFiles(contentDirectory, "*.vertexcontent", SearchOption.AllDirectories)
@@ -81,6 +95,7 @@ namespace Vellocet.Sdk.Editor.Maps
                     if (settings.DirectionalLight) settings.DirectionalLight.transform.SetParent(unityContent.transform, true);
                     VertexMapEnvironment.Apply(scene, map.Environment);
                 }
+                else if (map.Environment?.VertexOwned == true) VertexMapEnvironment.Apply(scene, map.Environment);
                 // Validation and generation finish before replacing the last saved source scene.
                 if (!EditorSceneManager.SaveScene(scene, scenePath))
                     throw new IOException("Could not save the authoring scene: " + scenePath);

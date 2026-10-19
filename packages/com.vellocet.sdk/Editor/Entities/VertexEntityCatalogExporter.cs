@@ -71,6 +71,7 @@ namespace Vellocet.Sdk.Editor.Entities
                     {
                         Id = info.EntityClassName, Name = info.DisplayName, Category = info.Category,
                         IconPng = Icon(marker.IconPath),
+                        AvatarModel = marker.AvatarModel,
                         Placement = info.PlacementKind.ToString().ToLowerInvariant(),
                         Geometry = VertexEntityImporter.GeometryRole(info.MarkerType),
                         SurfaceMaterialProperty = marker is global::Vellocet.Sdk.Entities.TriggerWaterMarker ? "surface_material" : null,
@@ -121,6 +122,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 group = field.GetCustomAttribute<HeaderAttribute>()?.header ?? group;
                 var name = field.Name.StartsWith("<", StringComparison.Ordinal) ? field.Name.Substring(1, field.Name.IndexOf('>') - 1) : field.Name;
                 var id = PropertyId(field);
+                if(marker is global::Vellocet.Sdk.Entities.DoorMarker door && !DoorSoundAuthoring.VisibleForType(door,id))continue;
                 try
                 {
                     // These fields are SDK-owned: canonical collision layers and the entity's owned break subtree.
@@ -129,6 +131,7 @@ namespace Vellocet.Sdk.Editor.Entities
                     if (marker is global::Vellocet.Sdk.Entities.DecalMarker && id == "material")
                         definition.AssetRole = "decal";
                     definition.Group ??= group ?? "Properties";
+                    if(marker is global::Vellocet.Sdk.Entities.DoorMarker)DoorSoundAuthoring.Conditions(definition);
                     definition.Validate();
                     if (!result.TryAdd(id, definition)) throw new ArgumentException("Multiple serialized fields produce the same property ID.");
                 }
@@ -141,12 +144,13 @@ namespace Vellocet.Sdk.Editor.Entities
                     });
                 }
             }
+            foreach (var definition in DoorGameProperties.Describe(marker)) result.Add(definition.Id, definition);
             return result.Values.ToArray();
         }
 
         internal static IEnumerable<FieldInfo> SerializedFields(Type type)
         {
-            for (; type != null && type != typeof(object) && (typeof(EntityMarker).IsAssignableFrom(type) || !typeof(Object).IsAssignableFrom(type)); type = type.BaseType)
+            for (; type != null && type != typeof(object) && (typeof(EntityMarker).IsAssignableFrom(type) || typeof(MonoBehaviour).IsAssignableFrom(type) && type != typeof(MonoBehaviour) || !typeof(Object).IsAssignableFrom(type)); type = type.BaseType)
                 foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                     if (!field.IsStatic && !field.IsInitOnly && !field.IsNotSerialized &&
                         (field.IsPublic || field.IsDefined(typeof(SerializeField)) || field.IsDefined(typeof(SerializeReference))) &&
@@ -157,7 +161,7 @@ namespace Vellocet.Sdk.Editor.Entities
         internal static string PropertyId(FieldInfo field) => Model.EntitySignalNameUtility.Normalize(
             field.Name.StartsWith("<", StringComparison.Ordinal) ? field.Name.Substring(1, field.Name.IndexOf('>') - 1) : field.Name);
 
-        private static Model.EntityPropertyDefinition Describe(FieldInfo field, string id, string name, object value, int depth = 0)
+        internal static Model.EntityPropertyDefinition Describe(FieldInfo field, string id, string name, object value, int depth = 0)
         {
             if (depth > 3) throw new ArgumentException("Structured properties exceed their nesting limit.");
             var type = field.FieldType;
@@ -181,6 +185,7 @@ namespace Vellocet.Sdk.Editor.Entities
             if (kind == "entity" && type.IsSealed) definition.ReferenceType = EntityMarker.GetEntityClassName(type);
             if (kind == "asset") definition.ReferenceType = AssetKind(type);
             if (type == typeof(Sprite)) definition.AssetRole = "sprite";
+            else if(type.GetCustomAttribute<Model.CatalogAssetRoleAttribute>() is { } role)definition.AssetRole=role.Role;
             if (type.IsEnum)
                 definition.Choices = Enum.GetNames(type).Select(choice => new Model.EntityPropertyChoice
                 {

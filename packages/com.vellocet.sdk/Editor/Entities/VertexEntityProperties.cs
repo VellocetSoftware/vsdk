@@ -7,6 +7,7 @@ using System.Reflection;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEditor;
 using UnityEngine.Splines;
 using Vellocet.Sdk.Entities;
 using Vellocet.Sdk.Entities.Base;
@@ -16,7 +17,7 @@ using Vertex.Unity.Editor;
 namespace Vellocet.Sdk.Editor.Entities
 {
     // Component references remain engine details. Vertex authors their useful data.
-    internal static class VertexEntityProperties
+    internal static partial class VertexEntityProperties
     {
         private static EntityPropertyDefinition Field(string id, string name, string type, object value, bool array = false,
             double? min = null, double? max = null, string reference = null, string description = null, string group = null,
@@ -61,6 +62,11 @@ namespace Vellocet.Sdk.Editor.Entities
 
         internal static IEnumerable<EntityPropertyDefinition> Additional(EntityMarker marker)
         {
+            foreach (var field in CapturedProperties(marker)) yield return field;
+            if(marker is DoorMarker)
+                foreach(Vellocet.Sdk.Entities.Doors.DoorSoundAction action in Enum.GetValues(typeof(Vellocet.Sdk.Entities.Doors.DoorSoundAction)))
+                    yield return new EntityPropertyDefinition {Id="sound_"+Vertex.Contracts.EntitySignalNameUtility.Normalize(action.ToString()),Name=ObjectNames.NicifyVariableName(action.ToString()),Type="asset",ReferenceType="audio",DefaultValue=null,Group="Sound overrides",
+                        VisibleWhen=new[]{new EntityWarningCondition {Property="override_sounds",Values=new object[]{true}}},Description="Overrides this action in the sound set. Choose a game audio event or add-on cue."};
             if (marker is ISplineEntityMarker)
             {
                 yield return Field("path_smooth", "Smooth curves", "bool", false, group: "Path",
@@ -73,7 +79,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 EntityWarningCondition[] LightTypes(params LightType[] types) => new[]
                     { new EntityWarningCondition { Property = "light_type", Values = types.Select(type => (object)(int)type).ToArray() } };
                 yield return new EntityPropertyDefinition { Id = "light_type", Name = "Light type", Type = "enum", DefaultValue = (int)LightType.Point,
-                    Choices = (lightMarker.SupportsAreaLight ? new[] { LightType.Point, LightType.Spot, LightType.Rectangle } :
+                    Choices = (lightMarker.SupportsAreaLight ? new[] { LightType.Point, LightType.Spot, LightType.Rectangle, LightType.Disc } :
                         new[] { LightType.Point, LightType.Spot }).Select(type => new EntityPropertyChoice
                         { Id = type == LightType.Rectangle ? "area" : type.ToString().ToLowerInvariant(),
                             Name = type == LightType.Rectangle ? "Area" : type.ToString(), Value = (int)type }).ToArray(),
@@ -82,8 +88,8 @@ namespace Vellocet.Sdk.Editor.Entities
                         : "Point or Spot. This light animates at runtime." };
                 yield return Field("color", "Color", "color", new object[] { 1d, 1d, 1d, 1d }, group: "Light");
                 yield return Field("intensity", "Intensity", "number", 1d, min: 0, max: 1000000, group: "Light");
-                yield return Field("range", "Range (metres)", "number", 10d, min: .01, max: 1000000, group: "Light", visibleWhen: LightTypes(LightType.Point, LightType.Spot));
-                if (lightMarker.SupportsAreaLight) yield return Field("area_size", "Area size (metres)", "vector2", new object[] { 1d, 1d }, group: "Light", visibleWhen: LightTypes(LightType.Rectangle));
+                yield return Field("range", "Range (metres)", "number", 10d, min: 0, max: 1000000, group: "Light", visibleWhen: LightTypes(LightType.Point, LightType.Spot));
+                if (lightMarker.SupportsAreaLight) yield return Field("area_size", "Area size (metres)", "vector2", new object[] { 1d, 1d }, group: "Light", visibleWhen: LightTypes(LightType.Rectangle, LightType.Disc));
                 yield return Field("spot_angle", "Spot angle", "number", 30d, min: 1, max: 179, group: "Light", visibleWhen: LightTypes(LightType.Spot));
                 yield return Field("shadows", "Cast shadows", "bool", true, group: "Light");
                 yield return Field("enabled", "Start on", "bool", true, group: "Light");
@@ -98,6 +104,16 @@ namespace Vellocet.Sdk.Editor.Entities
 
         internal static bool Apply(EntityMarker marker, string id, object value, MapContainer source, VertexEntityBuildContext context)
         {
+            if (ApplyCapturedProperty(marker, id, value)) return true;
+            if(marker is DoorMarker door && id.StartsWith("sound_",StringComparison.Ordinal))
+            {
+                if(value==null)return true;
+                var action=Enum.GetValues(typeof(Vellocet.Sdk.Entities.Doors.DoorSoundAction)).Cast<Vellocet.Sdk.Entities.Doors.DoorSoundAction>()
+                    .Single(a=>"sound_"+Vertex.Contracts.EntitySignalNameUtility.Normalize(a.ToString())==id);
+                var audioSource=context.ResolveAsset?.Invoke((string)value);
+                var reference=DoorSoundAuthoring.Reference(audioSource);
+                door.SetSoundOverride(action,reference);return true;
+            }
             float Number() => Convert.ToSingle(value, CultureInfo.InvariantCulture);
             Color ColorValue() { var components = (Array)value; return new Color(Convert.ToSingle(components.GetValue(0)), Convert.ToSingle(components.GetValue(1)), Convert.ToSingle(components.GetValue(2)), Convert.ToSingle(components.GetValue(3))); }
             if (marker is ILightEntityMarker)
@@ -165,6 +181,7 @@ namespace Vellocet.Sdk.Editor.Entities
             spline.Spline = new Spline(points.Select((point, index) => new BezierKnot(ToUnity(point),
                 -ToUnity(tangents[index]), ToUnity(tangents[index]), quaternion.identity)), closed);
             spline.Spline.SetTangentMode(smooth ? TangentMode.Broken : TangentMode.Linear);
+            RestoreSplines(spline, source, points);
             Set(marker, id, spline);
             context.AddGeneratedAsset(source.Id, "path", path);
             context.AddGeneratedAsset(source.Id, "path-transform", path.transform);
