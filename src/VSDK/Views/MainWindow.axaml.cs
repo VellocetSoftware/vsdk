@@ -34,32 +34,47 @@ public partial class MainWindow : Window
         this.FindControl<Button>("OpenVertexButton")!.IsEnabled = !busy;
         this.FindControl<Button>("CancelSetup")!.IsVisible = busy;
     }
-    private async Task CheckAsync()
+    private async Task CheckAsync(bool recheck = false)
     {
         try
         {
-            _status = Program.InitialSetup ?? await _service.SetupStatusAsync();
+            _status = recheck
+                ? await _service.SetupStatusAsync(engine: this.FindControl<TextBox>("EnginePath")!.Text)
+                : Program.InitialSetup ?? await _service.SetupStatusAsync();
             Title = _status.Name + " SDK";
             this.FindControl<TextBlock>("Heading")!.Text = Title;
             this.FindControl<TextBlock>("EngineRequirement")!.Text = $"{_status.Engine} {_status.Version} is required to compile maps.";
             this.FindControl<TextBox>("EnginePath")!.Text = _status.EngineExecutable;
-            this.FindControl<TextBox>("GamePath")!.Text = _status.GameExecutable;
+            if (!recheck || string.IsNullOrWhiteSpace(this.FindControl<TextBox>("GamePath")!.Text))
+                this.FindControl<TextBox>("GamePath")!.Text = _status.GameExecutable;
+            this.FindControl<TextBlock>("Requirements")!.Text = string.Join("\n\n",
+                (_status.Requirements ?? []).Select(item =>
+                    (item.Installed ? "✓ " : "• ") + item.Name + " — " + item.Detail));
             this.FindControl<StackPanel>("GameSettings")!.IsVisible = _status.CanPlay;
             this.FindControl<Button>("InstallEngine")!.IsVisible = _status.InstallationUrl != null;
             this.FindControl<Button>("InstallEngine")!.Content = "Install " + _status.Engine;
             this.FindControl<TextBlock>("Workflow")!.Text = _status.Developer
                 ? "This connection uses your game project. Save maps to the editor and play them there."
                 : "Author in Vertex, then compile and play maps in your installed game. Your SDK supplies the assets and compiler.";
-            this.FindControl<Button>("Configure")!.IsEnabled = true;
-            this.FindControl<Button>("OpenVertexButton")!.IsEnabled = true;
             var types = await _service.ResourceTypesAsync();
             this.FindControl<StackPanel>("ResourcePanel")!.IsVisible = types.Length > 0;
             this.FindControl<ComboBox>("ResourceType")!.ItemsSource = types;
             this.FindControl<ComboBox>("ResourceType")!.SelectedIndex = types.Length > 0 ? 0 : -1;
+            this.FindControl<Button>("Configure")!.IsEnabled = true;
+            this.FindControl<Button>("OpenVertexButton")!.IsEnabled = true;
             SetStatus(_status.Ready ? "Setup is complete. You can change these locations if needed." :
                 "Set up the engine to compile maps. Standalone resources can be authored immediately.");
         }
         catch (Exception error) { SetStatus(error.Message); }
+    }
+
+    private async void RecheckClicked(object? sender, RoutedEventArgs args)
+    {
+        if (_setup != null) return;
+        SetBusy(true);
+        this.FindControl<Button>("CancelSetup")!.IsVisible = false;
+        try { await CheckAsync(true); }
+        finally { SetBusy(false); }
     }
 
     private async void ConfigureClicked(object? sender, RoutedEventArgs args)

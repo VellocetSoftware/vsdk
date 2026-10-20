@@ -35,6 +35,8 @@
           <Button Grid.Column="1" Content="Choose…" Tag="EnginePath" Click="ChooseExecutableClicked" Margin="8,0,0,0"/>
         </Grid>
         <Button x:Name="InstallEngine" IsVisible="False" Click="InstallEngineClicked"/>
+        <TextBlock x:Name="Requirements" TextWrapping="Wrap"/>
+        <Button Content="Check installation again" Click="RecheckClicked"/>
         <StackPanel x:Name="GameSettings" Spacing="8">
           <TextBlock Text="Game executable · optional until you playtest" TextWrapping="Wrap"/>
           <Grid ColumnDefinitions="*,Auto">

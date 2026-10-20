@@ -11,10 +11,10 @@ internal sealed class LauncherService(LauncherPaths paths)
     internal const string DocumentationUrl = "https://developer.vellocetsoftware.com/wiki/Vellocet_SDK";
     public LauncherPaths Paths { get; } = paths;
 
-    public async Task<SetupStatus> SetupStatusAsync(CancellationToken cancellation = default)
+    public async Task<SetupStatus> SetupStatusAsync(string? engine = null, CancellationToken cancellation = default)
     {
         Inspect();
-        var output = await RunSetupAsync("--inspect-sdk", null, null, null, cancellation);
+        var output = await RunSetupAsync("--inspect-sdk", engine, null, null, cancellation);
         return JsonSerializer.Deserialize<SetupStatus>(output) ?? throw new InvalidDataException("Vertex returned no setup information.");
     }
 
@@ -135,7 +135,10 @@ internal sealed class LauncherService(LauncherPaths paths)
 }
 
 internal sealed record SetupStatus(string Name, string Engine, string Version, string EngineExecutable,
-    string? GameExecutable, bool Developer, bool Ready, bool CanPlay, string? InstallationUrl);
+    string? GameExecutable, bool Developer, bool Ready, bool CanPlay, string? InstallationUrl,
+    EngineRequirement[]? Requirements = null);
+
+internal sealed record EngineRequirement(string Name, bool Installed, string Detail);
 
 internal sealed record ResourceType(string Id, string Name, string Manifest)
 {
