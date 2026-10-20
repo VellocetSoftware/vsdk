@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Splines;
 using Vellocet.Sdk.Entities;
 using Vellocet.Sdk.Entities.Base;
+using Vellocet.Sdk.Editor.Maps;
 using Vertex.Contracts;
 using Vertex.Unity;
 using Vertex.Unity.Editor;
@@ -160,9 +161,20 @@ namespace Vellocet.Sdk.Editor.Entities
                 void Record(Component component, string action, string detail) => result.Entries.Add(new Entry
                 { path = Path(transform), component = component ? component.GetType().FullName : "capture", action = action, detail = detail });
             }
-            result.Map = new MapAsset { MapId = options.MapId, MetersPerUnit = 1, LightmapBake = "High",
+            result.Map = new MapAsset { MapId = options.MapId, MetersPerUnit = 1, LightmapBake = CaptureLightmapBake(scene),
                 Containers = containers.ToArray(), Objects = objects.ToArray() };
             return result;
+        }
+
+        private static string CaptureLightmapBake(Scene scene)
+        {
+            var settings = Lightmapping.GetLightingSettingsForScene(scene);
+            if (!settings) return null;
+            if (!settings.bakedGI) return "None";
+            foreach (var quality in new[] { MapLightmapQuality.Low, MapLightmapQuality.Medium, MapLightmapQuality.High })
+                if (settings == AssetDatabase.LoadAssetAtPath<LightingSettings>(MapLightingSettingsUtility.GetAssetPath(quality)))
+                    return quality.ToString();
+            return null;
         }
 
         private static MapEntity Entity(EntityMarker marker, Options options, IReadOnlyDictionary<Transform, Guid> ids)

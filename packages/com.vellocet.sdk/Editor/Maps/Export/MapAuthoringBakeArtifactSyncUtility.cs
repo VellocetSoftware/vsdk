@@ -36,7 +36,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 var snapshot = MapCompiledBakeSnapshot.Capture(authoringScene, mirror.AssetMap);
                 artifacts = new SkippedLightingArtifacts(snapshot, mirror);
                 message =
-                    $"Copied {mirror.Copied} bake artifact file(s) and captured {snapshot.LightmapCount} lightmap slot(s).";
+                    $"Copied {mirror.Copied} bake artifact file(s), moved {mirror.Relocated} payload(s) to shared storage, and captured {snapshot.LightmapCount} lightmap slot(s).";
                 return true;
             }
             catch (Exception ex)

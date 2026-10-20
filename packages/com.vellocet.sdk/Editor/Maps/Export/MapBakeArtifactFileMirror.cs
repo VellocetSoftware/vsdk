@@ -14,7 +14,8 @@ namespace Vellocet.Sdk.Editor.Maps
         internal static bool CopyAuthoringToCompiled(string sourceScenePath, string compiledScenePath,
             out Result result, out string message)
         {
-            if (!TryBuildContext(sourceScenePath, compiledScenePath, out var context, out result, out message))
+            if (!TryBuildContext(sourceScenePath, compiledScenePath, sourceScenePath,
+                    out var context, out result, out message))
                 return false;
 
             var options = new MirrorOptions(true, false);
@@ -28,13 +29,15 @@ namespace Vellocet.Sdk.Editor.Maps
         internal static bool CopyCompiledToAuthoring(string compiledScenePath, string sourceScenePath,
             out Result result, out string message)
         {
-            if (!TryBuildContext(compiledScenePath, sourceScenePath, out var context, out result, out message))
+            if (!TryBuildContext(compiledScenePath, sourceScenePath, sourceScenePath,
+                    out var context, out result, out message))
                 return false;
 
             return Mirror(context, MirrorOptions.GeneratedBakeArtifactsOnly, out result, out message);
         }
 
-        private static bool TryBuildContext(string fromScenePath, string toScenePath, out MirrorContext context,
+        private static bool TryBuildContext(string fromScenePath, string toScenePath, string authoringScenePath,
+            out MirrorContext context,
             out Result result, out string message)
         {
             context = default;
@@ -49,7 +52,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 return false;
             }
 
-            context = new MirrorContext(fromScenePath, toScenePath);
+            context = new MirrorContext(fromScenePath, toScenePath, authoringScenePath);
             return true;
         }
 
@@ -83,6 +86,19 @@ namespace Vellocet.Sdk.Editor.Maps
 
                 var relativePath = MapEditorPathUtility.MakeRelativePath(fromAbsoluteFolder, sourceAbsolutePath);
                 var sourceAssetPath = MapEditorPathUtility.NormalizeAssetPath(Path.Combine(fromFolder, relativePath));
+                if (IsSharedPayload(fileName, context.FromSceneName))
+                {
+                    if (!MovePayloadToSharedFolder(sourceAssetPath, relativePath, context,
+                            out var sharedPath, out message))
+                        return false;
+
+                    // Moving preserves the GUID, including references inside LightingData and APV assets.
+                    // The old path no longer resolves to a GUID; baking-set remapping needs the new path.
+                    result.MapAsset(sharedPath, sharedPath);
+                    result.Relocated++;
+                    continue;
+                }
+
                 var targetRelativePath = RenameBakeArtifactPath(relativePath, context.FromSceneName,
                     context.ToSceneName);
                 var targetAssetPath =
@@ -99,16 +115,49 @@ namespace Vellocet.Sdk.Editor.Maps
 
             // All probe payloads must exist before reconnecting the copied baking set.
             foreach (var pair in result.AssetMap)
-                if (IsProbeVolumeBakingSet(Path.GetFileName(pair.Key), context.FromSceneName) &&
-                    !MapProbeVolumeUtility.TryPrepareBakingSetAsset(pair.Value, context.ToSceneGuid,
+            {
+                if (!IsProbeVolumeBakingSet(Path.GetFileName(pair.Key), context.FromSceneName))
+                    continue;
+                if (result.Relocated > 0)
+                    MapProbeVolumeUtility.RefreshStreamableAssetPaths(AssetDatabase.LoadMainAssetAtPath(pair.Key));
+                if (!MapProbeVolumeUtility.TryPrepareBakingSetAsset(pair.Value, context.ToSceneGuid,
                         result.AssetMap, out message))
                     return false;
+            }
 
             if (options.DeleteStaleTargetFiles)
                 result.Deleted = DeleteStaleBakeArtifacts(toFolder, context.ToSceneName, result);
 
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             return true;
+        }
+
+        private static bool MovePayloadToSharedFolder(string sourcePath, string relativePath,
+            MirrorContext context, out string sharedPath, out string message)
+        {
+            sharedPath = string.Empty;
+            message = string.Empty;
+            var ownerGuid = AssetDatabase.AssetPathToGUID(context.FromScenePath);
+            if (string.IsNullOrWhiteSpace(ownerGuid))
+            {
+                message = $"Cannot store bake payloads for an unimported scene: {context.FromScenePath}";
+                return false;
+            }
+
+            var folder = MapEditorPathUtility.NormalizeAssetPath(Path.Combine(
+                Path.GetDirectoryName(context.AuthoringScenePath) ?? string.Empty, "Generated", "Bakes", ownerGuid));
+            sharedPath = MapEditorPathUtility.NormalizeAssetPath(Path.Combine(folder, relativePath));
+            if (!MapEditorPathUtility.EnsureAssetFolder(Path.GetDirectoryName(sharedPath)))
+            {
+                message = $"Could not create shared bake folder: {folder}";
+                return false;
+            }
+
+            // A rebake of the same scene can reuse file names. Keep the previous generation intact
+            // for scenes still referencing it; explicit dependency-audited cleanup can prune it later.
+            sharedPath = AssetDatabase.GenerateUniqueAssetPath(sharedPath);
+            message = AssetDatabase.MoveAsset(sourcePath, sharedPath);
+            return string.IsNullOrEmpty(message);
         }
 
         private static bool CopyAsset(string sourceAssetPath, string targetAssetPath, out string message)
@@ -160,6 +209,11 @@ namespace Vellocet.Sdk.Editor.Maps
                 if (!IsBakeArtifact(fileName, sceneName))
                     continue;
 
+                // Legacy copies may still be referenced by scenes outside this sync. Retire them
+                // only after migrating those references, never as a side effect of copying metadata.
+                if (IsSharedPayload(fileName, sceneName))
+                    continue;
+
                 var relativePath = MapEditorPathUtility.MakeRelativePath(absoluteFolder, absolutePath);
                 var assetPath = MapEditorPathUtility.NormalizeAssetPath(Path.Combine(folder, relativePath));
                 if (result.ContainsTargetPath(assetPath))
@@ -170,6 +224,19 @@ namespace Vellocet.Sdk.Editor.Maps
             }
 
             return deleted;
+        }
+
+        private static bool IsSharedPayload(string fileName, string sceneName)
+        {
+            if (!IsBakeArtifact(fileName, sceneName))
+                return false;
+
+            var extension = Path.GetExtension(fileName);
+            return extension.Equals(".exr", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".hdr", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".cubemap", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".bytes", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsBakeArtifact(string fileName, string sceneName)
@@ -226,6 +293,7 @@ namespace Vellocet.Sdk.Editor.Maps
 
             internal Dictionary<string, string> AssetMap { get; } = new(StringComparer.OrdinalIgnoreCase);
             internal int Copied { get; set; }
+            internal int Relocated { get; set; }
             internal int Deleted { get; set; }
 
             internal void MapAsset(string sourceAssetPath, string targetAssetPath)
@@ -242,13 +310,14 @@ namespace Vellocet.Sdk.Editor.Maps
 
         private readonly struct MirrorContext
         {
-            internal MirrorContext(string fromScenePath, string toScenePath)
+            internal MirrorContext(string fromScenePath, string toScenePath, string authoringScenePath)
             {
                 FromScenePath = fromScenePath;
                 ToScenePath = toScenePath;
                 FromSceneName = Path.GetFileNameWithoutExtension(fromScenePath);
                 ToSceneName = Path.GetFileNameWithoutExtension(toScenePath);
                 ToSceneGuid = AssetDatabase.AssetPathToGUID(toScenePath);
+                AuthoringScenePath = MapEditorPathUtility.NormalizeAssetPath(authoringScenePath);
             }
 
             internal string FromScenePath { get; }
@@ -256,6 +325,7 @@ namespace Vellocet.Sdk.Editor.Maps
             internal string FromSceneName { get; }
             internal string ToSceneName { get; }
             internal string ToSceneGuid { get; }
+            internal string AuthoringScenePath { get; }
         }
 
         private readonly struct MirrorOptions

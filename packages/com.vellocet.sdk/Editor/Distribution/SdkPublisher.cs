@@ -35,8 +35,8 @@ namespace Vellocet.Sdk.Editor.Distribution
             var generatedRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Generated")) + Path.DirectorySeparatorChar;
             if (!output.StartsWith(generatedRoot, StringComparison.Ordinal))
                 throw new InvalidDataException("SDK distributions must be written inside the Unity project Generated directory.");
-            var toolchain = JObject.Parse(File.ReadAllText(Path.Combine(toolsRoot, "toolchain.json")));
-            ValidateTools(toolsRoot);
+            var toolchain = toolsRoot == null ? new JObject() : JObject.Parse(File.ReadAllText(Path.Combine(toolsRoot, "toolchain.json")));
+            if (toolsRoot != null) ValidateTools(toolsRoot);
             toolchain[SdkGame.Current.Id] = SourceRevision();
             var name = SdkGame.Current.DisplayName.Replace(' ', '_');
             var profile = EnsureAssetProfile();
@@ -45,6 +45,8 @@ namespace Vellocet.Sdk.Editor.Distribution
             try
             {
                 Directory.CreateDirectory(stage);
+                // Preserve validated preview fingerprints across atomic SDK publications.
+                if (Directory.Exists(output + "/Authoring")) CopyTree(output + "/Authoring", stage + "/Authoring");
                 var content = stage + "/Content";
                 var compiler = stage + "/Compiler";
                 var package = compiler + "/Packages/com.vellocet.sdk";
@@ -62,11 +64,24 @@ namespace Vellocet.Sdk.Editor.Distribution
                 EmbedPackages(compiler);
                 if (SdkGame.Current.AudioRuntimeCapability == Vellocet.Sdk.Audio.AddonAudioBanks.Capability)
                 {
-                    var audioInputs = Path.GetFullPath(Path.Combine(SdkArtifactPathUtility.GetRepositoryRoot(), "Incoming/Stereoform"));
-                    var audioBuild = JObject.Parse(File.ReadAllText(Path.Combine(audioInputs, "runtime-build.json")));
-                    if ((int)audioBuild["abi"] != 2) throw new InvalidDataException("Incompatible Stereoform SDK artifact.");
-                    toolchain["stereoform"] = audioBuild["revision"];
-                    CopyTree(Path.Combine(audioInputs, "Compiler"), compiler + "/StereoformTools");
+                    if (toolsRoot == null)
+                    {
+                        // Local preparation uses the same installed host compiler as game map compilation.
+                        var runtime = Application.platform == RuntimePlatform.WindowsEditor ? "win-x64" :
+                            System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.Arm64 ? "osx-arm64" : "osx-x64";
+                        var host = Path.GetFullPath(Path.Combine("StereoformTools", runtime));
+                        if (!File.Exists(Path.Combine(host, "Stereoform.Compiler" + (Application.platform == RuntimePlatform.WindowsEditor ? ".exe" : ""))))
+                            throw new FileNotFoundException("Install the matching Stereoform host compiler before preparing the developer SDK: " + host);
+                        CopyTree(host, compiler + "/StereoformTools/" + runtime);
+                    }
+                    else
+                    {
+                        var audioInputs = Path.GetFullPath(Path.Combine(SdkArtifactPathUtility.GetRepositoryRoot(), "Incoming/Stereoform"));
+                        var audioBuild = JObject.Parse(File.ReadAllText(Path.Combine(audioInputs, "runtime-build.json")));
+                        if ((int)audioBuild["abi"] != 2) throw new InvalidDataException("Incompatible Stereoform SDK artifact.");
+                        toolchain["stereoform"] = audioBuild["revision"];
+                        CopyTree(Path.Combine(audioInputs, "Compiler"), compiler + "/StereoformTools");
+                    }
                     File.Copy("ProjectSettings/AudioManager.asset", compiler + "/ProjectSettings/AudioManager.asset");
                 }
                 foreach (var setting in new[] { "ProjectVersion.txt", "TagManager.asset", "DynamicsManager.asset", "NavMeshAreas.asset" })
@@ -77,7 +92,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 var gamePath = stage + "/Authoring/" + name + ".vertexgame";
                 Directory.CreateDirectory(Path.GetDirectoryName(gamePath));
                 var game = ExportGameProfile(profile, gamePath);
-                game.Build.EditorSaveLabel = null;
+                if (toolsRoot != null) game.Build.EditorSaveLabel = null;
                 PrepareCompiler(compiler, game);
                 WriteAssetProfile(profile, compiler);
                 WriteRenderingSettings(compiler);
@@ -85,8 +100,12 @@ namespace Vellocet.Sdk.Editor.Distribution
                 File.WriteAllBytes(compiler + "/" + VertexSdkProject.GamePath, game.Serialize());
                 WriteInstalledAddresses(compiler);
                 File.Copy(package + "/LICENSE.txt", stage + "/LICENSE.txt");
-                CopyTree(Path.Combine(toolsRoot, "Editor"), stage + "/Editor");
-                CopyTree(Path.Combine(toolsRoot, "Launcher"), stage + "/Launcher");
+                // Developer preparation needs the compiler, not copies of every desktop distribution.
+                if (toolsRoot != null)
+                {
+                    CopyTree(Path.Combine(toolsRoot, "Editor"), stage + "/Editor");
+                    CopyTree(Path.Combine(toolsRoot, "Launcher"), stage + "/Launcher");
+                }
                 File.WriteAllText(stage + "/toolchain.json", toolchain.ToString());
 
                 var inventory = new BuildInputs { Files = Directory.GetFiles(compiler, "*", SearchOption.AllDirectories)

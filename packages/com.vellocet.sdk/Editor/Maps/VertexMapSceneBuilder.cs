@@ -15,7 +15,7 @@ namespace Vellocet.Sdk.Editor.Maps
     public static class VertexMapSceneBuilder
     {
         public static SceneAsset CreateSourceScene(string mapAssetPath, string scriptAssetPath, string scenePath,
-            SdkResourceSnapshot[] resources = null, bool compileScripts = true)
+            SdkResourceSnapshot[] resources = null, bool compileScripts = true, MapAsset map = null)
         {
             if (string.IsNullOrWhiteSpace(scenePath) || !scenePath.StartsWith("Assets/", StringComparison.Ordinal) || !scenePath.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) ||
                 scenePath.Contains("\\") || Array.Exists(scenePath.Split('/'), part => part is "." or ".." or "") ||
@@ -71,7 +71,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 PrefabUtility.SetPropertyModifications(instance, overrides
                     .Where(value => value.propertyPath != "m_Name" || !named.Contains(value.target))
                     .Concat(labels).ToArray());
-                var map = MapAsset.Deserialize(File.ReadAllBytes(mapAssetPath));
+                map ??= MapAsset.Deserialize(File.ReadAllBytes(mapAssetPath));
+                if (map.MapId != identity.MapId) throw new InvalidDataException("The parsed map does not match the imported prefab.");
                 var contentDirectory = Path.GetDirectoryName(mapAssetPath).Replace('\\', '/') + "/Content";
                 var content = Directory.Exists(contentDirectory) ? Directory.GetFiles(contentDirectory, "*.vertexcontent", SearchOption.AllDirectories)
                     .Select(path => AssetDatabase.LoadAssetAtPath<VertexContentBindings>(path.Replace('\\', '/'))).Where(value => value).ToArray() : Array.Empty<VertexContentBindings>();

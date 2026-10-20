@@ -317,7 +317,7 @@ namespace Vellocet.Sdk.Editor.Maps
                     $"Applied compiled bake artifacts to the authoring scene ({lighting}, {navigation}, {occlusion}; " +
                     $"{RenderersApplied} renderer(s), {TerrainsApplied} terrain(s), " +
                     $"{ReflectionProbesApplied} reflection probe(s); " +
-                    $"{mirror.Copied} artifact file(s) copied, {mirror.Deleted} stale removed).";
+                    $"{mirror.Copied} artifact file(s) copied, {mirror.Relocated} payload(s) moved to shared storage, {mirror.Deleted} stale metadata removed).";
             }
 
             internal string BuildLightingPreservationMessage(MapBakeArtifactFileMirror.Result mirror,
@@ -330,7 +330,7 @@ namespace Vellocet.Sdk.Editor.Maps
                     $"Applied preserved authoring lighting to the skipped-lighting compiled scene ({lighting}; " +
                     $"{RenderersApplied} renderer(s), {TerrainsApplied} terrain(s), " +
                     $"{ReflectionProbesApplied} reflection probe(s); " +
-                    $"{mirror?.Copied ?? 0} artifact file(s) copied).";
+                    $"{mirror?.Copied ?? 0} artifact file(s) copied, {mirror?.Relocated ?? 0} payload(s) moved to shared storage).";
             }
         }
 

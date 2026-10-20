@@ -189,6 +189,33 @@ namespace Vellocet.Sdk.Editor.Maps
                 }
             }
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            RefreshStreamableAssetPaths(bakingSet);
+        }
+
+        internal static void RefreshStreamableAssetPaths(Object bakingSet)
+        {
+            if (!bakingSet)
+                return;
+
+            // APV caches filesystem paths outside serialization. ImportAsset does not clear them,
+            // and its build processor reads that cache directly when copying streaming payloads.
+            RefreshFields(bakingSet);
+            if (bakingSet.GetType().GetField("scenarios", InstanceFlags)?.GetValue(bakingSet) is IDictionary scenarios)
+                foreach (var scenario in scenarios.Values)
+                    RefreshFields(scenario);
+
+            static void RefreshFields(object owner)
+            {
+                if (owner == null)
+                    return;
+                foreach (var field in owner.GetType().GetFields(InstanceFlags))
+                {
+                    var refresh = field.FieldType.GetMethod("RefreshAssetPath", InstanceFlags,
+                        null, Type.EmptyTypes, null);
+                    if (refresh != null && field.GetValue(owner) is { } stream)
+                        refresh.Invoke(stream, null);
+                }
+            }
         }
 
         private static bool EnsureSerializedMainObjectNameMatchesFile(string assetPath, out string message)

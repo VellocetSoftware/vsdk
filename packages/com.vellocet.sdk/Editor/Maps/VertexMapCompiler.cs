@@ -22,14 +22,15 @@ namespace Vellocet.Sdk.Editor.Maps
         public static Func<SdkResourceSnapshot[], string[]> ResourceRequirements { get; set; }
         public static void Compile(VertexBuildContext context)
         {
-            ValidateAuthoring(context.Job, context.PathFor);
-            CompileValidated(context);
+            var map = context.Map ?? MapAsset.Deserialize(File.ReadAllBytes(context.PathFor(context.Job.Map)));
+            ValidateAuthoring(context.Job, context.PathFor, map);
+            CompileValidated(context, map);
         }
 
-        public static VertexAssetCatalogProfile[] ValidateAuthoring(BuildJob job, Func<string, string> pathFor)
+        public static VertexAssetCatalogProfile[] ValidateAuthoring(BuildJob job, Func<string, string> pathFor, MapAsset map = null)
         {
             VertexBakePolicy.Validate(job.Game.Baking);
-            var map = MapAsset.Deserialize(File.ReadAllBytes(pathFor(job.Map)));
+            map ??= MapAsset.Deserialize(File.ReadAllBytes(pathFor(job.Map)));
             var catalog = VertexEntityCatalogExporter.Create();
             var authored = EntityCatalog.Deserialize(ProfileFiles.Read(pathFor("VertexJob/Catalogs/" + catalog.SdkId + ".vertexentities")));
             if (EntityContractDifference(authored, catalog, map) is { } difference)
@@ -180,9 +181,9 @@ namespace Vellocet.Sdk.Editor.Maps
                 ?? throw new InvalidDataException("Could not load map thumbnail: " + path);
         }
 
-        private static void CompileValidated(VertexBuildContext context)
+        private static void CompileValidated(VertexBuildContext context, MapAsset map)
         {
-            var lightmaps = VertexBakePolicy.Lightmaps(MapAsset.Deserialize(File.ReadAllBytes(context.Job.Map)), context.Job.Game.Baking);
+            var lightmaps = VertexBakePolicy.Lightmaps(map, context.Job.Game.Baking);
             context.Policy = "vellocet-sdk/vertex-compile-v1/" + context.Job.Profile;
             // Only lightmap baking is optional. Occlusion and spatialization always use the game policy.
             EditorUserBuildSettings.development = false;
@@ -191,7 +192,7 @@ namespace Vellocet.Sdk.Editor.Maps
             context.Report(.04, "Creating the SDK scene from the captured map and VSig sources…");
             context.PrepareScenePath(sourcePath);
             var resources = VertexSdkRegistry.CaptureResources(context.Job, context.Root);
-            var source = VertexMapSceneBuilder.CreateSourceScene(context.Job.Map, context.Job.Script, sourcePath, resources);
+            var source = VertexMapSceneBuilder.CreateSourceScene(context.Job.Map, context.Job.Script, sourcePath, resources, map: map);
             context.PrepareScenePath(outputPath);
             var result = MapCompiler.Compile(source, context.Job.RuntimeMapId, context.Job.RuntimeMapId,
                 MapCompilationReceipt.VertexContentKind, outputPath, new MapCompiler.CompileOptions

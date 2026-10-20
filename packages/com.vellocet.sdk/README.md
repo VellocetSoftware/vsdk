@@ -25,6 +25,15 @@ documentation and compiler checks live in the Vertex repository's `docs/` folder
 `Runtime/Maps` owns map data and game modes. `Editor/UI` contains shared window,
 GUI and style code. Other editor/runtime folders group their matching features.
 
+Map bake synchronization stores lightmap textures, reflection textures and probe
+payloads once, under `Generated/Bakes/<baking-scene-guid>/` beside the authoring
+scene. Moving those assets preserves their Unity GUIDs and importer settings.
+Source and compiled scenes keep separate lighting, probe-set, navigation and
+occlusion metadata while referencing the shared payloads. A skipped-lighting
+compile reuses them. Rebaking keeps earlier payloads intact for scenes that still
+reference them; remove old generations or legacy copies only after checking
+dependencies. Keep the shared bake folder when pruning old compiled-scene folders.
+
 VSig includes its twelve standard logic modules: use `use counter as captures`
 or `use latch as gate` directly, without importing a library. Legacy imports of
 `Logic.vsiglib` from the SDK or Vertex package still resolve in the compiler.
