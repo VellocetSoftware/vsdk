@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Removes map definition aliases and the pre-JSON `vertex-owner.json` format; maps are found by ID only.
+- Requires current Vertex formats: older compiled maps, VSig programs and entity catalogs must be rebuilt.
+
 ## 4.1.0
 
 - Brings the ANEURISM IV and Grimwar SDK copies back to one source; both games vendor this package unchanged.

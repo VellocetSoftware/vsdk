@@ -20,8 +20,8 @@ namespace Vellocet.Sdk.VSig
     /// <summary>Unity asset/scene adapter for the Vertex language. No language rules live here.</summary>
     public static class VSigSceneCompiler
     {
-        /// <summary>Use the authored Vertex map identity; legacy Unity scenes use their saved scene GUID.</summary>
-        public static Guid ResolveMapId(UnityEngine.SceneManagement.Scene scene, Guid legacySceneId)
+        /// <summary>Use the authored Vertex map identity; Unity-built maps use their saved scene GUID.</summary>
+        public static Guid ResolveMapId(UnityEngine.SceneManagement.Scene scene, Guid unitySceneId)
         {
             // OnEnable runs before Unity sets isLoaded; the deserialized hierarchy is already available.
             if (!scene.IsValid()) throw new ArgumentException("VSig needs a valid scene.");
@@ -29,7 +29,7 @@ namespace Vellocet.Sdk.VSig
                 .Select(identity => identity.MapId).Distinct().Take(2).ToArray();
             if (identities.Length > 1 || identities.Length == 1 && identities[0] == Guid.Empty)
                 throw new ArgumentException("A VSig scene must contain one Vertex map with a valid map ID.");
-            return identities.Length == 1 ? identities[0] : legacySceneId;
+            return identities.Length == 1 ? identities[0] : unitySceneId;
         }
 
         public static VSigProgram Parse(string source, IList<VSigDiagnostic> diagnostics,

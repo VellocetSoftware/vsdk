@@ -31,8 +31,7 @@ scene. Moving those assets preserves their Unity GUIDs and importer settings.
 Source and compiled scenes keep separate lighting, probe-set, navigation and
 occlusion metadata while referencing the shared payloads. A skipped-lighting
 compile reuses them. Rebaking keeps earlier payloads intact for scenes that still
-reference them; remove old generations or legacy copies only after checking
-dependencies. Keep the shared bake folder when pruning old compiled-scene folders.
+reference them; remove old generations only after checking dependencies. Keep the shared bake folder when pruning old compiled-scene folders.
 
 VSig includes its twelve standard logic modules: use `use counter as captures`
 or `use latch as gate` directly, without importing a library.

@@ -111,17 +111,14 @@ namespace Vellocet.Sdk.Editor.Maps
             return folder;
         }
 
-        // Grimwar wrote "projectId/mapId" before the shared JSON owner file.
         private static Guid ReadOwner(string path)
         {
-            var text = File.ReadAllText(path).Trim();
             try
             {
-                if (text.StartsWith("{", StringComparison.Ordinal))
-                    return JsonUtility.FromJson<Owner>(text) is { version: 1 } owner && Guid.TryParse(owner.mapId, out var id) ? id : Guid.Empty;
+                return JsonUtility.FromJson<Owner>(File.ReadAllText(path)) is { version: 1 } owner &&
+                       Guid.TryParse(owner.mapId, out var id) ? id : Guid.Empty;
             }
             catch (ArgumentException) { return Guid.Empty; }
-            return Guid.TryParse(text.Split('/').Last(), out var legacy) ? legacy : Guid.Empty;
         }
 
         private static MapDefinition EnsureDefinition(BaseMapSettings settings, string folder, string id, string title)

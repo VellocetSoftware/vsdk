@@ -181,7 +181,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 splines.Add(spline);
             }
             target.Splines = splines;
-            // SetTangentMode recomputes the curve, including old scenes with hand-adjusted automatic
+            // SetTangentMode recomputes the curve, including scenes with hand-adjusted automatic
             // knots. Restore the authored mode metadata separately so initial curve geometry is exact.
             using var serialized = new SerializedObject(target);
             var serializedSplines = serialized.FindProperty("m_Splines");

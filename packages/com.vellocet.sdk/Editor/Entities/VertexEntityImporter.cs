@@ -88,7 +88,7 @@ namespace Vellocet.Sdk.Editor.Entities
                     if (GeometryRole(marker.GetType()) == "brushes" && marker is not IEntityImportGroup &&
                         marker is not ButtonMarker { Model: not "" })
                     {
-                        // Damageable's required root collider is only a legacy authoring default. Owned geometry is authoritative.
+                        // Damageable's required root collider is the Unity authoring volume; Vertex-owned geometry is authoritative.
                         if (marker is DamageableMarker) marker.GetComponent<BoxCollider>().enabled = false;
                         if (marker is not RotateMarker && !marker.GetComponentsInChildren<Collider>(true).Any(collider => collider.enabled))
                             throw new InvalidDataException("This entity needs owned collision. Parent its geometry/proxies under this entity.");

@@ -16,7 +16,6 @@ namespace Vellocet.Sdk.Maps
         public bool Enabled { get; private set; } = true;
 
         public string id;
-        public string[] aliases = Array.Empty<string>();
         public string displayName;
         public string author;
         public string version;

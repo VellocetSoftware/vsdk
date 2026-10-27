@@ -203,8 +203,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 if (!IsBakeArtifact(fileName, sceneName))
                     continue;
 
-                // Legacy copies may still be referenced by scenes outside this sync. Retire them
-                // only after migrating those references, never as a side effect of copying metadata.
+                // Shared payloads may be referenced by scenes outside this sync; copying metadata never deletes them.
                 if (IsSharedPayload(fileName, sceneName))
                     continue;
 

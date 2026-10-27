@@ -584,13 +584,8 @@ on clock.tick(index: int, seconds: float, remaining: int):
                 string.Join("\n", diagnostics));
         }
 
-        private static string StandardLogicLibraryPath()
-        {
-            var package = PackageInfo.FindForAssembly(typeof(VSigParser).Assembly);
-            Assert.That(package, Is.Not.Null);
-            return Path.Combine(package.assetPath, "Runtime/VSig/Libraries/Logic.vsiglib")
-                .Replace('\\', '/');
-        }
+        // The standard modules are built into VSig; this is their stable import path.
+        private static string StandardLogicLibraryPath() => "__vsig__/Logic.vsiglib";
 
         [Test]
         public void LogicScriptHost_ExpandsToAnOrdinaryModuleInstance()

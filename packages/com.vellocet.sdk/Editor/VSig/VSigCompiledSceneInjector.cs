@@ -77,7 +77,7 @@ namespace Vellocet.Sdk.Editor.VSig
 
         /// <summary>Compile an imported VSig asset directly into a generated Vertex scene.</summary>
         public static bool InjectSource(Scene scene, TextAsset source, MapCompilationReceipt receipt,
-            out string message, VSigCompiledSceneInjectionOptions options = default, Guid legacySceneId = default)
+            out string message, VSigCompiledSceneInjectionOptions options = default, Guid unitySceneId = default)
         {
             message = string.Empty;
             if (!scene.IsValid() || !scene.isLoaded)
@@ -86,18 +86,18 @@ namespace Vellocet.Sdk.Editor.VSig
                 return false;
             }
             if (!source)
-                return InjectText(scene, string.Empty, string.Empty, receipt, out message, options, legacySceneId);
+                return InjectText(scene, string.Empty, string.Empty, receipt, out message, options, unitySceneId);
             var sourcePath = AssetDatabase.GetAssetPath(source);
             if (string.IsNullOrEmpty(sourcePath) || !sourcePath.EndsWith(".vsig", StringComparison.OrdinalIgnoreCase))
             {
                 message = "VSig source must be an imported .vsig asset.";
                 return false;
             }
-            return InjectText(scene, source.text, sourcePath, receipt, out message, options, legacySceneId);
+            return InjectText(scene, source.text, sourcePath, receipt, out message, options, unitySceneId);
         }
 
         private static bool InjectText(Scene scene, string sourceText, string sourcePath, MapCompilationReceipt receipt,
-            out string message, VSigCompiledSceneInjectionOptions options, Guid legacySceneId)
+            out string message, VSigCompiledSceneInjectionOptions options, Guid unitySceneId)
         {
             message = string.Empty;
             var markers = CollectMarkers(scene);
@@ -149,7 +149,7 @@ namespace Vellocet.Sdk.Editor.VSig
             Guid mapId;
             try
             {
-                mapId = VSigSceneCompiler.ResolveMapId(scene, legacySceneId);
+                mapId = VSigSceneCompiler.ResolveMapId(scene, unitySceneId);
                 if (mapId == Guid.Empty) throw new ArgumentException("VSig needs a saved source scene or an imported Vertex map identity.");
             }
             catch (ArgumentException error)
