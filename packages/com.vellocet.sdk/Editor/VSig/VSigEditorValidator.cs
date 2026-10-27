@@ -21,17 +21,18 @@ namespace Vellocet.Sdk.Editor.VSig
         {
             var mode = includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude;
             var all = Object.FindObjectsByType<EntityMarker>(mode, FindObjectsSortMode.None);
-            var result = new List<EntityMarker>(all.Length);
+            var result = new List<(EntityMarker Marker, string Path)>(all.Length);
             for (var i = 0; i < all.Length; i++)
             {
                 var marker = all[i];
                 if (marker && marker.gameObject.scene.handle == scene.handle)
-                    result.Add(marker);
+                    result.Add((marker, GetHierarchyPath(marker.transform)));
             }
 
-            result.Sort((a, b) => string.Compare(GetHierarchyPath(a.transform), GetHierarchyPath(b.transform),
-                StringComparison.OrdinalIgnoreCase));
-            return result.ToArray();
+            result.Sort((a, b) => string.Compare(a.Path, b.Path, StringComparison.OrdinalIgnoreCase));
+            var markers = new EntityMarker[result.Count];
+            for (var i = 0; i < markers.Length; i++) markers[i] = result[i].Marker;
+            return markers;
         }
 
         public static string GenerateRefBlock(Scene scene, bool includeInactive)

@@ -10,9 +10,9 @@
     "Unity.Addressables.Editor",
     "Unity.Splines",
     "Unity.Mathematics",
-    "Unity.TextMeshPro",
     "Unity.AI.Navigation",
     "Vertex.Unity",
+    "Vellocet.Stereoform",
     "Unity.Addressables",
     "Unity.ResourceManager",
     "Vellocet.Spatial",
@@ -30,6 +30,17 @@
   "precompiledReferences": [],
   "autoReferenced": false,
   "defineConstraints": [],
-  "versionDefines": [],
+  "versionDefines": [
+    {
+      "name": "com.vellocet.stereoform",
+      "expression": "0.0.0",
+      "define": "VELLOCET_STEREOFORM"
+    },
+    {
+      "name": "com.unity.addressables",
+      "expression": "4.0.0",
+      "define": "VELLOCET_ADDRESSABLES_4"
+    }
+  ],
   "noEngineReferences": false
 }

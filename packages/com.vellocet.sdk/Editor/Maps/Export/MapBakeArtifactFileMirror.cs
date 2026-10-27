@@ -137,24 +137,18 @@ namespace Vellocet.Sdk.Editor.Maps
         {
             sharedPath = string.Empty;
             message = string.Empty;
-            var ownerGuid = AssetDatabase.AssetPathToGUID(context.FromScenePath);
-            if (string.IsNullOrWhiteSpace(ownerGuid))
-            {
-                message = $"Cannot store bake payloads for an unimported scene: {context.FromScenePath}";
-                return false;
-            }
-
-            var folder = MapEditorPathUtility.NormalizeAssetPath(Path.Combine(
-                Path.GetDirectoryName(context.AuthoringScenePath) ?? string.Empty, "Generated", "Bakes", ownerGuid));
+            // Payloads live with the compiled scene, which is replaced as a whole on every compile; an authoring
+            // scene that keeps its lighting references them by GUID, so nothing is duplicated or left behind.
+            var compiledScenePath = context.FromScenePath == context.AuthoringScenePath ? context.ToScenePath : context.FromScenePath;
+            var folder = MapEditorPathUtility.GetSceneDataFolderAssetPath(compiledScenePath);
             sharedPath = MapEditorPathUtility.NormalizeAssetPath(Path.Combine(folder, relativePath));
+            if (sharedPath == sourcePath) return true;
             if (!MapEditorPathUtility.EnsureAssetFolder(Path.GetDirectoryName(sharedPath)))
             {
-                message = $"Could not create shared bake folder: {folder}";
+                message = $"Could not create compiled bake folder: {folder}";
                 return false;
             }
 
-            // A rebake of the same scene can reuse file names. Keep the previous generation intact
-            // for scenes still referencing it; explicit dependency-audited cleanup can prune it later.
             sharedPath = AssetDatabase.GenerateUniqueAssetPath(sharedPath);
             message = AssetDatabase.MoveAsset(sourcePath, sharedPath);
             return string.IsNullOrEmpty(message);

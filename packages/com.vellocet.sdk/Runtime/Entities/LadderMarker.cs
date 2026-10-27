@@ -13,7 +13,7 @@ namespace Vellocet.Sdk.Entities
     ///     Authors a two-sided ladder volume. Local Y is the climb axis and local Z is depth.
     /// </summary>
     [EntityClass("func_ladder")]
-    [EntityAuthoring("Environment", EntityPlacementKind.Volume, "Ladder")]
+    [EntityAuthoring("Movement", EntityPlacementKind.Volume, "Ladder")]
     [DisallowMultipleComponent]
     public sealed class LadderMarker : TriggerVolumeMarkerBase<LadderMarker.Input, LadderMarker.Output>
     {

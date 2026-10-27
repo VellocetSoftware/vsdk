@@ -19,6 +19,14 @@ namespace Vellocet.Sdk.Editor.Maps
             var prefab = PrefabUtility.GetOutermostPrefabInstanceRoot(marker.gameObject);
             if (prefab)
                 PrefabUtility.UnpackPrefabInstance(prefab, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            // Settings are consumed into the map contract; compiled interfaces must not retain this editor-only part.
+            foreach (var metadata in scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<Vertex.Unity.VertexEntityAuthoring>(true)))
+            {
+                var record = metadata.Read();
+                if (record.Assembly == null || !record.Assembly.Properties.Any(property => property.Target.ObjectId == marker.Guid)) continue;
+                record.Assembly.Properties = record.Assembly.Properties.Where(property => property.Target.ObjectId != marker.Guid).ToArray();
+                metadata.Configure(record.ObjectId, record.Assembly, record.Connections);
+            }
             UnityEngine.Object.DestroyImmediate(marker.gameObject);
             return musicSet;
         }

@@ -1,0 +1,10 @@
+module wartime_bombardment(min_interval: float = 1s, max_interval: float = 6s):
+    ref zone: env_bombardment match "*"
+    server on game.event_changed(event: string):
+        cancel bombardment
+        if event == "Wartime":
+            zone.start()
+            schedule bombardment every random(min_interval, max_interval):
+                zone.drop_bomb()
+        else:
+            zone.stop()

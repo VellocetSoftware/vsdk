@@ -8,7 +8,7 @@ using Vellocet.Sdk.Entities.Signals;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("trigger_audio_environment")]
-    [EntityAuthoring("Audio", EntityPlacementKind.Volume, "Audio Environment")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Volume, "Audio Environment")]
     [DisallowMultipleComponent]
     public sealed class AudioEnvironmentMarker : TriggerVolumeMarkerBase<AudioEnvironmentMarker.Input, AudioEnvironmentMarker.Output>
     {

@@ -1,7 +1,7 @@
 {
   "name": "com.vellocet.sdk",
   "displayName": "Vellocet SDK",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "unity": "6000.3",
   "unityRelease": "17f1",
   "vellocetSdkContentSchemaVersion": 3,
@@ -33,7 +33,6 @@
     "com.unity.splines": "2.8.2",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "17.3.0",
-    "com.vellocet.stereoform": "0.2.0",
     "com.vellocet.framework": "0.1.0"
   }
 }

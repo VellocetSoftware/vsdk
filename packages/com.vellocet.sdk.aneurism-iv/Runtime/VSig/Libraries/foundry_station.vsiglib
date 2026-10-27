@@ -1,0 +1,16 @@
+module foundry_station:
+    ref foundry: func_foundry match "*"
+    ref cast: func_button match "Cast"
+    ref status: info_label match "Status"
+    server on cast.pressed:
+        foundry.cast()
+    server on foundry.processed:
+        status.set_text("INGOT READY")
+    server on foundry.casting_started:
+        cast.disable()
+    server on foundry.casting_completed:
+        cast.enable()
+        status.set_text("CASTING COMPLETED")
+    server on foundry.rejected(reason: string):
+        cast.enable()
+        status.set_text(reason)

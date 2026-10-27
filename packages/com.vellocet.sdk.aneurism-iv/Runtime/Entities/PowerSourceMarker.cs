@@ -5,13 +5,21 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_power_source")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Generator")]
-    public sealed class PowerSourceMarker : PrefabEntityMarker
+    [EntityClass("func_power_source")]
+    [EntityAuthoring("Infrastructure", EntityPlacementKind.Point, "Generator")]
+    public sealed class PowerSourceMarker : OperationEntityMarker
     {
         public override string ArchetypeId => "aniv.power-source";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override string[] Outputs => new[] { "OnPowered", "OnDepleted" };
+
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddOutput("OnPowered", EntitySignalValueType.None);
+            builder.AddOutput("OnDepleted", EntitySignalValueType.None);
+            builder.AddOutput("refuelled", EntitySignalValueType.None);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("power_level", EntitySignalValueType.Float, true, false);
+            builder.AddProperty("has_power", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

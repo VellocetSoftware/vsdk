@@ -5,15 +5,18 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_item_stand")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Item Stand")]
-    public sealed class ItemStandMarker : PrefabEntityMarker
+    [EntityClass("func_item_stand")]
+    [EntityAuthoring("Commerce", EntityPlacementKind.Point, "Item Stand")]
+    public sealed class ItemStandMarker : ContactOperationMarker
     {
         [SerializeField] private PaystationMarker paystation;
         public PaystationMarker Paystation => paystation;
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.item-stand";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("open_ui", EntitySignalValueType.None);
+            GameOperationContracts.Utility(builder);
+        }
     }
 }

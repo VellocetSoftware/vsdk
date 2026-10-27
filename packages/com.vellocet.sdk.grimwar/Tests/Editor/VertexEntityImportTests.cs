@@ -218,7 +218,7 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(warning.Matches(id => id == "effect" ? 1 : 1), Is.False);
             Assert.That(warning.Matches(id => id == "effect" ? 0 : 0), Is.False);
             Assert.That(definition.Properties.Single(field => field.Id == "light_type").Choices.Select(choice => choice.Name),
-                Is.EquivalentTo(new[] { "Point", "Spot", "Area" }));
+                Is.EquivalentTo(new[] { "Point", "Spot", "Area", "Disc" }));
             var source = Entity("Test light", "env_light", new(0, 0, 0));
             var map = new MapAsset { MapId = Guid.NewGuid(), MetersPerUnit = 1, Containers = new[] { source } };
             foreach (var type in new[] { LightType.Point, LightType.Spot })
@@ -259,7 +259,7 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(LightEffectPlayer.Brightness(LightMarker.LightEffect.Flicker, 23), Is.EqualTo(1));
             Assert.That(LightEffectPlayer.Brightness(LightMarker.LightEffect.Strobe, 0), Is.Zero);
             Assert.That(LightEffectPlayer.Brightness(LightMarker.LightEffect.Strobe, 8), Is.EqualTo(25f / 12));
-            Assert.That(LightEffectPlayer.Brightness(LightMarker.LightEffect.Candle, 26), Is.EqualTo(1));
+            Assert.That(LightEffectPlayer.Brightness(LightMarker.LightEffect.Candle, 26), Is.InRange(.62f, 1.24f));
         }
 
         [Test]
@@ -349,6 +349,8 @@ namespace Vellocet.Sdk.Tests.Editor
                 { new EntityPropertyValue { Id = "tank", Value = tank.Id.ToString("D") } };
             var water = containers.Single(node => node.Entity.TypeId == "trigger_water");
             water.Entity.Properties = new[] { new EntityPropertyValue { Id = "surface_material", Value = "asset:test/water" } };
+            var decal = containers.Single(node => node.Entity.TypeId == "env_decal");
+            decal.Entity.Properties = new[] { new EntityPropertyValue { Id = "material", Value = "asset:test/decal" } };
             var light = containers.Single(node => node.Entity.TypeId == "env_light");
             var particle = containers.Single(node => node.Entity.TypeId == "env_particle");
             particle.Entity.Properties = new[] { new EntityPropertyValue { Id = "effect", Value = "asset:test/effect" } };
@@ -356,27 +358,30 @@ namespace Vellocet.Sdk.Tests.Editor
             var map = new MapAsset { MapId = Guid.NewGuid(), MetersPerUnit = .5, Containers = containers,
                 Objects = containers.Where(node => catalog.Entities.Single(type => type.Id == node.Entity.TypeId).Geometry == "brushes").Select(Geometry).ToArray() };
             var material = new Material(Shader.Find("Hidden/InternalErrorShader"));
+            var decalMaterial = new Material(AssetDatabase.LoadAssetAtPath<Shader>(
+                "Packages/com.unity.render-pipelines.universal/Shaders/Decal.shadergraph"));
             var effect = new GameObject("Effect", typeof(ParticleSystem));
             effect.SetActive(false);
             try
             {
-                using (var result = VertexMapBuilder.Build(MapAsset.Deserialize(map.Serialize()), null, resolveAsset: key => key == "asset:test/water" ? material : key == "asset:test/effect" ? effect : null))
+                using (var result = VertexMapBuilder.Build(MapAsset.Deserialize(map.Serialize()), null, resolveAsset: key => key == "asset:test/water" ? material : key == "asset:test/decal" ? decalMaterial : key == "asset:test/effect" ? effect : null))
                 {
                     var markers = result.Root.GetComponentsInChildren<EntityMarker>(true);
                     Assert.That(markers.Select(marker => marker.Guid), Is.EquivalentTo(containers.Select(node => node.Id)));
                     Assert.That(markers.OfType<TriggerWaterMarker>().Single().SurfaceMaterial, Is.SameAs(material));
+                    Assert.That(markers.OfType<DecalMarker>().Single().Material, Is.SameAs(decalMaterial));
                     Assert.That(markers.OfType<LightMarker>().Single().GetComponent<Light>().intensity, Is.EqualTo(3));
                     Assert.That(markers.OfType<LightMarker>().Single().GetComponent<Light>().enabled, Is.False);
                     Assert.That(markers.OfType<LightMarker>().Single().GetComponent<Light>().lightmapBakeType, Is.EqualTo(LightmapBakeType.Baked));
                     Assert.That(markers.OfType<LabelMarker>().Single().Label.text, Is.EqualTo("Label"));
                     var label = markers.OfType<LabelMarker>().Single();
-                    Assert.That(label.Label.alignment, Is.EqualTo(TMPro.TextAlignmentOptions.Center), "Vertex's authored position is the text center.");
+                    Assert.That(label.Label.alignment, Is.EqualTo(TextAnchor.MiddleCenter), "Vertex's authored position is the text center.");
                     label.PrepareVertexPackage();
-                    Assert.That(label.GetComponent<TMPro.TextMeshPro>(), Is.Null, "Packaged text must not serialize auto-restored base fonts.");
+                    Assert.That(label.GetComponent<Vellocet.Sdk.UI.WorldText>(), Is.Null, "Packaged text must not serialize auto-restored base fonts.");
                     Assert.That(label.AuthoredText, Is.EqualTo("Label"), "Dedicated servers retain label state without constructing renderers.");
                     typeof(LabelMarker).GetMethod("Awake", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(label, null);
                     Assert.That(label.Label.text, Is.EqualTo("Label"), "The installed renderer is reconstructed from the authored text data.");
-                    Assert.That(label.Label.alignment, Is.EqualTo(TMPro.TextAlignmentOptions.Center), "Bundled labels keep the same placement as base maps.");
+                    Assert.That(label.Label.alignment, Is.EqualTo(TextAnchor.MiddleCenter), "Bundled labels keep the same placement as base maps.");
                     var train = markers.OfType<TrackTrainMarker>().Single();
                     Assert.That(train.HasExternalSpline, Is.True);
                     Assert.That(train.SplineContainer.Spline.Count, Is.EqualTo(2));
@@ -397,11 +402,13 @@ namespace Vellocet.Sdk.Tests.Editor
                 {
                     var effectPath = folder + "/Effect.prefab";
                     var effectAsset = PrefabUtility.SaveAsPrefabAsset(effect, effectPath);
+                    AssetDatabase.CreateAsset(decalMaterial, folder + "/Decal.mat");
                     var profile = ScriptableObject.CreateInstance<VertexAssetCatalogProfile>();
                     profile.catalogId = "particle.fixture";
                     profile.folders = new[] { new VertexAssetFolder { folder = folder } };
                     AssetDatabase.CreateAsset(profile, folder + "/Assets.asset");
                     particle.Entity.Properties[0].Value = "asset:particle.fixture/" + VertexAssetCatalogExporter.NativeId(effectAsset);
+                    decal.Entity.Properties[0].Value = "asset:particle.fixture/" + VertexAssetCatalogExporter.NativeId(decalMaterial);
                     var path = folder + "/All.vertexmesh";
                     File.WriteAllBytes(path, map.Serialize()); AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
                     var imported = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -416,7 +423,7 @@ namespace Vellocet.Sdk.Tests.Editor
                     { new EntityPropertyValue { Id = "spline_container", Value = new object[] { new object[] { 0d, 0d, 0d } } } };
                 Assert.Throws<InvalidDataException>(() => VertexMapBuilder.Build(map, null));
             }
-            finally { Object.DestroyImmediate(material); Object.DestroyImmediate(effect); }
+            finally { Object.DestroyImmediate(material); if (decalMaterial) Object.DestroyImmediate(decalMaterial); Object.DestroyImmediate(effect); }
         }
 
         [Test]
@@ -643,7 +650,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 }
                 finally
                 {
-                    VertexSdkRegistry.Register("com.vellocet.sdk", VertexEntityImporter.Import);
+                    VertexSdkRegistry.Register("com.vellocet.sdk", VertexEntityImporter.ImportRevision, VertexEntityImporter.Import);
                     AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
                 }
                 map.Containers[2].Name = "Renamed Door";

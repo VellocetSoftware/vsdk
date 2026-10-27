@@ -1,0 +1,25 @@
+module decorative_machine(interval: float = 30s, lead_in: float = 6s, hold: float = 10s, intensity: float = 8):
+    ref device: env_decorative_machine match "*"
+    state running: bool = false
+    server on map.ready:
+        start
+    input start:
+        if not running:
+            running = true
+            pulse
+            schedule repeat every interval:
+                pulse
+    input pulse:
+        device.start_sound()
+        schedule glow after lead_in:
+            device.set_flash(intensity)
+            schedule finish after hold:
+                device.stop_sound()
+                device.set_flash(0)
+    input stop:
+        running = false
+        cancel repeat
+        cancel glow
+        cancel finish
+        device.stop_sound()
+        device.set_flash(0)

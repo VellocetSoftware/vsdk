@@ -22,7 +22,8 @@ namespace Vellocet.Sdk.Editor.Entities
             if (typeof(IBoundedEntityMarker).IsAssignableFrom(type)) return "bounds";
             return "none";
         }
-        static VertexEntityImporter() => VertexSdkRegistry.Register("com.vellocet.sdk", 1, Import);
+        public const int ImportRevision = 1;
+        static VertexEntityImporter() => VertexSdkRegistry.Register("com.vellocet.sdk", ImportRevision, Import);
 
         private static bool CanOwnEntity(Type owner, Type child) =>
             typeof(IEntityImportGroup).IsAssignableFrom(owner) ||

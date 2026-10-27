@@ -6,8 +6,8 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("info_aniv_waypoint")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Point, "Waypoint")]
+    [EntityClass("info_waypoint")]
+    [EntityAuthoring("Map setup", EntityPlacementKind.Point, "Waypoint")]
     public sealed class WaypointMarker : EntityMarker, IWaypointAuthoring
     {
         [SerializeField] private PointOfInterest pointOfInterest;

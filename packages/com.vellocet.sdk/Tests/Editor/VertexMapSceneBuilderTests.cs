@@ -147,6 +147,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 Type = "test.resource", Manifest = "settings.json",
                 Files = new[] { new SdkResourceSource { Path = "settings.json", Data = new[] { value } } }
             };
+            WriteScript("var initialized: bool = false\nserver on map.ready:\n    initialized = true\n");
             Create(new[] { Resource(1) });
             Create(new[] { Resource(2) });
             var scene = EditorSceneManager.OpenScene(ScenePath);

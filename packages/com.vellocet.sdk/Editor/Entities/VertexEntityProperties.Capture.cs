@@ -117,7 +117,11 @@ namespace Vellocet.Sdk.Editor.Entities
             {
                 var light = marker.GetComponent<Light>();
                 if (source.Entity.Properties.FirstOrDefault(p => p.Id == "shadow_mode")?.Value is { } shadow && Convert.ToInt32(shadow) >= 0)
-                    light.shadows = (LightShadows)Convert.ToInt32(shadow);
+                {
+                    var castsShadows = source.Entity.Properties.FirstOrDefault(p => p.Id == "shadows")?.Value as bool?;
+                    light.shadows = castsShadows == false ? LightShadows.None :
+                        castsShadows == true && Convert.ToInt32(shadow) == 0 ? LightShadows.Soft : (LightShadows)Convert.ToInt32(shadow);
+                }
                 if (source.Entity.Properties.FirstOrDefault(p => p.Id == "inner_spot_angle")?.Value is { } inner)
                     light.innerSpotAngle = Convert.ToSingle(inner);
             }

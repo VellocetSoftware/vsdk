@@ -5,16 +5,18 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_water_source")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Water Source")]
-    public sealed class WaterSourceMarker : PrefabEntityMarker
+    [EntityClass("func_water_source")]
+    [EntityAuthoring("Food / Supply", EntityPlacementKind.Point, "Water Source")]
+    public sealed class WaterSourceMarker : ContactOperationMarker
     {
         public enum Kind { Sink, Fountain, CultFountain, WaterSourceBase }
         [SerializeField] private Kind kind;
         public Kind Variant => kind;
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.water-source." + kind.ToString().ToLowerInvariant();
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddOutput("effect_applied", EntitySignalValueType.String);
+        }
     }
 }

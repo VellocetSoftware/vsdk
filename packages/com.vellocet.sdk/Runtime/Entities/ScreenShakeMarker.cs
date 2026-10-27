@@ -8,7 +8,7 @@ using Vellocet.Sdk.Entities.Signals;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("env_screenshake")]
-    [EntityAuthoring("Effects", EntityPlacementKind.Point, "Screen Shake")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Point, "Screen Shake")]
     public sealed class ScreenShakeMarker : EntityMarker<ScreenShakeMarker.Input, ScreenShakeMarker.Output>
     {
         public enum Input

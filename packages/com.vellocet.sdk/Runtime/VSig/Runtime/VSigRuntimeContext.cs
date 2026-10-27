@@ -23,7 +23,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         public VSigValue Value { get; }
     }
 
-    /// <summary>Compatibility bridge for SDK/game callers. Vertex owns all script execution.</summary>
+    /// <summary>Binds Unity scene entities and game authority to the Vertex script runtime.</summary>
     public sealed partial class VSigRuntimeContext : IDisposable
     {
         public delegate bool AuthorityResolver(IEntitySignalRuntime runtime, string authority);
@@ -38,6 +38,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         public static AuthorityResolver ResolveAuthority { get; set; }
         public static GlobalAuthorityResolver ResolveGlobalAuthority { get; set; }
         public static RuntimeAvailabilityResolver IsRuntimeExpectedForAuthority { get; set; }
+        public static Action<int, string, IReadOnlyList<PortableRuntime.VSigValue>> SendPresentation { get; set; }
 
         private readonly GlobalAuthorityResolver _globalAuthority;
         private readonly List<VSigDiagnostic> _diagnostics = new();
@@ -68,9 +69,11 @@ namespace Vellocet.Sdk.VSig.Runtime
             var availability = IsRuntimeExpectedForAuthority;
             var variables = ResolveConsoleVariable;
             var commands = SubmitServerCommand;
+            var presentation = SendPresentation;
             var capabilities = new PortableRuntime.VSigHost
             {
                 Globals = VSigGlobalEvents.Catalog,
+                PresentationEmitted = (route, values) => presentation?.Invoke(SceneHandle, route, values),
                 ResolveAuthority = (runtime, side) => runtime is VSigSceneSnapshot.Runtime adapter
                     ? authority?.Invoke(adapter.Source, side) ?? true : _globalAuthority?.Invoke(side) ?? true,
                 IsRuntimeExpectedForAuthority = (entity, side) =>
@@ -91,7 +94,7 @@ namespace Vellocet.Sdk.VSig.Runtime
                     (!host || marker.gameObject.scene.handle == SceneHandle)).ToArray();
                 var sceneHost = host as VSigSceneRuntime;
                 var importedMapId = sceneHost ? Guid.Empty : VSigSceneSnapshot.ImportedMapId(markers);
-                _scene = new VSigSceneSnapshot(sceneHost ? sceneHost.EnsureMapId(markers) : importedMapId != Guid.Empty ? importedMapId : Guid.NewGuid(), markers,
+                _scene = new VSigSceneSnapshot(sceneHost ? sceneHost.EnsureMapId() : importedMapId != Guid.Empty ? importedMapId : Guid.NewGuid(), markers,
                     sceneHost ? sceneHost.GetNodeId : null, sceneHost && sceneHost.IdentityBaked ? sceneHost.GetNodeName : null);
                 if (compiled == null)
                     compiled = Portable.VSigCompiledProgram.FromProgram(Program);

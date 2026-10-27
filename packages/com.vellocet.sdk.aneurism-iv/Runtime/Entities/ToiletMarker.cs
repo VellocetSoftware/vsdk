@@ -4,13 +4,14 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_toilet")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Toilet")]
+    [EntityClass("func_toilet")]
+    [EntityAuthoring("Services", EntityPlacementKind.Point, "Toilet")]
     public sealed class ToiletMarker : PrefabEntityMarker
     {
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            OperationSignalContracts.Processing(builder);
+        }
         public override string ArchetypeId => "aniv.toilet";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
     }
 }

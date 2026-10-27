@@ -1,0 +1,61 @@
+module loading_bay(shipping_time: float = 8s):
+    ref manifest: logic_crate_manifest match "*"
+    ref door: func_door match ShippingDoor
+    ref button: func_button match ShipGoods
+    ref status: info_label match ShippingStatus
+    ref shipping_audio: env_ambient match ShippingAudio
+    state shipping: bool = false
+    state resetting: bool = false
+    def refresh():
+        if manifest.is_ready:
+            button.enable()
+            status.set_text("READY / SHIP THE CRATES")
+        else:
+            button.disable()
+            status.set_text("FILL AND SIGN THE CRATES")
+    server on map.ready:
+        refresh()
+        manifest.report()
+        if manifest.can_reset:
+            shipping = true
+            resetting = true
+            door.close()
+            schedule next_shipment after shipping_time:
+                manifest.reset()
+    server on manifest.ready:
+        if not shipping:
+            refresh()
+    server on button.pressed:
+        if resetting:
+            manifest.reset()
+        elif shipping:
+            manifest.ship()
+        elif manifest.is_ready:
+            shipping = true
+            button.disable()
+            status.set_text("SHIPPING")
+            door.close()
+    server on door.close:
+        if shipping and not resetting:
+            manifest.ship()
+    server on manifest.shipped:
+        shipping_audio.play()
+        resetting = true
+        button.disable()
+        status.set_text("SHIPMENT CONFIRMED / IN TRANSIT")
+        schedule next_shipment after shipping_time:
+            manifest.reset()
+    server on manifest.reset:
+        if resetting:
+            shipping = false
+            resetting = false
+            door.open()
+        refresh()
+    server on manifest.rejected(reason):
+        cancel next_shipment
+        status.set_text("SHIPMENT PAUSED / RETRY")
+        if manifest.can_reset:
+            resetting = true
+            shipping = true
+        if manifest.is_ready or manifest.can_reset:
+            button.enable()

@@ -10,7 +10,7 @@ using Vellocet.Sdk.Tooling;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("env_ambient")]
-    [EntityAuthoring("Audio", EntityPlacementKind.Point, "Ambient")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Point, "Ambient")]
     [DisallowMultipleComponent]
     public sealed class AmbientMarker : EntityMarker<AmbientMarker.Input, AmbientMarker.Output>,
         IToolVolumeVisualProvider
@@ -40,8 +40,10 @@ namespace Vellocet.Sdk.Entities
         public const string EventNamePrefix = "Play_amb";
 
         [field: Header("Audio")]
+#if VELLOCET_STEREOFORM
         [field: SerializeField, Tooltip("Optional game audio event; overrides Event Name. Add-on cues still take priority.")]
         public Vellocet.Stereoform.AudioEventReference AudioEvent { get; private set; }
+#endif
         [field: SerializeField] public bool Loop { get; private set; } = true;
 
         [field: Tooltip("Named game audio event posted by this ambient marker.")]

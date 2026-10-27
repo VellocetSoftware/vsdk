@@ -492,8 +492,34 @@ namespace Vellocet.Sdk.Editor.Maps
             }
 
             GameObject bakeVolume = null;
+            var rendererMaterials = new List<(MeshRenderer Renderer, Material[] Materials)>();
+            var emptyMeshFlags = new List<(GameObject Host, StaticEditorFlags Flags)>();
             try
             {
+                // Unity renders extra material slots using the last submesh, but Umbra indexes each
+                // slot as a distinct submesh. Limit only its bake input, then restore every visual pass.
+                foreach (var renderer in MapSceneTraversalUtility.GetComponents<MeshRenderer>(scene, true))
+                {
+                    var mesh = renderer.GetComponent<MeshFilter>()?.sharedMesh;
+                    if (!mesh || mesh.vertexCount == 0 || mesh.subMeshCount == 0 ||
+                        !mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Position))
+                    {
+                        // Empty imported sections may contain only UVs. Umbra still requests positions
+                        // for static renderers and asserts when copying that absent vertex channel.
+                        var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject);
+                        if (flags != 0)
+                        {
+                            emptyMeshFlags.Add((renderer.gameObject, flags));
+                            GameObjectUtility.SetStaticEditorFlags(renderer.gameObject, 0);
+                        }
+                        continue;
+                    }
+                    var materials = renderer.sharedMaterials;
+                    if (materials.Length <= mesh.subMeshCount) continue;
+                    rendererMaterials.Add((renderer, materials));
+                    renderer.sharedMaterials = materials.Take(mesh.subMeshCount).ToArray();
+                }
+
                 // Nodraw can leave only a flat floor. Unity's automatic view volume then has zero height.
                 if (!MapSceneTraversalUtility.GetComponents<OcclusionArea>(scene, false).Any() &&
                     !MapSceneTraversalUtility.GetComponents<Terrain>(scene, false).Any())
@@ -515,7 +541,21 @@ namespace Vellocet.Sdk.Editor.Maps
                         }
                     }
                 }
-                var outcome = method.Invoke(null, null);
+                string loggedError = null;
+                Application.LogCallback captureError = (text, _, type) =>
+                {
+                    if (type is LogType.Error or LogType.Exception or LogType.Assert)
+                        loggedError ??= text;
+                };
+                object outcome;
+                Application.logMessageReceived += captureError;
+                try { outcome = method.Invoke(null, null); }
+                finally { Application.logMessageReceived -= captureError; }
+                if (loggedError != null)
+                {
+                    message = "Occlusion baker reported an error: " + loggedError;
+                    return false;
+                }
                 if (outcome is false)
                 {
                     message = "Occlusion bake failed. Check the static geometry and bake bounds.";
@@ -530,7 +570,14 @@ namespace Vellocet.Sdk.Editor.Maps
                 message = $"Occlusion bake failed: {ex.InnerException?.Message ?? ex.Message}";
                 return false;
             }
-            finally { if (bakeVolume) Object.DestroyImmediate(bakeVolume); }
+            finally
+            {
+                foreach (var (renderer, materials) in rendererMaterials)
+                    if (renderer) renderer.sharedMaterials = materials;
+                foreach (var (host, flags) in emptyMeshFlags)
+                    if (host) GameObjectUtility.SetStaticEditorFlags(host, flags);
+                if (bakeVolume) Object.DestroyImmediate(bakeVolume);
+            }
         }
 
         public static string DescribeContract(MapSceneContext context)

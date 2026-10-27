@@ -1,0 +1,7 @@
+module location_feedback:
+    ref contacts: trigger_multiple match "Contacts"
+    ref status: info_label match "Status"
+    server on contacts.start_touch:
+        status.set_text("OCCUPIED")
+    server on contacts.end_touch_all:
+        status.set_text("EMPTY")

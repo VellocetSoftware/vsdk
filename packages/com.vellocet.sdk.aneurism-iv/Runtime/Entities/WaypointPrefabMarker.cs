@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    public abstract class WaypointPrefabMarker : PrefabEntityMarker, IWaypointAuthoring
+    public abstract class WaypointPrefabMarker : ContactOperationMarker, IWaypointAuthoring
     {
         [SerializeField] private bool overrideWaypoint;
         [SerializeField] private bool waypointEnabled = true;

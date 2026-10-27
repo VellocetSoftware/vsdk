@@ -1,192 +1,238 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    // Values are the existing inventory IDs; renumbering them breaks saved items and maps.
-    public enum GameItem
+    public static class GameItem
     {
-        Ammo12Gauge = 819428888,
-        Ammo357Magnum = 65395054,
-        Ammo6_5x55mm = 8621,
-        Ammo7_62x39mm = 2360506,
-        Ammo9mm = 656,
-        Ammo9x39 = 1745351974,
-        A4Original = 120111,
-        A4Premium = 479138161,
-        A4Suisoda = 1813745040,
-        AG42B = 3123,
-        AchillesEnergy = 1544226507,
-        AdvancedGunParts = 147408784,
-        Antibacterium = 753362191,
-        AntiradPackage = 992267230,
-        Axle = 455772883,
-        Bandage = 1232782335,
-        Basketball = 1481603972,
-        Benadrizole = 1226504328,
-        BileBinty = 625828,
-        Biofuel = 1070678767,
-        BloodPackage = 623477254,
-        Bloodbagel = 1670366282,
-        Bloodysolyanka = 541815339,
-        BoneBread = 1119278635,
-        BoneashFlour = 922075400,
-        BonecornSack = 1992995929,
-        Bonescone = 52212571,
-        Bougiebigos = 2063851031,
-        BrainScorcher = 457731,
-        BrainScorcherAlt = 5731236,
-        CTXAhti = 1865472865,
-        CTXAmmoPack = 4947604,
-        CTXArbiter = 155529,
-        CTXConciliator = 19573680,
-        CTXSurma = 1853243849,
-        CTXValta = 563994,
-        Cannedbread = 2025797979,
-        CapitronBuildingKit = 929298576,
-        CarcinogenicSlop = 1854074920,
-        Cash = 526090535,
-        Chainsaw = 2147483647,
-        Chlebnadzianykielbasa = 1010649555,
-        Cigarettes = 314832633,
-        Cigarettesoup = 2024405177,
-        CircuitBoard = 1281025787,
-        Coal = 3859201,
-        CrakMef = 893888288,
-        Cremator = 2050726174,
-        CrimsonKing = 752164029,
-        CtxBattleSolution = 874849768,
-        CtxCombatJuice = 1340157663,
-        Cube = 7894,
-        DeathRattle = 346534434,
-        DemonCore = 1921575193,
-        Dentedfoodcan = 1237053798,
-        Dewormer = 2000019239,
-        DirectorsDeath = 257273,
-        DirtyLaundry = 403660939,
-        DoozerBooze = 78348013,
-        Dumpsterrat = 1951713139,
-        Eldritchbeans = 167006282,
-        EmptyBottle = 1047420818,
-        Epinephrine = 486021777,
-        EvilCrakMef = 558573525,
-        FesteringSerum = 1565825555,
-        Fish = 305255012,
-        Fists = 1729814826,
-        FistsAlt = 710139852,
-        Flashlight = 48123794,
-        FoldedLaundry = 1839026525,
-        Frommer = 686,
-        Gabagool = 2095745479,
-        GalvanizedIngot = 3193192,
-        Ghettospaghetti = 1045259271,
-        Glue = 555691204,
-        Greasesiphon = 52398615,
-        Guitar = 89899,
-        GunPowder = 882746780,
-        GunsmithingTools = 1706557239,
-        Gutteroil = 2132063001,
-        Hemoblocker = 211353313,
-        Hijacker = 1434548332,
-        IED = 1773514459,
-        Immunoplus = 1007572841,
-        Jenkem = 791608386,
-        JenkemLeftovers = 463244883,
-        Jerrycan = 1861831362,
-        KevlarVest = 849361386,
-        KidneyBundle = 1910681239,
-        KidneySplitter = 463326,
-        Kielbasa = 2137866466,
-        Knife = 98132789,
-        LacedA4Premium = 166870772,
-        LacedAdrenipen = 825749452,
-        LacedCiggie = 431935552,
-        LacedRation = 1842714902,
-        Leech = 7365359,
-        Lighter = 3362935,
-        LiverFief = 167116,
-        LiverFiefAlt = 6990490,
-        LungBundle = 893243875,
-        LungPuncher = 86586,
-        MachineParts = 800717046,
-        Maggotcheese = 2080198825,
-        Mbsecretformula = 565289178,
-        MetalOre = 5346115,
-        MetalPlate = 299918511,
-        Methanol = 1329319528,
-        Moonchild = 394011569,
-        Motleycanobullets = 1623885339,
-        MuscleBundle = 968760787,
-        MuscleRipper = 306388090,
-        NailGun = 21119623,
-        NailTrap = 190591238,
-        Nails = 473545968,
-        NerveBundle = 871352956,
-        Nightstick = 772387787,
-        OldAmmo = 1493976547,
-        OldGunParts = 448791401,
-        Organ = 423698212,
-        PITY = 13002,
-        PM9EvilGun = 160223,
-        ParasitePackage = 2061066933,
-        PeetRock = 528821846,
-        Pemmican = 1220589675,
-        PetRat = 1235884667,
-        PharmaTools = 1070684609,
-        Pickaxe = 8689892,
-        Pipe = 998,
-        Plastic = 1504106088,
-        Pot = 1081642448,
-        Psychostatica = 1121421490,
-        RDZ = 295506024,
-        Radio = 1028627369,
-        Radiobiotics = 910010554,
-        Radiomitigant = 413110716,
-        Ratglizzy = 934821478,
-        Ration = 1057330138,
-        RepairKitLarge = 1781865461,
-        RepairKitSmall = 593655504,
-        RitualAxe = 6986461,
-        RotBomb = 1940380177,
-        RotPod = 1716750831,
-        RotShroom = 1108314206,
-        Rottersgoulash = 679335858,
-        SanguineGrapesSack = 1418252534,
-        SanityPackage = 969451119,
-        Sausageroll = 1727798557,
-        Scarysoup = 738551493,
-        Schizopram = 1516007544,
-        ScrapMetal = 1859333091,
-        Screwdriver = 946022549,
-        SepsisAntiserum = 224062501,
-        SepsisPackage = 50202748,
-        SepsisTonic = 1207298969,
-        Sievertsushi = 766144525,
-        Skintape = 227884098,
-        SlopCan = 1631215728,
-        Slopsoup = 1647191229,
-        SmugglingToolkit = 1659776883,
-        Soil = 69535014,
-        StimulantPackage = 323403053,
-        StolenWarheadCore = 167966118,
-        StorageBox = 1859302845,
-        Stuffedratskewer = 1942392686,
-        Surstromming = 574636144,
-        SuspiciousMeat = 1648295482,
-        Switchblade = 1905236,
-        Tantalizer = 1269693,
-        Textile = 1865073937,
-        TransitCard = 925194217,
-        Tumorcrisps = 1692207450,
-        TumortatoSack = 1988152155,
-        Tushonka = 643373571,
-        UnfoldedLaundry = 817022015,
-        ViktorEVodka = 1108785207,
-        VomitWeapon = 991452135,
-        WarheadCasing = 1540584047,
-        WarheadCore = 177629508,
-        WarheadDetonator = 1319399026,
-        WarheadReceiver = 93644315,
-        WeakIngot = 2665238,
-        WetLaundry = 2105910039,
-        Wood = 1904057797,
-        Wrench = 1895177436,
+        public const string Ammo12Gauge = "ammo_12_gauge";
+        public const string Ammo357Magnum = "ammo_357_magnum";
+        public const string Ammo6_5x55mm = "ammo_6_5x55mm";
+        public const string Ammo7_62x39mm = "ammo_7_62x39mm";
+        public const string Ammo9mm = "ammo_9mm";
+        public const string Ammo9x39 = "ammo_9x39";
+        public const string A4Original = "a4_original";
+        public const string A4Premium = "a4_premium";
+        public const string A4Suisoda = "a4_suisoda";
+        public const string AG42B = "ag42_b";
+        public const string AchillesEnergy = "achilles_energy";
+        public const string AdvancedGunParts = "advanced_gun_parts";
+        public const string Antibacterium = "antibacterium";
+        public const string AntiradPackage = "antirad_package";
+        public const string Axle = "axle";
+        public const string Bandage = "bandage";
+        public const string Basketball = "basketball";
+        public const string Benadrizole = "benadrizole";
+        public const string BileBinty = "bile_binty";
+        public const string Biofuel = "biofuel";
+        public const string BloodPackage = "blood_package";
+        public const string Bloodbagel = "bloodbagel";
+        public const string Bloodysolyanka = "bloodysolyanka";
+        public const string BoneBread = "bone_bread";
+        public const string BoneashFlour = "boneash_flour";
+        public const string BonecornSack = "bonecorn_sack";
+        public const string Bonescone = "bonescone";
+        public const string Bougiebigos = "bougiebigos";
+        public const string BrainScorcher = "brain_scorcher";
+        public const string BrainScorcherAlt = "brain_scorcher_alt";
+        public const string CTXAhti = "ctx_ahti";
+        public const string CTXAmmoPack = "ctx_ammo_pack";
+        public const string CTXArbiter = "ctx_arbiter";
+        public const string CTXConciliator = "ctx_conciliator";
+        public const string CTXSurma = "ctx_surma";
+        public const string CTXValta = "ctx_valta";
+        public const string Cannedbread = "cannedbread";
+        public const string CapitronBuildingKit = "capitron_building_kit";
+        public const string CarcinogenicSlop = "carcinogenic_slop";
+        public const string Cash = "cash";
+        public const string Chainsaw = "chainsaw";
+        public const string Chlebnadzianykielbasa = "chlebnadzianykielbasa";
+        public const string Cigarettes = "cigarettes";
+        public const string Cigarettesoup = "cigarettesoup";
+        public const string CircuitBoard = "circuit_board";
+        public const string Coal = "coal";
+        public const string CrakMef = "crak_mef";
+        public const string Cremator = "cremator";
+        public const string CrimsonKing = "crimson_king";
+        public const string CtxBattleSolution = "ctx_battle_solution";
+        public const string CtxCombatJuice = "ctx_combat_juice";
+        public const string Cube = "cube";
+        public const string DeathRattle = "death_rattle";
+        public const string DemonCore = "demon_core";
+        public const string Dentedfoodcan = "dentedfoodcan";
+        public const string Dewormer = "dewormer";
+        public const string DirectorsDeath = "directors_death";
+        public const string DirtyLaundry = "dirty_laundry";
+        public const string DoozerBooze = "doozer_booze";
+        public const string Dumpsterrat = "dumpsterrat";
+        public const string Eldritchbeans = "eldritchbeans";
+        public const string EmptyBottle = "empty_bottle";
+        public const string Epinephrine = "epinephrine";
+        public const string EvilCrakMef = "evil_crak_mef";
+        public const string FesteringSerum = "festering_serum";
+        public const string Fish = "fish";
+        public const string Fists = "fists";
+        public const string FistsAlt = "fists_alt";
+        public const string Flashlight = "flashlight";
+        public const string FoldedLaundry = "folded_laundry";
+        public const string Frommer = "frommer";
+        public const string Gabagool = "gabagool";
+        public const string GalvanizedIngot = "galvanized_ingot";
+        public const string Ghettospaghetti = "ghettospaghetti";
+        public const string Glue = "glue";
+        public const string Greasesiphon = "greasesiphon";
+        public const string Guitar = "guitar";
+        public const string GunPowder = "gun_powder";
+        public const string GunsmithingTools = "gunsmithing_tools";
+        public const string Gutteroil = "gutteroil";
+        public const string Hemoblocker = "hemoblocker";
+        public const string Hijacker = "hijacker";
+        public const string IED = "ied";
+        public const string Immunoplus = "immunoplus";
+        public const string Jenkem = "jenkem";
+        public const string JenkemLeftovers = "jenkem_leftovers";
+        public const string Jerrycan = "jerrycan";
+        public const string KevlarVest = "kevlar_vest";
+        public const string KidneyBundle = "kidney_bundle";
+        public const string KidneySplitter = "kidney_splitter";
+        public const string Kielbasa = "kielbasa";
+        public const string Knife = "knife";
+        public const string LacedA4Premium = "laced_a4_premium";
+        public const string LacedAdrenipen = "laced_adrenipen";
+        public const string LacedCiggie = "laced_ciggie";
+        public const string LacedRation = "laced_ration";
+        public const string Leech = "leech";
+        public const string Lighter = "lighter";
+        public const string LiverFief = "liver_fief";
+        public const string LiverFiefAlt = "liver_fief_alt";
+        public const string LungBundle = "lung_bundle";
+        public const string LungPuncher = "lung_puncher";
+        public const string MachineParts = "machine_parts";
+        public const string Maggotcheese = "maggotcheese";
+        public const string Mbsecretformula = "mbsecretformula";
+        public const string MetalOre = "metal_ore";
+        public const string MetalPlate = "metal_plate";
+        public const string Methanol = "methanol";
+        public const string Moonchild = "moonchild";
+        public const string Motleycanobullets = "motleycanobullets";
+        public const string MuscleBundle = "muscle_bundle";
+        public const string MuscleRipper = "muscle_ripper";
+        public const string NailGun = "nail_gun";
+        public const string NailTrap = "nail_trap";
+        public const string Nails = "nails";
+        public const string NerveBundle = "nerve_bundle";
+        public const string Nightstick = "nightstick";
+        public const string OldAmmo = "old_ammo";
+        public const string OldGunParts = "old_gun_parts";
+        public const string Organ = "organ";
+        public const string PITY = "pity";
+        public const string PM9EvilGun = "pm9_evil_gun";
+        public const string ParasitePackage = "parasite_package";
+        public const string PeetRock = "peet_rock";
+        public const string Pemmican = "pemmican";
+        public const string PetRat = "pet_rat";
+        public const string PharmaTools = "pharma_tools";
+        public const string Pickaxe = "pickaxe";
+        public const string Pipe = "pipe";
+        public const string Plastic = "plastic";
+        public const string Pot = "pot";
+        public const string Psychostatica = "psychostatica";
+        public const string RDZ = "rdz";
+        public const string Radio = "radio";
+        public const string Radiobiotics = "radiobiotics";
+        public const string Radiomitigant = "radiomitigant";
+        public const string Ratglizzy = "ratglizzy";
+        public const string Ration = "ration";
+        public const string RepairKitLarge = "repair_kit_large";
+        public const string RepairKitSmall = "repair_kit_small";
+        public const string RitualAxe = "ritual_axe";
+        public const string RotBomb = "rot_bomb";
+        public const string RotPod = "rot_pod";
+        public const string RotShroom = "rot_shroom";
+        public const string Rottersgoulash = "rottersgoulash";
+        public const string SanguineGrapesSack = "sanguine_grapes_sack";
+        public const string SanityPackage = "sanity_package";
+        public const string Sausageroll = "sausageroll";
+        public const string Scarysoup = "scarysoup";
+        public const string Schizopram = "schizopram";
+        public const string ScrapMetal = "scrap_metal";
+        public const string Screwdriver = "screwdriver";
+        public const string SepsisAntiserum = "sepsis_antiserum";
+        public const string SepsisPackage = "sepsis_package";
+        public const string SepsisTonic = "sepsis_tonic";
+        public const string Sievertsushi = "sievertsushi";
+        public const string Skintape = "skintape";
+        public const string SlopCan = "slop_can";
+        public const string Slopsoup = "slopsoup";
+        public const string SmugglingToolkit = "smuggling_toolkit";
+        public const string Soil = "soil";
+        public const string StimulantPackage = "stimulant_package";
+        public const string StolenWarheadCore = "stolen_warhead_core";
+        public const string StorageBox = "storage_box";
+        public const string Stuffedratskewer = "stuffedratskewer";
+        public const string Surstromming = "surstromming";
+        public const string SuspiciousMeat = "suspicious_meat";
+        public const string Switchblade = "switchblade";
+        public const string Tantalizer = "tantalizer";
+        public const string Textile = "textile";
+        public const string TransitCard = "transit_card";
+        public const string Tumorcrisps = "tumorcrisps";
+        public const string TumortatoSack = "tumortato_sack";
+        public const string Tushonka = "tushonka";
+        public const string UnfoldedLaundry = "unfolded_laundry";
+        public const string ViktorEVodka = "viktor_e_vodka";
+        public const string VomitWeapon = "vomit_weapon";
+        public const string WarheadCasing = "warhead_casing";
+        public const string WarheadCore = "warhead_core";
+        public const string WarheadDetonator = "warhead_detonator";
+        public const string WarheadReceiver = "warhead_receiver";
+        public const string WeakIngot = "weak_ingot";
+        public const string WetLaundry = "wet_laundry";
+        public const string Wood = "wood";
+        public const string Wrench = "wrench";
+
+        public static IReadOnlyList<string> All { get; } = Array.AsReadOnly(new[]
+        {
+            Ammo12Gauge, Ammo357Magnum, Ammo6_5x55mm, Ammo7_62x39mm, Ammo9mm,
+            Ammo9x39, A4Original, A4Premium, A4Suisoda, AG42B,
+            AchillesEnergy, AdvancedGunParts, Antibacterium, AntiradPackage, Axle,
+            Bandage, Basketball, Benadrizole, BileBinty, Biofuel,
+            BloodPackage, Bloodbagel, Bloodysolyanka, BoneBread, BoneashFlour,
+            BonecornSack, Bonescone, Bougiebigos, BrainScorcher, BrainScorcherAlt,
+            CTXAhti, CTXAmmoPack, CTXArbiter, CTXConciliator, CTXSurma,
+            CTXValta, Cannedbread, CapitronBuildingKit, CarcinogenicSlop, Cash,
+            Chainsaw, Chlebnadzianykielbasa, Cigarettes, Cigarettesoup, CircuitBoard,
+            Coal, CrakMef, Cremator, CrimsonKing, CtxBattleSolution,
+            CtxCombatJuice, Cube, DeathRattle, DemonCore, Dentedfoodcan,
+            Dewormer, DirectorsDeath, DirtyLaundry, DoozerBooze, Dumpsterrat,
+            Eldritchbeans, EmptyBottle, Epinephrine, EvilCrakMef, FesteringSerum,
+            Fish, Fists, FistsAlt, Flashlight, FoldedLaundry,
+            Frommer, Gabagool, GalvanizedIngot, Ghettospaghetti, Glue,
+            Greasesiphon, Guitar, GunPowder, GunsmithingTools, Gutteroil,
+            Hemoblocker, Hijacker, IED, Immunoplus, Jenkem,
+            JenkemLeftovers, Jerrycan, KevlarVest, KidneyBundle, KidneySplitter,
+            Kielbasa, Knife, LacedA4Premium, LacedAdrenipen, LacedCiggie,
+            LacedRation, Leech, Lighter, LiverFief, LiverFiefAlt,
+            LungBundle, LungPuncher, MachineParts, Maggotcheese, Mbsecretformula,
+            MetalOre, MetalPlate, Methanol, Moonchild, Motleycanobullets,
+            MuscleBundle, MuscleRipper, NailGun, NailTrap, Nails,
+            NerveBundle, Nightstick, OldAmmo, OldGunParts, Organ,
+            PITY, PM9EvilGun, ParasitePackage, PeetRock, Pemmican,
+            PetRat, PharmaTools, Pickaxe, Pipe, Plastic,
+            Pot, Psychostatica, RDZ, Radio, Radiobiotics,
+            Radiomitigant, Ratglizzy, Ration, RepairKitLarge, RepairKitSmall,
+            RitualAxe, RotBomb, RotPod, RotShroom, Rottersgoulash,
+            SanguineGrapesSack, SanityPackage, Sausageroll, Scarysoup, Schizopram,
+            ScrapMetal, Screwdriver, SepsisAntiserum, SepsisPackage, SepsisTonic,
+            Sievertsushi, Skintape, SlopCan, Slopsoup, SmugglingToolkit,
+            Soil, StimulantPackage, StolenWarheadCore, StorageBox, Stuffedratskewer,
+            Surstromming, SuspiciousMeat, Switchblade, Tantalizer, Textile,
+            TransitCard, Tumorcrisps, TumortatoSack, Tushonka, UnfoldedLaundry,
+            ViktorEVodka, VomitWeapon, WarheadCasing, WarheadCore, WarheadDetonator,
+            WarheadReceiver, WeakIngot, WetLaundry, Wood, Wrench,
+        });
+
+        public static bool IsDefined(string id) => All.Contains(id);
     }
 }

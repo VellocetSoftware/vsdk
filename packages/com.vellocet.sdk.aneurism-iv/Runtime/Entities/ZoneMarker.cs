@@ -6,8 +6,8 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("trigger_aniv_zone")]
-    [EntityAuthoring("Audio", EntityPlacementKind.Volume, "Location and Soundscape")]
+    [EntityClass("trigger_location")]
+    [EntityAuthoring("Triggers", EntityPlacementKind.Volume, "Location and Soundscape")]
     public sealed class ZoneMarker : EntityMarker, IBoundedEntityMarker, IEntityImportHierarchy
     {
         [SerializeField] private string locationName;

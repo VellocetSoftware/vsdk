@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Vellocet.Sdk;
 using Vellocet.Sdk.Addons;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Maps;
@@ -49,6 +50,7 @@ namespace Vellocet.Sdk.Tests
                 buildId = Guid.NewGuid().ToString("N"),
                 createdUtc = DateTime.UtcNow.ToString("o"),
                 sdkVersion = "test",
+                audioRuntime = SdkGame.Current.AudioRuntimeCapability,
                 unityVersion = Application.unityVersion,
                 contents = new[]
                 {

@@ -23,7 +23,6 @@ namespace Vellocet.Sdk.Editor.VSig
         private static readonly Color OutgoingColor = new(0.18f, 0.78f, 1f, 0.92f);
         private static readonly Color IncomingColor = new(0.95f, 0.58f, 0.18f, 0.92f);
         private static readonly Color ShadowColor = new(0f, 0f, 0f, 0.34f);
-        private static ProgramCache _programCache;
 
         static VSigSceneRouteGizmos()
         {
@@ -32,7 +31,7 @@ namespace Vellocet.Sdk.Editor.VSig
 
         private static bool ShowRoutesEnabled => EditorPrefs.GetBool(ShowRoutesKey, true);
 
-        [MenuItem(MenuPath)]
+        [MenuItem(MenuPath, false, 506)]
         private static void ToggleShowRoutes()
         {
             EditorPrefs.SetBool(ShowRoutesKey, !ShowRoutesEnabled);
@@ -48,7 +47,7 @@ namespace Vellocet.Sdk.Editor.VSig
 
         private static void OnSceneGui(SceneView sceneView)
         {
-            if (!ShowRoutesEnabled)
+            if (!sceneView || !sceneView.drawGizmos || !ShowRoutesEnabled || EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
 
             if (Selection.gameObjects == null || Selection.gameObjects.Length == 0)
@@ -58,7 +57,7 @@ namespace Vellocet.Sdk.Editor.VSig
             if (!scene.IsValid() || !scene.isLoaded)
                 return;
 
-            var model = GetRouteModel(scene);
+            var model = VSigRouteModelCache.Get(scene);
             if (!model.HasSource)
                 return;
 
@@ -105,64 +104,6 @@ namespace Vellocet.Sdk.Editor.VSig
             }
 
             return new SelectionContext(expanded, direct);
-        }
-
-        private static VSigRouteModel GetRouteModel(Scene scene)
-        {
-            if (!VSigRouteModelBuilder.TryFindSceneSource(scene, out var source))
-                return VSigRouteModel.Empty(scene, null);
-
-            var text = source.text ?? string.Empty;
-            var sourceId = source.GetInstanceID();
-            var textHash = text.GetHashCode();
-            var markers = VSigEditorValidator.GetSceneMarkers(scene, true);
-            var markerHash = ComputeMarkerHash(markers);
-            if (_programCache != null &&
-                _programCache.SourceId == sourceId &&
-                _programCache.TextHash == textHash &&
-                _programCache.MarkerHash == markerHash)
-                return _programCache.Model;
-
-            var model = VSigRouteModelBuilder.Build(scene, source, markers);
-            _programCache = new ProgramCache(sourceId, textHash, markerHash, model);
-            return model;
-        }
-
-        private static int ComputeMarkerHash(IReadOnlyList<EntityMarker> markers)
-        {
-            unchecked
-            {
-                var hash = 17;
-                if (markers == null)
-                    return hash;
-
-                for (var i = 0; i < markers.Count; i++)
-                {
-                    var marker = markers[i];
-                    if (!marker)
-                        continue;
-
-                    hash = hash * 31 + marker.GetInstanceID();
-                    hash = hash * 31 + GetHierarchyPath(marker.transform).GetHashCode();
-                }
-
-                return hash;
-            }
-        }
-
-        private static string GetHierarchyPath(Transform transform)
-        {
-            if (!transform)
-                return string.Empty;
-
-            var path = transform.name;
-            while (transform.parent)
-            {
-                transform = transform.parent;
-                path = transform.name + "/" + path;
-            }
-
-            return path;
         }
 
         private static void DrawRoutes(IReadOnlyList<VSigRouteModel.Route> modelRoutes, SelectionContext selection,
@@ -421,21 +362,6 @@ namespace Vellocet.Sdk.Editor.VSig
             }
         }
 
-        private sealed class ProgramCache
-        {
-            public ProgramCache(int sourceId, int textHash, int markerHash, VSigRouteModel model)
-            {
-                SourceId = sourceId;
-                TextHash = textHash;
-                MarkerHash = markerHash;
-                Model = model;
-            }
-
-            public int SourceId { get; }
-            public int TextHash { get; }
-            public int MarkerHash { get; }
-            public VSigRouteModel Model { get; }
-        }
     }
 }
 #endif

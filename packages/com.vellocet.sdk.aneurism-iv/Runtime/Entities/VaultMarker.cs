@@ -5,13 +5,19 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_vault")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Vault")]
-    public sealed class VaultMarker : PrefabEntityMarker
+    [EntityClass("func_vault")]
+    [EntityAuthoring("Gameplay", EntityPlacementKind.Point, "Vault")]
+    public sealed class VaultMarker : ContactOperationMarker
     {
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.vault";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("request_access", EntitySignalValueType.None);
+            builder.AddOutput("access_changed", EntitySignalValueType.Bool);
+            builder.AddOutput("trespass_detected", EntitySignalValueType.None);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("is_open", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

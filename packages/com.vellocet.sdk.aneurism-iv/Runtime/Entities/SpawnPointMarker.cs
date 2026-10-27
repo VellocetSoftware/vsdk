@@ -5,8 +5,8 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("info_aniv_spawn")]
-    [EntityAuthoring("Players", EntityPlacementKind.Point, "Player Spawn")]
+    [EntityClass("info_player_spawn")]
+    [EntityAuthoring("Map setup", EntityPlacementKind.Point, "Player Spawn")]
     public sealed class SpawnPointMarker : EntityMarker
     {
         public enum SpawnKind { Default = -1, SlaveCamp = 0, Underground = 1, VomitSpawn = 2, Cortex = 3 }

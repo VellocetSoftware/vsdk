@@ -6,9 +6,9 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_supply_cache")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Supply Cache")]
-    public sealed class CacheMarker : PrefabEntityMarker
+    [EntityClass("func_supply_cache")]
+    [EntityAuthoring("Shipping", EntityPlacementKind.Point, "Supply Cache")]
+    public sealed class CacheMarker : OperationEntityMarker
     {
         public enum Kind { Cache, Supplier }
         public enum WorldEvent { None, Wartime, LimitationOrder, Rotting, Lost, Darkness }
@@ -32,7 +32,7 @@ namespace Vellocet.Sdk.Aneurism.Entities
         [Serializable]
         public sealed class Supply
         {
-            public GameItem item = GameItem.Screwdriver;
+            public string item = GameItem.Screwdriver;
             public SupplyType supplyType = SupplyType.Inventory;
             public bool checkIfHasItem = true;
             public bool ignoreWeight;
@@ -47,9 +47,15 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public Kind Variant => kind;
         public WorldEvent EventRestriction => eventRestriction;
         public IReadOnlyList<Supply> Supplies => supplies;
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.cache." + kind.ToString().ToLowerInvariant();
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("take", EntitySignalValueType.String);
+            builder.AddOutput("supplied", EntitySignalValueType.String);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("supply_count", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("is_available", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

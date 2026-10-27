@@ -11,7 +11,7 @@ namespace Vellocet.Sdk.Entities.Base
     public static class EntityIdConvention
     {
         public const string Description =
-            "lowercase snake_case beginning with func_, trigger_, info_, env_, logic_, item_, or game_";
+            "lowercase snake_case beginning with func_, trigger_, info_, env_, logic_, item_, prop_, group_, or game_";
 
         public static bool IsCanonical(string entityId)
         {
@@ -53,7 +53,7 @@ namespace Vellocet.Sdk.Entities.Base
         private static bool HasKnownPrefix(string entityId, int separator)
         {
             var prefix = entityId.Substring(0, separator);
-            return prefix is "func" or "trigger" or "info" or "env" or "logic" or "item" or "game";
+            return prefix is "func" or "trigger" or "info" or "env" or "logic" or "item" or "prop" or "group" or "game";
         }
 
         private static bool IsLowerAsciiLetter(char character)

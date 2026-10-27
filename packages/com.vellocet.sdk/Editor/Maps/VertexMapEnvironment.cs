@@ -17,7 +17,7 @@ namespace Vellocet.Sdk.Editor.Maps
         public static event Action<Scene, MapEnvironment> Applied;
         public static void Apply(Scene scene, MapEnvironment settings)
         {
-            if (settings == null) return; // Legacy maps keep the existing scene defaults.
+            if (settings == null) return; // Maps without environment settings keep the scene defaults.
             settings.Validate();
             var sky = string.IsNullOrEmpty(settings.SkyMaterial) ? null : VertexAssetCatalogProfile.Resolve<Material>(settings.SkyMaterial);
             if (!string.IsNullOrEmpty(settings.SkyMaterial) && !sky)

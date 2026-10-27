@@ -19,8 +19,8 @@ namespace Vellocet.Sdk.Aneurism
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Register() => SdkGame.Register(new AneurismSdk());
 
-        public override string MinimumMapSdkVersion => "4.0.0";
         public override string Id => GameId;
+        public override string MinimumMapSdkVersion => "4.0.0";
         public override string AudioContentTypeId => "stereoform.event";
         public override string AudioRuntimeCapability => "stereoform/2";
         public override string DisplayName => "ANEURISM IV";
@@ -39,7 +39,14 @@ namespace Vellocet.Sdk.Aneurism
                 return settings.Sanitize();
             }
         }
-        public override string DefaultModeId => "aneurism";
+        public override string DefaultModeId => "nightmare";
+        public override string ResolveMapMode(string mapId, string requestedModeId = null)
+        {
+            var mode = MapGameMode.CanonicalId(MapGameMode.Resolve(mapId));
+            if (!string.IsNullOrWhiteSpace(requestedModeId) && requestedModeId != mode)
+                throw new ArgumentException($"Map '{mapId}' requires mode '{mode}', not '{requestedModeId}'.");
+            return mode;
+        }
         public override bool SupportsExternalMods => false;
         public override string DocumentationSection => "ANEURISM_IV";
         public override IReadOnlyList<Vertex.Contracts.GlobalSignalDefinition> AdditionalGlobalEvents => GlobalEvents;
@@ -47,13 +54,39 @@ namespace Vellocet.Sdk.Aneurism
         {
             new("game", "event_changed", new Vertex.Contracts.EntitySignalParameter("event", "string"))
         };
-        public override IReadOnlyList<ModeDescriptor> Modes => GameModes;
+        public override IReadOnlyList<ModeDescriptor> Modes => MapGameMode.Descriptors;
         public override SdkAssetRootMapping[] AssetRoots => Roots;
         public override int NavigationMask => ~LayerMask.GetMask("EntitySolid", "EntityClip", "RaycastOnly", "Passthrough");
+        public override bool AllowsEntityMarker(Type markerType) => markerType != null &&
+            typeof(EntityMarker).IsAssignableFrom(markerType) &&
+            (markerType.Namespace == typeof(Entities.PrefabEntityMarker).Namespace ||
+             markerType == typeof(Vellocet.Sdk.Entities.MapSettingsMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.LightMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.LabelMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.DecalMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.RotateMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TriggerWaterMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TriggerMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TriggerHurtMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TriggerPushMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TriggerTeleportMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.LadderMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TeleportDestinationMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.LogicScriptMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.ButtonMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.AmbientMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.AudioEnvironmentMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.SurfaceMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.DamageableMarker) ||
+             typeof(Vellocet.Sdk.Entities.DoorMarker).IsAssignableFrom(markerType) ||
+             markerType == typeof(Vellocet.Sdk.Entities.TrackTrainMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.ParticleMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.ExplosionMarker) ||
+             markerType == typeof(Vellocet.Sdk.Entities.ScreenShakeMarker));
 
         public override bool AllowsComponent(string typeName, string assemblyName) =>
             assemblyName == "Vellocet.Sdk" && typeName is "Entities.MapObjects.LightStyle" or "UI.HUD.PointOfInterest" or
-                "Vellocet.Sdk.Entities.Doors.DoorSoundSet" or "Vellocet.Sdk.Aneurism.Entities.AnivDoorSettings" or "Vellocet.Sdk.Aneurism.Entities.PrefabEntityPart" ||
+                "Vellocet.Sdk.Entities.Doors.DoorSoundSet" or "Vellocet.Sdk.Aneurism.Entities.AnivDoorSettings" ||
             assemblyName == "Vellocet.Stereoform" && typeName == "Vellocet.Stereoform.AudioEmitter";
 
         public override bool AllowsSourceAsset(string path)
@@ -69,7 +102,7 @@ namespace Vellocet.Sdk.Aneurism
                  path.StartsWith("Assets/ScriptableObjects/PointOfInterest/", StringComparison.Ordinal) ||
                  path.StartsWith("Assets/ScriptableObjects/Environment/Skies/", StringComparison.Ordinal)) && extension == ".asset")
                 return true;
-            return extension is ".fbx" or ".obj" or ".mat" or ".png" or ".jpg" or ".jpeg" or ".tga" or
+            return extension is ".fbx" or ".obj" or ".mtl" or ".mat" or ".png" or ".jpg" or ".jpeg" or ".tga" or
                 ".psd" or ".tif" or ".tiff" or ".exr" or ".hdr" or ".cubemap" or ".shader" or ".shadergraph" or
                 ".shadersubgraph" or ".hlsl" or ".cginc" or ".compute" or ".anim" or ".controller" or ".overridecontroller" or ".mask" or ".ttf" or ".otf";
         }
@@ -93,16 +126,11 @@ namespace Vellocet.Sdk.Aneurism
             (SdkLayerSet.Ragdoll, new[] { "Bones", "LocalBones" })
         };
 
-        private static readonly ModeDescriptor[] GameModes = {
-            new("aneurism", "ANEURISM IV", "mode.aneurism", "default", "persistent-world"),
-            new("gungame", "Gun Game", "mode.gungame", "GunGame"),
-            new("nightmare", "Nightmare", "mode.nightmare", "Nightmare")
-        };
-
         private static readonly SdkAssetRootMapping[] Roots = {
             new("Assets/Art/Materials", Constants.SdkManagedContentRoot + "/Materials"),
             new("Assets/Art/Models", Constants.SdkManagedContentRoot + "/Models"),
             new("Assets/Art/Textures", Constants.SdkManagedContentRoot + "/Textures"),
+            new("Assets/Art/Fonts", Constants.SdkManagedContentRoot + "/Fonts"),
             new("Assets/Art/Shaders", Constants.SdkManagedContentRoot + "/Shaders"),
             new("Assets/Audio", Constants.SdkManagedContentRoot + "/Audio"),
             new("Assets/MapAuthoring/Kits", Constants.SdkEntityKitsRoot),

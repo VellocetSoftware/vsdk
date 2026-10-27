@@ -5,9 +5,9 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_container")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Container")]
-    public sealed class ContainerMarker : PrefabEntityMarker
+    [EntityClass("func_container")]
+    [EntityAuthoring("Services", EntityPlacementKind.Point, "Container")]
+    public sealed class ContainerMarker : ContactOperationMarker
     {
         public enum Kind { Chest, ScumChest, StorageBox, TrashBin, Dumpster, UndergroundLoot, UndergroundLoot2, UndergroundLoot3, UndergroundLoot4, UndergroundLoot5 }
         public enum LootKind { PrefabDefault = -1, None, Common, Underground, All }
@@ -22,9 +22,19 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public int Capacity => capacity;
         public Access Deposits => deposits;
         public Access Opening => opening;
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => Enum.IsDefined(typeof(Kind), kind) ? "aniv.container." + kind.ToString().ToLowerInvariant() : null;
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("open_ui", EntitySignalValueType.None);
+            builder.AddInput("withdraw", EntitySignalValueType.String);
+            builder.AddOutput("deposited", EntitySignalValueType.String);
+            builder.AddOutput("withdrawn", EntitySignalValueType.String);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("capacity", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("is_openable", EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("weight", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("item_count", EntitySignalValueType.Int, true, false);
+        }
     }
 }

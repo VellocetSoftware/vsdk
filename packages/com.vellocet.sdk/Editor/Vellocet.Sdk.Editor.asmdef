@@ -6,11 +6,11 @@
     "Vertex.VSig",
     "Vertex.Unity.Editor",
     "GUID:24d55752787934d0db4f64c2523aec4a",
+    "Unity.Addressables",
     "Unity.Addressables.Editor",
     "Vertex.Unity",
     "Unity.Splines",
     "Unity.Mathematics",
-    "Unity.TextMeshPro",
     "Unity.AI.Navigation",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Universal.Editor",
@@ -30,6 +30,12 @@
   "precompiledReferences": [],
   "autoReferenced": true,
   "defineConstraints": [],
-  "versionDefines": [],
+  "versionDefines": [
+    {
+      "name": "com.vellocet.stereoform",
+      "expression": "0.0.0",
+      "define": "VELLOCET_STEREOFORM"
+    }
+  ],
   "noEngineReferences": false
 }

@@ -31,11 +31,11 @@ namespace Vellocet.Sdk.Editor.Tests
                 var authoringPath = root + "/Authoring.unity";
                 foreach (var path in new[] { authoringPath, compiledPath })
                 {
-                    var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                    var scene = MapTestScenes.CreateEmpty();
                     UnityEngine.SceneManagement.SceneManager.SetActiveScene(scene);
                     GameObject.CreatePrimitive(PrimitiveType.Cube);
                     Assert.That(EditorSceneManager.SaveScene(scene, path), Is.True);
-                    EditorSceneManager.CloseScene(scene, true);
+                    MapTestScenes.Close(scene);
                 }
 
                 var compiled = EditorSceneManager.OpenScene(compiledPath, OpenSceneMode.Additive);
@@ -70,8 +70,8 @@ namespace Vellocet.Sdk.Editor.Tests
                 AssetDatabase.SaveAssets();
 
                 var payloadGuid = AssetDatabase.AssetPathToGUID(payloadPath);
-                var expectedPayload = root + "/Generated/Bakes/" + AssetDatabase.AssetPathToGUID(compiledPath) +
-                                      "/Compiled Baking Set.CellSharedData.bytes";
+                // Payloads stay with the compiled scene; the authoring scene references them in place.
+                var expectedPayload = payloadPath;
 
                 // Forward after a bake, then back into a compile that preserves existing lighting.
                 foreach (var targetPath in new[] { authoringPath, compiledPath })
@@ -90,14 +90,14 @@ namespace Vellocet.Sdk.Editor.Tests
                     Assert.That(ProbePayloadPath(sourceSet, true), Is.EqualTo(expectedPayload),
                         "Per-scenario probe payload paths must refresh too.");
                     var snapshot = MapCompiledBakeSnapshot.Capture(source, mirror.AssetMap);
-                    EditorSceneManager.CloseScene(source, true);
+                    MapTestScenes.Close(source);
                     var target = EditorSceneManager.OpenScene(targetPath, OpenSceneMode.Additive);
                     UnityEngine.SceneManagement.SceneManager.SetActiveScene(target);
                     snapshot.Apply(target, MapCompiledBakeSnapshot.ApplyOptions.LightingOnly);
                     snapshot.Apply(target, MapCompiledBakeSnapshot.ApplyOptions.LightingOnly);
                     Assert.That(EditorSceneManager.SaveScene(target), Is.True);
                     AssetDatabase.SaveAssets();
-                    EditorSceneManager.CloseScene(target, true);
+                    MapTestScenes.Close(target);
                     target = EditorSceneManager.OpenScene(targetPath, OpenSceneMode.Additive);
                     UnityEngine.SceneManagement.SceneManager.SetActiveScene(target);
 
@@ -149,9 +149,9 @@ namespace Vellocet.Sdk.Editor.Tests
                 var compiledPath = root + "/Compiled.unity";
                 foreach (var path in new[] { authoringPath, compiledPath })
                 {
-                    var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                    var scene = MapTestScenes.CreateEmpty();
                     Assert.That(EditorSceneManager.SaveScene(scene, path), Is.True);
-                    EditorSceneManager.CloseScene(scene, true);
+                    MapTestScenes.Close(scene);
                 }
 
                 AssetDatabase.CreateFolder(root, "Compiled");
@@ -182,26 +182,14 @@ namespace Vellocet.Sdk.Editor.Tests
                 Assert.That(MapBakeArtifactFileMirror.CopyCompiledToAuthoring(compiledPath, authoringPath,
                     out var mirror, out var message), Is.True, message);
                 var sharedPath = AssetDatabase.GUIDToAssetPath(guid);
-                StringAssert.StartsWith(root + "/Generated/Bakes/", sharedPath);
-                Assert.That(File.Exists(payload), Is.False);
+                Assert.That(sharedPath, Is.EqualTo(payload), "Payloads stay with the compiled scene.");
                 Assert.That(mirror.Relocated, Is.EqualTo(1));
                 importer = (TextureImporter)AssetImporter.GetAtPath(sharedPath);
                 Assert.That(importer.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
                 Assert.That(importer.sRGBTexture, Is.False);
                 CollectionAssert.Contains(AssetDatabase.GetDependencies(materialPath), sharedPath);
 
-                // A rebake produces a fresh GUID under the original name. Never overwrite a shared asset.
-                File.WriteAllBytes(payload, bytes);
-                AssetDatabase.ImportAsset(payload);
-                var nextGuid = AssetDatabase.AssetPathToGUID(payload);
-                Assert.That(nextGuid, Is.Not.EqualTo(guid));
-                Assert.That(MapBakeArtifactFileMirror.CopyCompiledToAuthoring(compiledPath, authoringPath,
-                    out mirror, out message), Is.True, message);
-                Assert.That(AssetDatabase.GUIDToAssetPath(guid), Is.EqualTo(sharedPath));
-                Assert.That(AssetDatabase.GUIDToAssetPath(nextGuid), Is.Not.EqualTo(sharedPath));
-                Assert.That(Directory.GetFiles(root + "/Generated/Bakes", "*.png", SearchOption.AllDirectories),
-                    Has.Length.EqualTo(2));
-                CollectionAssert.Contains(AssetDatabase.GetDependencies(materialPath), sharedPath);
+                Assert.That(AssetDatabase.IsValidFolder(root + "/Generated"), Is.False, "No shared bake generations accumulate.");
             }
             finally
             {
@@ -231,7 +219,7 @@ namespace Vellocet.Sdk.Editor.Tests
             {
                 var scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
                 if (scene.path.StartsWith(root + "/", StringComparison.Ordinal))
-                    EditorSceneManager.CloseScene(scene, true);
+                    MapTestScenes.Close(scene);
             }
         }
     }

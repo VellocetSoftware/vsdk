@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using TMPro;
+using Vellocet.Sdk.UI;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEditor;
@@ -21,11 +21,15 @@ namespace Vellocet.Sdk.Editor.Entities
     {
         private static EntityPropertyDefinition Field(string id, string name, string type, object value, bool array = false,
             double? min = null, double? max = null, string reference = null, string description = null, string group = null,
-            EntityWarningCondition[] visibleWhen = null) => new()
-        { Id = id, Name = name, Type = type, DefaultValue = value, IsArray = array, Minimum = min, Maximum = max, ReferenceType = reference, Description = description, Group = group, VisibleWhen = visibleWhen };
+            EntityWarningCondition[] visibleWhen = null, string units = null) => new()
+        { Id = id, Name = name, Type = type, DefaultValue = value, IsArray = array, Minimum = min, Maximum = max, ReferenceType = reference, Description = description, Group = group, VisibleWhen = visibleWhen, Units = units };
 
         internal static EntityPropertyDefinition Describe(EntityMarker marker, string id)
         {
+            if (marker is MapSettingsMarker && id == "playable_bounds_size")
+                return Field(id, "Playable bounds size", "vector3", new object[] { 1000d, 1000d, 1000d }, min: .01,
+                    group: "Cleanup", description: "World size in metres, centered on this map settings entity. Cleanup adds a 64 metre margin.",
+                    visibleWhen: new[] { new EntityWarningCondition { Property = "override_playable_bounds", Values = new object[] { true } } });
             if (id == "effect" && marker is ParticleMarker) return new EntityPropertyDefinition
             {
                 Id = id, Name = "Effect", Type = "asset", ReferenceType = "prefab", AssetRole = "effect",
@@ -62,7 +66,12 @@ namespace Vellocet.Sdk.Editor.Entities
 
         internal static IEnumerable<EntityPropertyDefinition> Additional(EntityMarker marker)
         {
-            foreach (var field in CapturedProperties(marker)) yield return field;
+            foreach (var field in CapturedProperties(marker))
+            {
+                // Keep imported renderer settings for round-tripping, out of the authoring UI.
+                if (marker is ILightEntityMarker && field.Group == "Light") field.Hidden = true;
+                yield return field;
+            }
             if(marker is DoorMarker)
                 foreach(Vellocet.Sdk.Entities.Doors.DoorSoundAction action in Enum.GetValues(typeof(Vellocet.Sdk.Entities.Doors.DoorSoundAction)))
                     yield return new EntityPropertyDefinition {Id="sound_"+Vertex.Contracts.EntitySignalNameUtility.Normalize(action.ToString()),Name=ObjectNames.NicifyVariableName(action.ToString()),Type="asset",ReferenceType="audio",DefaultValue=null,Group="Sound overrides",
@@ -88,9 +97,9 @@ namespace Vellocet.Sdk.Editor.Entities
                         : "Point or Spot. This light animates at runtime." };
                 yield return Field("color", "Color", "color", new object[] { 1d, 1d, 1d, 1d }, group: "Light");
                 yield return Field("intensity", "Intensity", "number", 1d, min: 0, max: 1000000, group: "Light");
-                yield return Field("range", "Range (metres)", "number", 10d, min: 0, max: 1000000, group: "Light", visibleWhen: LightTypes(LightType.Point, LightType.Spot));
-                if (lightMarker.SupportsAreaLight) yield return Field("area_size", "Area size (metres)", "vector2", new object[] { 1d, 1d }, group: "Light", visibleWhen: LightTypes(LightType.Rectangle, LightType.Disc));
-                yield return Field("spot_angle", "Spot angle", "number", 30d, min: 1, max: 179, group: "Light", visibleWhen: LightTypes(LightType.Spot));
+                yield return Field("range", "Range", "number", 10d, min: 0, max: 1000000, group: "Light", visibleWhen: LightTypes(LightType.Point, LightType.Spot), units: "metres");
+                if (lightMarker.SupportsAreaLight) yield return Field("area_size", "Area size", "vector2", new object[] { 1d, 1d }, group: "Light", visibleWhen: LightTypes(LightType.Rectangle, LightType.Disc), units: "metres");
+                yield return Field("spot_angle", "Spot angle", "number", 30d, min: 1, max: 179, group: "Light", visibleWhen: LightTypes(LightType.Spot), units: "degrees");
                 yield return Field("shadows", "Cast shadows", "bool", true, group: "Light");
                 yield return Field("enabled", "Start on", "bool", true, group: "Light");
                 yield return Field("cookie", "Cookie", "asset", null, reference: "texture", group: "Light");
@@ -99,6 +108,11 @@ namespace Vellocet.Sdk.Editor.Entities
             {
                 yield return Field("color", "Color", "color", new object[] { 1d, 1d, 1d, 1d }, group: "Text");
                 yield return Field("font_size", "Font size", "number", 36d, min: .01, max: 1000, group: "Text");
+                yield return new EntityPropertyDefinition { Id = "font", Name = "Font", Type = "asset", ReferenceType = "data", AssetRole = "font",
+                    DefaultValue = null, Group = "Text", Description = "Typeface for this label. None uses the installed game's default font." };
+                yield return new EntityPropertyDefinition { Id = "font_style", Name = "Font style", Type = "enum", DefaultValue = 0, Group = "Text",
+                    Choices = Enum.GetValues(typeof(FontStyle)).Cast<FontStyle>().Select(style => new EntityPropertyChoice {
+                        Id = EntitySignalNameUtility.Normalize(style.ToString()), Name = ObjectNames.NicifyVariableName(style.ToString()), Value = (int)style }).ToArray() };
             }
         }
 
@@ -140,12 +154,14 @@ namespace Vellocet.Sdk.Editor.Entities
             }
             if (marker is LabelMarker)
             {
-                var label = marker.GetComponent<TextMeshPro>();
+                var label = marker.GetComponent<WorldText>();
                 switch (id)
                 {
                     case "label": label.text = (string)value; return true;
                     case "color": label.color = ColorValue(); return true;
                     case "font_size": label.fontSize = Number(); return true;
+                    case "font": label.FontAsset = (Font)ResolveAsset(typeof(Font), value, context); return true;
+                    case "font_style": label.FontStyle = (FontStyle)Convert.ToInt32(value); return true;
                 }
             }
             if (id == "arguments" && marker is LogicScriptMarker)

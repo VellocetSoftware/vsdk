@@ -5,13 +5,15 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_laundry_bin")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Laundry Bin")]
+    [EntityClass("func_laundry_bin")]
+    [EntityAuthoring("Laundry", EntityPlacementKind.Point, "Laundry Bin", Description = "Accepts folded laundry. Rewards and acceptance follow acknowledged item retirement.")]
     public sealed class LaundryBinMarker : PrefabEntityMarker
     {
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddOutput("accepted", EntitySignalValueType.None);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+        }
         public override string ArchetypeId => "aniv.laundry-bin";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
     }
 }

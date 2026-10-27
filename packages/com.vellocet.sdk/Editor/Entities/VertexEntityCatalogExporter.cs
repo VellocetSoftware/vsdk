@@ -16,9 +16,17 @@ namespace Vellocet.Sdk.Editor.Entities
     /// <summary>Exports existing SDK metadata; Unity serialization paths stay in the SDK.</summary>
     public static class VertexEntityCatalogExporter
     {
-        [MenuItem("Tools/Vertex/Export Entity Catalog")]
+        private const string MenuPath = "Tools/Vellocet/SDK/Export Entity Catalog…";
+
+        [MenuItem(MenuPath, true)]
+        private static bool CanExport() => !EditorApplication.isPlayingOrWillChangePlaymode &&
+                                           !EditorApplication.isCompiling && !EditorApplication.isUpdating &&
+                                           !BuildPipeline.isBuildingPlayer;
+
+        [MenuItem(MenuPath, false, 502)]
         public static void ExportInteractive()
         {
+            if (!CanExport()) return;
             var path = EditorUtility.SaveFilePanel("Export Vertex entity catalog", "", "vellocet.vertexentities", "json");
             if (!string.IsNullOrEmpty(path)) Export(path);
         }
@@ -37,7 +45,14 @@ namespace Vellocet.Sdk.Editor.Entities
             var bytes = Create().Serialize();
             var destination = Path.GetFullPath(path);
             Directory.CreateDirectory(Path.GetDirectoryName(destination));
-            Model.ProfileFiles.Publish(destination, bytes);
+            var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                File.WriteAllBytes(temporary, bytes);
+                if (File.Exists(destination)) File.Replace(temporary, destination, null);
+                else File.Move(temporary, destination);
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
         }
 
         private static string Icon(string assetPath)
@@ -70,6 +85,8 @@ namespace Vellocet.Sdk.Editor.Entities
                     entities.Add(new Model.EntityTypeDefinition
                     {
                         Id = info.EntityClassName, Name = info.DisplayName, Category = info.Category,
+                        Description = info.MarkerType.GetCustomAttribute<EntityAuthoringAttribute>()?.Description,
+                        HiddenFromPlacement = info.MarkerType.GetCustomAttribute<EntityAuthoringAttribute>()?.HiddenFromPlacement == true,
                         IconPng = Icon(marker.IconPath),
                         AvatarModel = marker.AvatarModel,
                         Placement = info.PlacementKind.ToString().ToLowerInvariant(),
@@ -86,7 +103,8 @@ namespace Vellocet.Sdk.Editor.Entities
                             {
                                 Name = member.NormalizedName, Kind = (Model.EntitySignalMemberKind)member.Kind,
                                 ValueType = (Model.EntitySignalValueType)member.ValueType, Authority = (Model.EntitySignalAuthority)member.Authority,
-                                Readable = member.Readable, Writable = member.Writable, TypeName = member.TypeName
+                                Readable = member.Readable, Writable = member.Writable, TypeName = member.TypeName,
+                                Description = SignalDescription(member.NormalizedName, member.Kind.ToString())
                             }).OrderBy(member => member.Kind).ThenBy(member => member.Name, StringComparer.Ordinal).ToArray(),
                         Properties = Properties(marker, diagnostics),
                         Warnings = VertexEntityProperties.Warnings(marker)
@@ -109,6 +127,26 @@ namespace Vellocet.Sdk.Editor.Entities
             catalog.Validate();
             return catalog;
         }
+
+        private static string SignalDescription(string name, string kind) => name switch
+        {
+            "started" => "Emitted after the operation reserves its inputs and begins processing.",
+            "completed" => "Emitted after successful publication of the converted items.",
+            "cancelled" => "Emitted when an admitted operation is cancelled before committing.",
+            "rejected" => "Emitted for a valid but refused operation. The value is a stable reason ID.",
+            "accepted" => "Emitted after a matching delivered item is successfully retired.",
+            "busy" => "True while this entity owns an unfinished operation.",
+            "progress" => "Processing fraction from 0 to 1.",
+            "is_open" => "Current native door state.",
+            "session_opened" => "Emitted when a validated user opens an app. The value names the native app.",
+            "session_closed" => "Emitted once when an active terminal session ends.",
+            "ignited" => "Emitted after ignition enables the native hazard and replicated effects.",
+            "extinguished" => "Emitted after extinguishing disables the native hazard and replicated effects.",
+            "is_lit" => "Replicated ignition state, including for late joiners.",
+            "station_changed" => "Emitted after tuning completes. The value is the station index.",
+            "interaction_performed" => "Emitted after the native interaction accepts the captured actor.",
+            _ => kind + ": " + name.Replace('_', ' ') + "."
+        };
 
         private static Model.EntityPropertyDefinition[] Properties(EntityMarker marker, List<Model.EntityCatalogDiagnostic> diagnostics)
         {
@@ -185,7 +223,14 @@ namespace Vellocet.Sdk.Editor.Entities
             if (kind == "entity" && type.IsSealed) definition.ReferenceType = EntityMarker.GetEntityClassName(type);
             if (kind == "asset") definition.ReferenceType = AssetKind(type);
             if (type == typeof(Sprite)) definition.AssetRole = "sprite";
+            else if (type == typeof(Font)) definition.AssetRole = "font";
             else if(type.GetCustomAttribute<Model.CatalogAssetRoleAttribute>() is { } role)definition.AssetRole=role.Role;
+            if (field.GetCustomAttribute<EntityStringChoicesAttribute>() is { } choices)
+            {
+                definition.Editor = "choice";
+                definition.Choices = Enumerable.Range(0, choices.Choices.Length / 2).Select(i => new Model.EntityPropertyChoice
+                    { Id = choices.Choices[i * 2], Name = choices.Choices[i * 2 + 1] }).ToArray();
+            }
             if (type.IsEnum)
                 definition.Choices = Enum.GetNames(type).Select(choice => new Model.EntityPropertyChoice
                 {
@@ -232,9 +277,12 @@ namespace Vellocet.Sdk.Editor.Entities
             if (typeof(Texture).IsAssignableFrom(type) || type == typeof(Sprite)) return "texture";
             if (type == typeof(Mesh)) return "model";
             if (type == typeof(GameObject)) return "prefab";
-            if (type == typeof(AudioClip) || typeof(Vellocet.Stereoform.AudioEventReference).IsAssignableFrom(type)) return "audio";
+#if VELLOCET_STEREOFORM
+            if (typeof(Vellocet.Stereoform.AudioEventReference).IsAssignableFrom(type)) return "audio";
+#endif
+            if (type == typeof(AudioClip)) return "audio";
             if (type == typeof(TextAsset)) return "text";
-            if (typeof(ScriptableObject).IsAssignableFrom(type)) return "data";
+            if (type == typeof(Font) || typeof(ScriptableObject).IsAssignableFrom(type)) return "data";
             return null;
         }
 

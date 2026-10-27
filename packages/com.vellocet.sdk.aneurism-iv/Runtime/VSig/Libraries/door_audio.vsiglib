@@ -1,0 +1,14 @@
+# Optional feedback for an independently authored brush door.
+module door_audio:
+    ref door: func_door match "*"
+    ref opening: env_ambient match OpenAudio
+    ref closing: env_ambient match CloseAudio
+    client on door.opening:
+        closing.stop()
+        opening.play()
+    client on door.closing:
+        opening.stop()
+        closing.play()
+    client on door.killed:
+        opening.stop()
+        closing.stop()

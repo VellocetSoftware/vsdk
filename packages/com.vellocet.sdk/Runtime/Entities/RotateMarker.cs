@@ -10,7 +10,7 @@ using Vellocet.Sdk.Entities.States;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("func_rotate")]
-    [EntityAuthoring("World", EntityPlacementKind.Volume, "Rotate")]
+    [EntityAuthoring("Movement", EntityPlacementKind.Volume, "Rotate")]
     public sealed class RotateMarker : MovingBrushEntityMarker<RotateMarker.Input, RotateMarker.Output>
     {
         [Flags]

@@ -1,3 +1,4 @@
+#if VELLOCET_STEREOFORM
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -56,6 +57,20 @@ namespace Vellocet.Sdk.Editor.Tests
             Assert.That(data.softShadowQuality, Is.EqualTo(SoftShadowQuality.High));
             Assert.That(data.customShadowLayers, Is.True);
             Assert.That((uint)data.renderingLayers, Is.EqualTo(4)); Assert.That((uint)data.shadowRenderingLayers, Is.EqualTo(2));
+            var fields = EntityCatalog.Deserialize(catalog.Serialize()).Entities.Single(entity => entity.Id == "env_light").Properties;
+            foreach (var id in new[] { "use_pipeline_bias", "shadow_resolution_tier", "shadow_resolution", "shadow_custom_resolution",
+                         "soft_shadow_quality", "custom_shadow_layers", "urp_rendering_layers", "shadow_rendering_layers",
+                         "shadow_bias", "shadow_normal_bias", "shadow_near_plane", "culling_mask", "rendering_layer_mask" })
+                Assert.That(fields.Single(field => field.Id == id).Hidden, Is.True, id);
+            foreach (var id in new[] { "light_type", "color", "intensity", "range", "spot_angle", "shadows" })
+                Assert.That(fields.Single(field => field.Id == id).Hidden, Is.False, id);
+            foreach (var enabled in new[] { false, true })
+            {
+                map.Containers[0].Entity.Properties = new[] { Value("shadow_mode", enabled ? 0 : 2), Value("shadows", enabled) };
+                using var toggled = VertexMapBuilder.Build(map, (_, _) => null);
+                Assert.That(toggled.Root.GetComponentInChildren<Light>(true).shadows,
+                    Is.EqualTo(enabled ? LightShadows.Soft : LightShadows.None), "Cast shadows overrides the imported mode.");
+            }
         }
 
         [Test]
@@ -96,3 +111,4 @@ namespace Vellocet.Sdk.Editor.Tests
         private static EntityPropertyValue Value(string id, object value) => new() { Id = id, Value = value };
     }
 }
+#endif

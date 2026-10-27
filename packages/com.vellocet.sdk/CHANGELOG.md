@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.1.0
+
+- Brings the ANEURISM IV and Grimwar SDK copies back to one source; both games vendor this package unchanged.
+- Adds `VertexBaseMapSave` and `BaseMapCompile`: one Vertex base-map save and compile flow for every game. A map folder holds its
+  Vertex sources, `MapDefinition` and a single `Compiled` folder; the source scene and imported mesh are temporary.
+- Keeps lightmaps and probe data with the compiled scene instead of shared `Generated/Bakes` generations, and copies
+  imported materials with compiled geometry so compiled maps never depend on the `.vertexmesh` importer.
+- Compiles Stereoform audio only when `com.vellocet.stereoform` is installed (`VELLOCET_STEREOFORM`); other games keep
+  their own audio runtime through `SdkGameDefinition.AudioRuntimeCapability`.
+- Lets publishers choose their distribution folder through `SdkPublisher.DistributionRoot`.
+
 ## 2.0.0
 
 - Separates shared contracts and compiler tooling from Grimwar and ANEURISM IV authoring packages.

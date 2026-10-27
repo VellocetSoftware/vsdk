@@ -22,6 +22,104 @@ namespace Vellocet.Sdk.Tests.Editor
 {
     public sealed class MapPackageAssetsTests
     {
+        [TestCase("cellSharedDataAsset")]
+        [TestCase("cellBricksDataAsset")]
+        [TestCase("cellSupportDataAsset")]
+        [TestCase("cellDataAsset")]
+        [TestCase("cellOptionalDataAsset")]
+        [TestCase("cellProbeOcclusionDataAsset")]
+        public void ProbeVolumeBlobs_CanExceedTheTextLimitInBothDependencyAudits(string field)
+        {
+            var root = "Assets/ProbeVolumePolicyCheck-" + Guid.NewGuid().ToString("N");
+            var setup = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                AssetDatabase.CreateFolder("Assets", Path.GetFileName(root));
+                // A renamed binary asset must be recognized from its baking set, not its filename.
+                var path = root + "/RenamedPayload.bytes";
+                File.WriteAllBytes(path, new byte[11 * 1024 * 1024]);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+                var payload = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                var set = ScriptableObject.CreateInstance(Type.GetType(
+                    "UnityEngine.Rendering.ProbeVolumeBakingSet, Unity.RenderPipelines.Core.Runtime", true));
+                var setPath = root + "/BakingSet.asset";
+                AssetDatabase.CreateAsset(set, setPath);
+                var perScenario = field is "cellDataAsset" or "cellOptionalDataAsset" or "cellProbeOcclusionDataAsset";
+                if (perScenario)
+                {
+                    var scenarios = (System.Collections.IDictionary)set.GetType().GetField("scenarios",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(set);
+                    scenarios.Add("Default", Activator.CreateInstance(scenarios.GetType().GetGenericArguments()[1]));
+                }
+                using (var serialized = new SerializedObject(set))
+                {
+                    var streamable = perScenario
+                        ? serialized.FindProperty("scenarios.m_Values").GetArrayElementAtIndex(0).FindPropertyRelative(field)
+                        : serialized.FindProperty(field);
+                    streamable.FindPropertyRelative("m_Asset").objectReferenceValue = payload;
+                    streamable.FindPropertyRelative("m_AssetGUID").stringValue = AssetDatabase.AssetPathToGUID(path);
+                    serialized.ApplyModifiedPropertiesWithoutUndo();
+                }
+                AssetDatabase.SaveAssets();
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                Assert.That(EditorSceneManager.SaveScene(scene, root + "/Dependency.unity"), Is.True);
+                var dependencies = new[]
+                {
+                    new MapCompiler.RuntimeDependency(AssetDatabase.AssetPathToGUID(path), "tests/probe-payload"),
+                    new MapCompiler.RuntimeDependency(AssetDatabase.AssetPathToGUID(setPath), "tests/probe-set")
+                };
+                Assert.That(AddonScenePolicy.TryValidate(scene, dependencies, out var error), Is.True, error);
+                set = AssetDatabase.LoadAssetAtPath<ScriptableObject>(setPath);
+                payload = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                Assert.That(AddonScenePolicy.TryValidate(scene, dependencies, out error,
+                    new Object[] { payload, set, payload }), Is.True,
+                    "Player dependencies must pass even when a blob precedes its baking set: " + error);
+                Assert.That(AddonScenePolicy.TryValidate(scene, dependencies, out error,
+                    new Object[] { payload }), Is.False,
+                    "A filename or earlier audit must not grant a larger budget without a referenced baking set.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(root);
+                if (setup.Any(scene => scene.isActive && scene.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
+            }
+        }
+
+        [TestCase(8 * 1024 * 1024, true)]
+        [TestCase(8 * 1024 * 1024 + 1, false)]
+        public void OrdinaryTextAssets_KeepTheEightMiBByteLimit(int bytes, bool accepted)
+        {
+            var root = "Assets/TextPolicyCheck-" + Guid.NewGuid().ToString("N");
+            var setup = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                AssetDatabase.CreateFolder("Assets", Path.GetFileName(root));
+                var path = root + "/Fake Baking Set.CellSupportData.bytes";
+                File.WriteAllBytes(path, new byte[bytes]);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+                var payload = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                Assert.That(EditorSceneManager.SaveScene(scene, root + "/Dependency.unity"), Is.True);
+                var dependencies = new[] { new MapCompiler.RuntimeDependency(
+                    AssetDatabase.AssetPathToGUID(path), "tests/ordinary-text") };
+                Assert.That(AddonScenePolicy.TryValidate(scene, dependencies, out var error), Is.EqualTo(accepted), error);
+                Assert.That(AddonScenePolicy.TryValidate(scene, dependencies, out error,
+                    new Object[] { payload }), Is.EqualTo(accepted), error);
+                if (!accepted)
+                {
+                    Assert.That(error, Does.Contain(bytes.ToString()));
+                    Assert.That(error, Does.Contain("8388608"));
+                }
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(root);
+                if (setup.Any(scene => scene.isActive && scene.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
+            }
+        }
+
         [Test]
         public void AuthoredArrays_StillRejectMoreThan65536Elements()
         {

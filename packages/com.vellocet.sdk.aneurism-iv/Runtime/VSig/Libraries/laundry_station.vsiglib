@@ -1,0 +1,37 @@
+module laundry_station:
+    ref processor: func_item_processor match "*"
+    ref request: func_button match "Request"
+    ref doors: func_rotate match "Door*"
+    ref status: info_label match "Status"
+    ref running: env_ambient match Running
+    ref finished: env_ambient match Finished
+    ref door_open: env_ambient match DoorOpen
+    ref door_close: env_ambient match DoorClose
+    server on request.pressed:
+        processor.start()
+    server on processor.started:
+        request.disable()
+        doors.close()
+        door_close.play()
+        running.play()
+        status.set_text("PROCESSING")
+    server on processor.completed:
+        finished.play()
+        doors.open()
+        running.stop()
+        door_open.play()
+        request.enable()
+        status.set_text("COMPLETED")
+    server on processor.cancelled:
+        doors.open()
+        running.stop()
+        door_open.play()
+        request.enable()
+        status.set_text("CANCELLED / INPUTS RELEASED")
+    server on processor.rejected(reason: string):
+        if not processor.busy:
+            doors.open()
+            running.stop()
+            door_open.play()
+            request.enable()
+        status.set_text(reason)

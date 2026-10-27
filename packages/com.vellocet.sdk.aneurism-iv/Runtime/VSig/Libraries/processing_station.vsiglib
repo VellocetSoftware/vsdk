@@ -1,0 +1,24 @@
+module processing_station:
+    ref processor: func_item_processor match "*"
+    ref request: func_button match "Request"
+    ref doors: func_door match "Door*"
+    ref status: info_label match "Status"
+    server on request.pressed:
+        processor.start()
+    server on processor.started:
+        request.disable()
+        doors.close()
+        status.set_text("PROCESSING")
+    server on processor.completed:
+        doors.open()
+        request.enable()
+        status.set_text("COMPLETED")
+    server on processor.cancelled:
+        doors.open()
+        request.enable()
+        status.set_text("CANCELLED / INPUTS RELEASED")
+    server on processor.rejected(reason: string):
+        if not processor.busy:
+            doors.open()
+            request.enable()
+        status.set_text(reason)

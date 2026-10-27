@@ -8,7 +8,7 @@ using Vellocet.Sdk.Entities.Base;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("env_light")]
-    [EntityAuthoring("Visuals", EntityPlacementKind.Point, "Light")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Point, "Light")]
     [RequireComponent(typeof(Light))]
     public sealed class LightMarker : EntityMarker<LightMarker.Input, LightMarker.Output>, ILightEntityMarker
     {

@@ -16,6 +16,7 @@ namespace Vellocet.Sdk.Editor.Tests
 {
     public sealed class MediaContentTests
     {
+#if VELLOCET_STEREOFORM // Map sounds become audio content only through Stereoform banks.
         [Test]
         public void MapMedia_PackagesOneSoundAndKeepsProviderRequirements()
         {
@@ -64,6 +65,7 @@ namespace Vellocet.Sdk.Editor.Tests
             }
             finally { AssetDatabase.DeleteAsset(root); if (Directory.Exists(output)) Directory.Delete(output, true); }
         }
+#endif
 
         [TestCase(false)]
         [TestCase(true)]

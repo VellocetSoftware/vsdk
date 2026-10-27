@@ -15,7 +15,7 @@ using UnityEditor;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("func_tracktrain")]
-    [EntityAuthoring("World", EntityPlacementKind.Volume, "Track Train")]
+    [EntityAuthoring("Movement", EntityPlacementKind.Volume, "Track Train")]
     public sealed class TrackTrainMarker : MovingBrushEntityMarker<TrackTrainMarker.Input, TrackTrainMarker.Output>, ISplineEntityMarker
     {
         public enum Input

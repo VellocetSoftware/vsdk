@@ -1,0 +1,5 @@
+module laundry_turn_in:
+    ref turn_in: trigger_laundry_turn_in match "*"
+    ref accepted_audio: env_ambient match Accepted
+    server on turn_in.accepted:
+        accepted_audio.play()

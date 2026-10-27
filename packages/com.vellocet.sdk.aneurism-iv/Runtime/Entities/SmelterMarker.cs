@@ -5,13 +5,20 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_smelter")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Smelter")]
-    public sealed class SmelterMarker : PrefabEntityMarker
+    [EntityClass("func_smelter")]
+    [EntityAuthoring("Industry", EntityPlacementKind.Point, "Smelter")]
+    public sealed class SmelterMarker : ContactOperationMarker
     {
         public override string ArchetypeId => "aniv.smelter";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddOutput("fuel_added", EntitySignalValueType.None);
+            builder.AddOutput("fuel_depleted", EntitySignalValueType.None);
+            builder.AddOutput("heated", EntitySignalValueType.None);
+            builder.AddOutput("cooled", EntitySignalValueType.None);
+            builder.AddProperty("heat", EntitySignalValueType.Float, true, false);
+            builder.AddProperty("fuel_seconds", EntitySignalValueType.Float, true, false);
+            builder.AddProperty("is_heated", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

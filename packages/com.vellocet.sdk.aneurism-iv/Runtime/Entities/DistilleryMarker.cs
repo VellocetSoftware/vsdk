@@ -5,15 +5,25 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_distillery")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Distillery")]
+    [EntityClass("func_distillery")]
+    [EntityAuthoring("Industry", EntityPlacementKind.Point, "Distillery")]
     public sealed class DistilleryMarker : PoweredMachineMarker
     {
         [SerializeField, Min(0)] private float drainScale = 0.15f;
         public override float DrainScale => drainScale;
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.distillery";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            base.ConfigureSignalContract(builder);
+            builder.AddInput("bottle", EntitySignalValueType.None);
+            builder.AddInput("open_ui", EntitySignalValueType.None);
+            builder.AddOutput("ingredient_added", EntitySignalValueType.None);
+            builder.AddOutput("ready", EntitySignalValueType.None);
+            builder.AddOutput("completed", EntitySignalValueType.None);
+            builder.AddProperty("temperature", EntitySignalValueType.Float, true, false);
+            builder.AddProperty("ready_count", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("processing_count", EntitySignalValueType.Int, true, false);
+        }
     }
 }

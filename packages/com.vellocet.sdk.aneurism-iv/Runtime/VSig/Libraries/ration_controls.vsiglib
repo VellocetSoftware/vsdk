@@ -1,0 +1,23 @@
+module ration_controls:
+    ref machine: func_lunch_machine match "*"
+    ref plus: func_button match "Plus"
+    ref minus: func_button match "Minus"
+    ref clear: func_button match "Clear"
+    ref submit: func_button match "Submit"
+    ref question: info_label match "Question"
+    ref answer: info_label match "Answer"
+    server on plus.pressed:
+        machine.plus()
+    server on minus.pressed:
+        machine.minus()
+    server on clear.pressed:
+        machine.clear()
+    server on submit.pressed:
+        machine.enter()
+    server on map.ready:
+        question.set_text(machine.question)
+        answer.set_text(string(machine.answer))
+    server on machine.challenge_changed(text: string):
+        question.set_text(text)
+    server on machine.answer_changed(value: int):
+        answer.set_text(string(value))

@@ -5,13 +5,17 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_vent")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Vent")]
-    public sealed class VentMarker : PrefabEntityMarker
+    [EntityClass("func_vent")]
+    [EntityAuthoring("Infrastructure", EntityPlacementKind.Point, "Vent")]
+    public sealed class VentMarker : OperationEntityMarker
     {
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.vent";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("request_cash", EntitySignalValueType.None);
+            builder.AddOutput("cash_dispensed", EntitySignalValueType.None);
+            builder.AddOutput("paid", EntitySignalValueType.Int);
+        }
     }
 }

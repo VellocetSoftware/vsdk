@@ -51,8 +51,10 @@ namespace Vellocet.Sdk.Editor.Maps
             var colliders = MapSceneTraversalUtility.GetComponents<MeshCollider>(scene);
             var skins = MapSceneTraversalUtility.GetComponents<SkinnedMeshRenderer>(scene);
             var meshes = filters.Select(f => f.sharedMesh).Concat(colliders.Select(c => c.sharedMesh))
-                .Concat(skins.Select(s => s.sharedMesh)).Where(IsVertexMesh).Distinct().ToArray();
-            if (meshes.Length == 0)
+                .Concat(skins.Select(s => s.sharedMesh)).Where(IsVertexAsset).Distinct().ToArray();
+            var renderers = MapSceneTraversalUtility.GetComponents<Renderer>(scene);
+            var materials = renderers.SelectMany(r => r.sharedMaterials).Where(IsVertexAsset).Distinct().ToArray();
+            if (meshes.Length == 0 && materials.Length == 0)
             {
                 message = "No source Vertex meshes need copying.";
                 return true;
@@ -70,7 +72,8 @@ namespace Vellocet.Sdk.Editor.Maps
             // The scene must own these meshes. Retaining importer subassets lets a failed
             // source reimport erase the world from an otherwise valid baked scene.
             var copies = new Dictionary<Mesh, Mesh>();
-            Mesh main = null;
+            var materialCopies = new Dictionary<Material, Material>();
+            Object main = null;
             try
             {
                 foreach (var mesh in meshes)
@@ -81,6 +84,14 @@ namespace Vellocet.Sdk.Editor.Maps
                     if (!main) { AssetDatabase.CreateAsset(copy, path); main = copy; }
                     else AssetDatabase.AddObjectToAsset(copy, main);
                     copies.Add(mesh, copy);
+                }
+                // Imported terrain blend materials are importer subassets too; the source mesh is a build input only.
+                foreach (var material in materials)
+                {
+                    var copy = new Material(material) { name = material.name, hideFlags = HideFlags.None };
+                    if (!main) { AssetDatabase.CreateAsset(copy, path); main = copy; }
+                    else AssetDatabase.AddObjectToAsset(copy, main);
+                    materialCopies.Add(material, copy);
                 }
                 AssetDatabase.SaveAssetIfDirty(main);
             }
@@ -100,13 +111,21 @@ namespace Vellocet.Sdk.Editor.Maps
             foreach (var skin in skins)
                 if (skin.sharedMesh && copies.TryGetValue(skin.sharedMesh, out var mesh))
                 { skin.sharedMesh = mesh; references++; }
+            foreach (var renderer in renderers)
+            {
+                var shared = renderer.sharedMaterials;
+                var changed = false;
+                for (var i = 0; i < shared.Length; i++)
+                    if (shared[i] && materialCopies.TryGetValue(shared[i], out var material)) { shared[i] = material; changed = true; references++; }
+                if (changed) renderer.sharedMaterials = shared;
+            }
             EditorSceneManager.MarkSceneDirty(scene);
-            message = $"Stored {copies.Count} Vertex mesh(es) with the compiled scene and replaced {references} render/collision reference(s).";
+            message = $"Stored {copies.Count} Vertex mesh(es) and {materialCopies.Count} material(s) with the compiled scene and replaced {references} render/collision reference(s).";
             return true;
         }
 
-        private static bool IsVertexMesh(Mesh mesh) => mesh &&
-            AssetDatabase.GetAssetPath(mesh).EndsWith(".vertexmesh", StringComparison.OrdinalIgnoreCase);
+        private static bool IsVertexAsset(Object asset) => asset &&
+            AssetDatabase.GetAssetPath(asset).EndsWith(".vertexmesh", StringComparison.OrdinalIgnoreCase);
     }
 }
 #endif

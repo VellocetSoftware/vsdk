@@ -5,16 +5,36 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_rot_node")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Rot Node")]
+    [EntityClass("info_rot_node")]
+    [EntityAuthoring("Environment / Rot", EntityPlacementKind.Point, "Rot Node", Description = "Registers automatically with the map rot service. Choose Rot or Zakazen and whether nearby players can be infected.")]
     public sealed class RotNodeMarker : PrefabEntityMarker
     {
         public enum Kind { Rot, Zakazen }
         [SerializeField] private Kind kind;
+        [SerializeField] private bool startsDisabled;
+        [SerializeField] private bool infectionEnabled = true;
         public Kind Variant => kind;
-        public override string ArchetypeId => "aniv.rot-node";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public bool StartsDisabled => startsDisabled;
+        public bool InfectionEnabled => infectionEnabled;
+        public override string ArchetypeId => kind == Kind.Rot ? "aniv.rot-node" : "aniv.zakazen-node";
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("enable", EntitySignalValueType.None);
+            builder.AddInput("disable", EntitySignalValueType.None);
+            builder.AddInput("toggle", EntitySignalValueType.None);
+            builder.AddInput("enable_infection", EntitySignalValueType.None);
+            builder.AddInput("disable_infection", EntitySignalValueType.None);
+            builder.AddOutput("enabled", EntitySignalValueType.None);
+            builder.AddOutput("disabled", EntitySignalValueType.None);
+            builder.AddOutput("infection_applied", EntitySignalValueType.Float);
+            builder.AddProperty("is_enabled", EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("infection_enabled", EntitySignalValueType.Bool, true, false);
+            builder.AddOutput("spawned", EntitySignalValueType.None);
+            builder.AddOutput("died", EntitySignalValueType.None);
+            builder.AddOutput("drop_rejected", EntitySignalValueType.None);
+            builder.AddProperty("is_spawned", EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("health", EntitySignalValueType.Float, true, false);
+            builder.AddProperty("growth", EntitySignalValueType.Float, true, false);
+        }
     }
 }

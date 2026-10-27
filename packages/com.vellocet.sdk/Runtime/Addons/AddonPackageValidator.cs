@@ -279,11 +279,13 @@ namespace Vellocet.Sdk.Addons
             AddonManifest.ContentEntry content, out string error)
         {
             error = null;
+#if VELLOCET_STEREOFORM
             if (SdkGame.Current.AudioRuntimeCapability == AddonAudioBanks.Capability)
             {
                 try { AddonAudioBanks.Validate(addonRoot, manifest, content); return true; }
                 catch (Exception ex) { error = "Invalid Stereoform audio: " + ex.Message; return false; }
             }
+#endif
             var audio = content.audio;
             if (audio == null)
             {
@@ -322,7 +324,7 @@ namespace Vellocet.Sdk.Addons
                     return false;
                 }
 
-                var info = new FileInfo(absolutePath);
+                var info = new FileInfo(SdkFilePathUtility.ForIo(absolutePath));
                 if (info.Length != file.size)
                 {
                     error = $"Audio content '{content.id}' file '{normalizedPath}' has the wrong size.";
@@ -537,7 +539,7 @@ namespace Vellocet.Sdk.Addons
                     return false;
                 }
 
-                var info = new FileInfo(absolutePath);
+                var info = new FileInfo(SdkFilePathUtility.ForIo(absolutePath));
                 if (info.Length != file.size)
                 {
                     error = $"Map '{mapId}' platform '{platform.name}' file '{normalizedPath}' has the wrong size.";
@@ -703,7 +705,7 @@ namespace Vellocet.Sdk.Addons
             string label, out string error)
         {
             error = null;
-            var before = new FileInfo(absolutePath);
+            var before = new FileInfo(SdkFilePathUtility.ForIo(absolutePath));
             if (!before.Exists)
             {
                 error = $"{label} is missing.";
@@ -719,7 +721,7 @@ namespace Vellocet.Sdk.Addons
                 return false;
             }
 
-            var after = new FileInfo(absolutePath);
+            var after = new FileInfo(SdkFilePathUtility.ForIo(absolutePath));
             if (!after.Exists || after.Length != lengthBefore || after.LastWriteTimeUtc != writeTimeBefore)
             {
                 error = $"{label} changed while its SHA-256 was being validated. " +

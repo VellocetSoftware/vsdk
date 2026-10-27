@@ -39,8 +39,21 @@ namespace Vellocet.Sdk.VSig
             try
             {
                 var sources = CaptureSources(source, sourcePath, markers, out var hosts);
-                return new VSigParser(sources).Parse(source, diagnostics, scene.Entities.Values.ToArray(),
-                    AuthoredPath(sourcePath), hosts);
+                var assemblies = new Dictionary<Guid, Vertex.Contracts.AssemblyInterface>();
+                var connections = new List<VSigOwnedConnection>();
+                foreach (var unityScene in (markers ?? Array.Empty<EntityMarker>()).Where(m => m).Select(m => m.gameObject.scene).Distinct())
+                    foreach (var data in unityScene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<VertexEntityAuthoring>(true)))
+                    {
+                        var record = data.Read();
+                        if (data.TryGetComponent<VertexObjectIdentity>(out var identity) && identity.ObjectId != record.ObjectId)
+                            throw new ArgumentException("Assembly metadata does not match its map object identity.");
+                        if (record.Assembly != null) assemblies.Add(record.ObjectId, record.Assembly);
+                        connections.AddRange(record.Connections.Select(row => new VSigOwnedConnection { OwnerId = record.ObjectId, Connection = row }));
+                    }
+                return new VSigSceneInput { Sources = sources, Entities = scene.Entities.Values.ToArray(), Hosts = hosts,
+                    EntryPath = AuthoredPath(string.IsNullOrEmpty(sourcePath) ? "__map.vsig" : sourcePath),
+                    AuthoringObjectIds = (markers ?? Array.Empty<EntityMarker>()).Where(m => m).Select(m => m.Guid).ToArray(),
+                    Assemblies = assemblies, Connections = connections, Globals = VSigGlobalEvents.Catalog }.Parse(diagnostics);
             }
             catch (ArgumentException exception)
             {
@@ -124,7 +137,7 @@ namespace Vellocet.Sdk.VSig
                 characters += text.Length;
                 pending.Enqueue(path);
             }
-            Add(string.IsNullOrEmpty(sourcePath) ? "map.vsig" : sourcePath, source ?? string.Empty);
+            Add(string.IsNullOrEmpty(sourcePath) ? "__map.vsig" : sourcePath, source ?? string.Empty);
             hosts = new List<VSigHostedModule>();
             foreach (var marker in markers ?? Array.Empty<EntityMarker>())
             {

@@ -1,14 +1,14 @@
 // Copyright (c) 2026 Vellocet Corporation. All rights reserved.
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
-using TMPro;
+using Vellocet.Sdk.UI;
 using UnityEngine;
 using Vellocet.Sdk.Entities.Base;
 
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("info_label")]
-    [EntityAuthoring("Visuals", EntityPlacementKind.Point, "Label")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Point, "Label")]
     public sealed class LabelMarker : EntityMarker<LabelMarker.Input, LabelMarker.Output>
     {
         public enum Input
@@ -23,9 +23,9 @@ namespace Vellocet.Sdk.Entities
         }
 
         [field: Header("References")]
-        [field: Tooltip("TextMeshPro component used for this label.")]
+        [field: Tooltip("UI Toolkit world text component used for this label.")]
         [field: SerializeField]
-        public TextMeshPro Label { get; private set; }
+        public WorldText Label { get; private set; }
 
         [SerializeField, Tooltip("Enable for external scripts. VSig references enable this automatically.")]
         private bool scripted;
@@ -37,6 +37,9 @@ namespace Vellocet.Sdk.Entities
         [SerializeField, HideInInspector] private Color vertexColor = Color.white;
         [SerializeField, HideInInspector] private float vertexFontSize = 36;
 
+        [SerializeField, HideInInspector] private Font vertexFont;
+        [SerializeField, HideInInspector] private FontStyle vertexFontStyle;
+
         public string AuthoredText => vertexLabel ? vertexText : Label ? Label.text : string.Empty;
         public Color AuthoredColor => vertexLabel ? vertexColor : Label ? Label.color : Color.white;
 
@@ -45,7 +48,7 @@ namespace Vellocet.Sdk.Entities
 #if !UNITY_SERVER
             EnsureLabelComponent();
             if (vertexLabel)
-            { Label.text = vertexText; Label.color = vertexColor; Label.fontSize = vertexFontSize; Label.alignment = TextAlignmentOptions.Center; }
+            { Label.text = vertexText; Label.color = vertexColor; Label.fontSize = vertexFontSize; Label.FontAsset = vertexFont; Label.FontStyle = vertexFontStyle; Label.alignment = TextAnchor.MiddleCenter; }
 #endif
         }
 
@@ -56,7 +59,7 @@ namespace Vellocet.Sdk.Entities
 
         private void EnsureLabelComponent()
         {
-            if (!Label) Label = GetComponent<TextMeshPro>() ?? gameObject.AddComponent<TextMeshPro>();
+            if (!Label) Label = GetComponent<WorldText>() ?? gameObject.AddComponent<WorldText>();
         }
 
 #if UNITY_EDITOR
@@ -69,19 +72,19 @@ namespace Vellocet.Sdk.Entities
 
         public void CaptureVertexLabel()
         {
-            // Vertex positions the label's center, not the corner of TMP's default 100-metre text box.
-            Label.alignment = TextAlignmentOptions.Center;
+            // Vertex positions the label's center, not the corner of the default 100-metre text box.
+            Label.alignment = TextAnchor.MiddleCenter;
             vertexLabel = true;
             vertexText = Label.text; vertexColor = Label.color; vertexFontSize = Label.fontSize;
+            vertexFont = Label.FontAsset; vertexFontStyle = Label.FontStyle;
         }
 
         public void PrepareVertexPackage()
         {
             if (!vertexLabel || !Label) return;
-            // TMP restores missing font references in OnValidate/OnEnable. Serialize authored data;
-            // recreate its renderer from the installed game's default font in Awake instead.
+            // Serialize authored data without ephemeral Toolkit rendering components;
+            // recreate its renderer with the authored font and style in Awake instead.
             CaptureVertexLabel();
-            foreach (var submesh in GetComponentsInChildren<TMP_SubMesh>(true)) DestroyImmediate(submesh.gameObject);
             DestroyImmediate(Label); Label = null;
             if (TryGetComponent<MeshRenderer>(out var renderer)) DestroyImmediate(renderer);
             if (TryGetComponent<MeshFilter>(out var filter)) DestroyImmediate(filter);

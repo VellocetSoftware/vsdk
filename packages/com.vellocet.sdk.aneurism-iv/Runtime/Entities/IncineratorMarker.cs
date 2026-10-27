@@ -5,13 +5,16 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_incinerator")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Incinerator")]
-    public sealed class IncineratorMarker : PrefabEntityMarker
+    [EntityClass("func_incinerator")]
+    [EntityAuthoring("Gameplay", EntityPlacementKind.Point, "Incinerator")]
+    public sealed class IncineratorMarker : ContactOperationMarker
     {
         public override string ArchetypeId => "aniv.incinerator";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddOutput("completed", EntitySignalValueType.String);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("body_count", EntitySignalValueType.Int, true, false);
+        }
     }
 }

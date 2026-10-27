@@ -27,6 +27,7 @@ namespace Vellocet.Sdk.Editor.Maps
             return new AddonMapBuildRequest
             {
                 AddonId = job.RuntimeMapId, MapId = job.RuntimeMapId,
+                DefaultModeId = SdkGame.Current.ResolveMapMode(job.RuntimeMapId),
                 AddonTitle = job.MapTitle, MapTitle = job.MapTitle,
                 Profile = profile,
                 Targets = profile == AddonMapBuildProfile.Release ? AddonMapBuildPolicy.ReleaseTargets :
@@ -96,7 +97,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 .Concat(VertexMediaPackaging.Requirements(context.Job, context.PathFor)).Distinct(StringComparer.Ordinal).ToArray();
             request.AddonTitle = request.MapTitle = context.Job.MapTitle ?? project.Name;
             request.AddonThumbnail = request.MapImage = VertexMapCompiler.LoadThumbnail(context.Job.Thumbnail);
-            request.DefaultModeId = Constants.DefaultModeId; request.AddonVersion = "1";
+            request.AddonVersion = "1";
             var result = AddonMapBuildService.Build(request,
                 new DelegateMapBuildProgressSink((fraction, message) => context.Report(.67 + .28 * fraction, message), Debug.Log));
             context.CheckCanceled();

@@ -138,7 +138,9 @@ namespace Vellocet.Sdk.Editor.Maps
                 return changed;
             }
 
-            if (renderer.gameObject.isStatic && ShouldNormalizeStaticFlags(renderer))
+            var triggerVolume = renderer.GetComponentsInParent<EntityMarker>(true)
+                .Any(marker => marker.EntityClassName.StartsWith("trigger_", System.StringComparison.Ordinal));
+            if ((renderer.gameObject.isStatic || triggerVolume) && ShouldNormalizeStaticFlags(renderer))
             {
                 if (!renderer.staticShadowCaster)
                 {
@@ -148,7 +150,9 @@ namespace Vellocet.Sdk.Editor.Maps
                 }
 
                 var currentFlags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject);
-                var desiredFlags = currentFlags | NormalizedStaticFlags;
+                var desiredFlags = triggerVolume
+                    ? (currentFlags | StaticEditorFlags.OccludeeStatic) & ~StaticEditorFlags.OccluderStatic
+                    : currentFlags | NormalizedStaticFlags;
                 if (currentFlags != desiredFlags)
                 {
                     GameObjectUtility.SetStaticEditorFlags(renderer.gameObject, desiredFlags);

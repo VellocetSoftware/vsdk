@@ -860,7 +860,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 return;
             }
 
-            var model = VSigRouteModelBuilder.Build(scene, true);
+            var model = VSigRouteModelCache.Get(scene);
             if (!model.HasSource)
             {
                 error = "No VSig file found for this scene.";

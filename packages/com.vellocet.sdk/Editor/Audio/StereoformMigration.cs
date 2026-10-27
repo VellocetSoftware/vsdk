@@ -1,3 +1,4 @@
+#if VELLOCET_STEREOFORM
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,13 +17,20 @@ namespace Vellocet.Sdk.Editor.Audio
         private string owner = "";
         private Vector2 scroll;
         private readonly List<string> report = new();
-        [MenuItem("Vellocet/Audio/Migrate selected map objects to Stereoform")]
-        private static void Open() => GetWindow<StereoformMigration>("Audio migration");
+        private const string MenuPath = "Tools/Vellocet/SDK/Audio/Convert Selected Map Audio…";
+
+        [MenuItem(MenuPath, true)]
+        private static bool CanOpen() => !EditorApplication.isPlayingOrWillChangePlaymode &&
+            !EditorApplication.isCompiling && !EditorApplication.isUpdating && !BuildPipeline.isBuildingPlayer &&
+            SdkGame.Current.AudioRuntimeCapability == AddonAudioBanks.Capability;
+
+        [MenuItem(MenuPath, false, 505)]
+        private static void Open() => GetWindow<StereoformMigration>("Convert Map Audio");
         private void OnGUI()
         {
             owner = EditorGUILayout.TextField("Owning add-on ID", owner);
             EditorGUILayout.HelpBox("Select saved scene objects. Cues keep stable IDs on repeat runs. Mixer routes, filters, and scripts that still require Unity audio are reported for explicit reauthoring.", MessageType.Info);
-            using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || SdkGame.Current.AudioRuntimeCapability != AddonAudioBanks.Capability))
+            using (new EditorGUI.DisabledScope(!CanOpen()))
                 if (GUILayout.Button("Convert selected objects")) Convert();
             scroll = EditorGUILayout.BeginScrollView(scroll);
             foreach (var line in report) EditorGUILayout.SelectableLabel(line, EditorStyles.wordWrappedLabel, GUILayout.MinHeight(38));
@@ -30,6 +38,7 @@ namespace Vellocet.Sdk.Editor.Audio
         }
         private void Convert()
         {
+            if (!CanOpen()) return;
             report.Clear();
             owner = AddonIdPolicy.NormalizeOrEmpty(owner);
             if (string.IsNullOrEmpty(owner)) { report.Add("Enter the add-on that owns the selected recordings."); return; }
@@ -113,3 +122,4 @@ namespace Vellocet.Sdk.Editor.Audio
         }
     }
 }
+#endif

@@ -5,8 +5,8 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("trigger_aniv_underground")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Volume, "Underground Volume")]
+    [EntityClass("trigger_underground")]
+    [EntityAuthoring("Triggers", EntityPlacementKind.Volume, "Underground Volume")]
     public sealed class UndergroundVolumeMarker : EntityMarker, IBoundedEntityMarker
     {
         [SerializeField, Min(0)] private float infectionAmount = 20;
@@ -16,5 +16,17 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public override string[] Inputs => Array.Empty<string>();
         public override string[] Outputs => Array.Empty<string>();
         public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("enable", EntitySignalValueType.None);
+            builder.AddInput("disable", EntitySignalValueType.None);
+            builder.AddInput("scan", EntitySignalValueType.None);
+            builder.AddOutput("enabled", EntitySignalValueType.None);
+            builder.AddOutput("disabled", EntitySignalValueType.None);
+            builder.AddOutput("infection_applied", EntitySignalValueType.Int);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("is_enabled", EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("is_available", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

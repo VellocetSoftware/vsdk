@@ -10,7 +10,7 @@ namespace Vellocet.Sdk.Entities
     ///     Marker for a trigger volume that periodically damages or heals touching entities.
     /// </summary>
     [EntityClass("trigger_hurt")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Volume, "Trigger Hurt")]
+    [EntityAuthoring("Triggers", EntityPlacementKind.Volume, "Trigger Hurt")]
     [DisallowMultipleComponent]
     public sealed partial class TriggerHurtMarker :
         TriggerVolumeMarkerBase<TriggerHurtMarker.Input, TriggerHurtMarker.Output>

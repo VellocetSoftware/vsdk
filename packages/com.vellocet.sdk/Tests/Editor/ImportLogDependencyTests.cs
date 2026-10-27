@@ -1,3 +1,4 @@
+#if VELLOCET_STEREOFORM
 using System;
 using System.IO;
 using System.Linq;
@@ -57,3 +58,4 @@ namespace Vellocet.Sdk.Tests.Editor
         }
     }
 }
+#endif

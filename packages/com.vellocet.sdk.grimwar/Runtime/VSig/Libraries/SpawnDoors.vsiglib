@@ -1,5 +1,5 @@
 module spawn_door_set:
-    ref trigger: trigger_multiple
+    ref trigger: trigger_multiple match Trigger*
     ref doors: func_door match Door*
     ref audio: env_ambient match Audio
     const open_audio_event = "Play_amb_slidedoors_open"

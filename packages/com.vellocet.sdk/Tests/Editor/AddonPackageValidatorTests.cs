@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Addons;
+using Vellocet.Sdk.Editor.Addons;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Maps;
 using Vellocet.Sdk.Utilities;
@@ -89,6 +90,7 @@ namespace Vellocet.Sdk.Tests
         [Test]
         public void VertexRelease_BuildsAndAuditsEveryPlatform_PreviewKeepsSelectedTarget()
         {
+            var mapId = ModeCatalog.ResolveMapIdPrefix(ModeCatalog.DefaultModeId) + "_developer";
             var game = new GameProfile
             {
                 Id = SdkGame.Current.Id, Name = SdkGame.Current.DisplayName, Version = "1", EngineId = "unity",
@@ -99,16 +101,16 @@ namespace Vellocet.Sdk.Tests
             var job = new BuildJob
             {
                 Id = Guid.NewGuid(), ProjectId = Guid.NewGuid(), MapId = Guid.NewGuid(), Game = game,
-                ContentId = "sb_developer", MapTitle = "Developer Sandbox",
+                ContentId = mapId, MapTitle = "Developer Sandbox",
                 Profile = "Release", Target = "StandaloneOSX", Package = true, InputsHash = new string('0', 64)
             };
             var release = VertexMapPackaging.CreateRequest(job, "Medium");
-            Assert.That(release.MapId, Is.EqualTo("sb_developer"));
-            Assert.That(release.AddonId, Is.EqualTo("sb_developer"));
+            Assert.That(release.MapId, Is.EqualTo(mapId));
+            Assert.That(release.AddonId, Is.EqualTo(mapId));
             Assert.That(release.MapTitle, Is.EqualTo("Developer Sandbox"));
             var namedLayout = MapBuildArtifactPlanner.PlanAddon(_root, release.AddonId, release.MapId);
-            Assert.That(namedLayout.AddonRoot, Is.EqualTo(Path.Combine(_root, "sb_developer")));
-            Assert.That(namedLayout.MapRoot, Is.EqualTo(Path.Combine(namedLayout.AddonRoot, Constants.MapsFolder, "sb_developer")));
+            Assert.That(namedLayout.AddonRoot, Is.EqualTo(Path.Combine(_root, mapId)));
+            Assert.That(namedLayout.MapRoot, Is.EqualTo(Path.Combine(namedLayout.AddonRoot, Constants.MapsFolder, mapId)));
             Assert.That(release.Profile, Is.EqualTo(AddonMapBuildProfile.Release));
             Assert.That(release.Targets, Is.EquivalentTo(AddonMapBuildPolicy.ReleaseTargets));
             release.Targets = new[] { BuildTarget.StandaloneOSX };
@@ -431,6 +433,7 @@ namespace Vellocet.Sdk.Tests
         private string WriteReleasePackage(bool skipSpatialOctreeBake = false)
         {
             const string mapId = "dm_release_policy_test";
+            var sdkVersion = AddonManifestBuildUtility.ResolveSdkVersion();
             var buildId = Guid.NewGuid().ToString("N");
             var names = new[]
             {
@@ -490,7 +493,7 @@ namespace Vellocet.Sdk.Tests
                 distributionPolicy = AddonDistributionPolicy.ReleasePolicyV1,
                 buildId = buildId,
                 createdUtc = DateTime.UtcNow.ToString("o"),
-                compilerVersion = "test",
+                compilerVersion = sdkVersion,
                 unityVersion = Application.unityVersion,
                 skipSpatialOctreeBake = skipSpatialOctreeBake,
                 platforms = receiptPlatforms
@@ -515,7 +518,7 @@ namespace Vellocet.Sdk.Tests
                 distributionPolicy = AddonDistributionPolicy.ReleasePolicyV1,
                 buildId = buildId,
                 createdUtc = DateTime.UtcNow.ToString("o"),
-                sdkVersion = "test",
+                sdkVersion = sdkVersion,
                 unityVersion = Application.unityVersion,
                 contents = new[]
                 {

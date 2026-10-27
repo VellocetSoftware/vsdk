@@ -11,7 +11,7 @@ namespace Vellocet.Sdk.Entities
     ///     Marker for a generic multi-fire trigger.
     /// </summary>
     [EntityClass("trigger_multiple")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Volume, "Trigger")]
+    [EntityAuthoring("Triggers", EntityPlacementKind.Volume, "Trigger")]
     [DisallowMultipleComponent]
     public sealed partial class TriggerMarker : TriggerVolumeMarkerBase<TriggerMarker.Input, TriggerMarker.Output>
     {

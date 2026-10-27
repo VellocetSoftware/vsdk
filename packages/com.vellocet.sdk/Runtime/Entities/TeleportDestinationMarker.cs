@@ -7,7 +7,7 @@ using Vellocet.Sdk.Entities.Base;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("info_teleport_destination")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Point, "Teleport Destination")]
+    [EntityAuthoring("Movement", EntityPlacementKind.Point, "Teleport Destination")]
     public sealed class TeleportDestinationMarker :
         DirectionalPointMarker<TeleportDestinationMarker.Input, TeleportDestinationMarker.Output>
     {

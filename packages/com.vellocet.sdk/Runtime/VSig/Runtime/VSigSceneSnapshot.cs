@@ -38,11 +38,18 @@ namespace Vellocet.Sdk.VSig.Runtime
             foreach (var marker in markers ?? Array.Empty<EntityMarker>())
             {
                 if (!marker) continue;
-                if (Entities.Count >= VSigSecurityLimits.MaximumSceneMarkers)
-                    throw new ArgumentException("The scene has too many VSig entities.");
+                if (_markersById.Count >= Portable.MapAsset.MaximumObjects)
+                    throw new ArgumentException("The scene has too many authored VSig nodes.");
                 if (marker.Guid == Guid.Empty || !_markersById.TryAdd(marker.Guid, marker))
                     throw new ArgumentException($"Entity '{marker.name}' has a missing or duplicate stable ID.");
                 ids.Add(marker.transform, marker.Guid);
+                // Data attachments still contribute stable hierarchy IDs, but have no signal runtime to bind.
+                var contract = marker.SignalContract;
+                if (contract.Inputs.Count == 0 && contract.Outputs.Count == 0 && contract.Properties.Count == 0 &&
+                    contract.States.Count == 0 && contract.Capabilities == EntitySignalCapabilities.None &&
+                    marker is not Vellocet.Sdk.Entities.LogicScriptMarker) continue;
+                if (Entities.Count >= VSigSecurityLimits.MaximumSceneMarkers)
+                    throw new ArgumentException("The scene has too many VSig entities.");
                 Entities.Add(marker, null);
             }
             Portable.SceneNode Node(Transform transform, int depth = 0)
@@ -77,7 +84,8 @@ namespace Vellocet.Sdk.VSig.Runtime
                 return Portable.EntitySignalHandle.ForActor(handle.RuntimeIdentity, handle.DisplayName);
             return handle.IsEntity && _markersById.TryGetValue(handle.StableGuid, out var marker) && marker &&
                    handle.Equals(EntitySignalHandle.ForEntity(marker))
-                ? Portable.EntitySignalHandle.ForEntity(Entities[marker]) : default;
+                && Entities.TryGetValue(marker, out var descriptor)
+                ? Portable.EntitySignalHandle.ForEntity(descriptor) : default;
         }
 
         private EntitySignalHandle ToSdk(Portable.EntitySignalHandle handle)

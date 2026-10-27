@@ -11,7 +11,8 @@ namespace Vellocet.Sdk.Editor.Maps
     public static class VertexCollisionPolicy
     {
         public const string Id = "com.vellocet.sdk.collision";
-        static VertexCollisionPolicy() => VertexSdkRegistry.RegisterCollisionPolicy(Id, ResolveLayer);
+        public const int Revision = 1;
+        static VertexCollisionPolicy() => VertexSdkRegistry.RegisterCollisionPolicy(Id, Revision, ResolveLayer);
         public static int NavigationMask => ~LayerMask.GetMask("EntitySolid", "EntityClip", "RaycastOnly");
 
         public static GameCollisionPolicy Create() => new()

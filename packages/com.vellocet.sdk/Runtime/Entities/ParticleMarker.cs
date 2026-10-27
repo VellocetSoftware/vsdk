@@ -6,7 +6,7 @@ using Vellocet.Sdk.Entities.Base;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("env_particle")]
-    [EntityAuthoring("Visuals", EntityPlacementKind.Point, "Particle effect")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Point, "Particle effect")]
     public sealed class ParticleMarker : EntityMarker<ParticleMarker.Input, ParticleMarker.Output>
     {
         [SerializeField, Tooltip("Effect-only prefab. Simulation settings belong to this asset.")]
@@ -55,10 +55,11 @@ namespace Vellocet.Sdk.Entities
 #endif
         public override void ConfigureSignalContract(Vellocet.Sdk.Entities.Signals.EntitySignalContractBuilder builder)
         {
-            builder.AddProperty("is_playing", Vellocet.Sdk.Entities.Signals.EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("is_playing", Vellocet.Sdk.Entities.Signals.EntitySignalValueType.Bool, true, false,
+                authority: Vellocet.Sdk.Entities.Signals.EntitySignalAuthority.Any);
             builder.AddState("state", nameof(Vellocet.Sdk.Entities.States.EffectEntityState));
         }
         public enum Input { Play, Stop, Restart, Trigger }
-        public enum Output { }
+        public enum Output { Started, Stopped }
     }
 }

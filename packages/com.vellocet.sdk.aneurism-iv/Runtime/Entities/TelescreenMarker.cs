@@ -5,16 +5,17 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_telescreen")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Telescreen")]
+    [EntityClass("func_telescreen")]
+    [EntityAuthoring("Information", EntityPlacementKind.Point, "Telescreen")]
     public sealed class TelescreenMarker : PrefabEntityMarker
     {
         public enum Kind { Telescreen1, Telescreen3, Telescreen4 }
         [SerializeField] private Kind kind;
         public Kind Variant => kind;
         public override string ArchetypeId => "aniv.telescreen." + kind.ToString().ToLowerInvariant();
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            GameOperationContracts.Utility(builder);
+        }
     }
 }

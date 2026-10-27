@@ -26,15 +26,18 @@ namespace Vellocet.Sdk.Editor.Distribution
         protected abstract GameProfile ExportGameProfile(VertexAssetCatalogProfile profile, string destination);
         protected virtual SdkTool[] ResourceTools => Array.Empty<SdkTool>();
         protected virtual void PrepareCompiler(string compiler, GameProfile game) { }
+        /// <summary>Repository-relative folder that distributions must be written inside (never the folder itself).</summary>
+        protected virtual string DistributionRoot => "Builds";
 
         public void Build(string outputRoot, string toolsRoot)
         {
             var output = SdkArtifactPathUtility.ToAbsolutePath(outputRoot)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             SdkArtifactPathUtility.EnsurePathWithinRepository(output);
-            var generatedRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Generated")) + Path.DirectorySeparatorChar;
-            if (!output.StartsWith(generatedRoot, StringComparison.Ordinal))
-                throw new InvalidDataException("SDK distributions must be written inside the Unity project Generated directory.");
+            var root = SdkArtifactPathUtility.ToAbsolutePath(DistributionRoot)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (!output.StartsWith(root, StringComparison.Ordinal))
+                throw new InvalidDataException($"SDK distributions must be written inside {DistributionRoot}/.");
             var toolchain = toolsRoot == null ? new JObject() : JObject.Parse(File.ReadAllText(Path.Combine(toolsRoot, "toolchain.json")));
             if (toolsRoot != null) ValidateTools(toolsRoot);
             toolchain[SdkGame.Current.Id] = SourceRevision();

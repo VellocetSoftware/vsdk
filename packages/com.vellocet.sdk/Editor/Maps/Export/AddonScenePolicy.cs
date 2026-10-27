@@ -11,6 +11,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Entities;
 using Vellocet.Sdk.Entities.Base;
@@ -41,6 +42,8 @@ namespace Vellocet.Sdk.Editor.Maps
         private const long MaximumMeshVerticesTotal = 10L * 1024L * 1024L;
         private const long MaximumAudioSamples = 2L * 60L * 60L * 48000L * 2L;
         private const int MaximumTextAssetBytes = 8 * 1024 * 1024;
+        private const long MaximumProbeVolumeAssetBytes = 1024L * 1024L * 1024L;
+        private const long MaximumProbeVolumeBytesTotal = 2L * MaximumProbeVolumeAssetBytes;
         private const int MaximumSerializedArrayElements = 65536;
         private const int MaximumOcclusionDataBytes = 8 * 1024 * 1024;
         private const int MaximumSerializedStringCharacters = 8192;
@@ -64,7 +67,8 @@ namespace Vellocet.Sdk.Editor.Maps
             ["UnityEngine.Rendering.Universal.UniversalAdditionalLightData"] =
                 "Unity.RenderPipelines.Universal.Runtime",
             ["UnityEngine.Splines.SplineContainer"] = "Unity.Splines",
-            ["TMPro.TextMeshPro"] = "Unity.TextMeshPro",
+            ["Vellocet.Sdk.UI.WorldText"] = "Vellocet.Sdk",
+            ["Vellocet.Sdk.Entities.LightEffectPlayer"] = "Vellocet.Sdk",
             ["UnityEngine.VFX.VisualEffect"] = "UnityEngine.VFXModule"
         };
 
@@ -94,6 +98,7 @@ namespace Vellocet.Sdk.Editor.Maps
             if (playerDependencies != null)
             {
                 if (playerDependencies.Length > MaximumDependencyObjects) { error = "Addon exceeds its dependency-object limit."; return false; }
+                RegisterProbeVolumeData(playerDependencies, budget);
                 foreach (var asset in playerDependencies)
                     if (!TryAuditAsset(asset, AssetDatabase.GetAssetPath(asset), budget, out error)) return false;
                 return true;
@@ -344,6 +349,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 return false;
             }
 
+            RegisterProbeVolumeData(paths.Select(AssetDatabase.LoadMainAssetAtPath), budget);
             foreach (var path in paths)
             {
                 var assets = AssetDatabase.LoadAllAssetsAtPath(path);
@@ -377,6 +383,60 @@ namespace Vellocet.Sdk.Editor.Maps
             return true;
         }
 
+        private static void RegisterProbeVolumeData(IEnumerable<Object> assets, AuditBudget budget)
+        {
+            // Unity serializes APV binary blobs as TextAssets. Identify them by their typed baking-set
+            // references before auditing, so filenames and dependency enumeration order do not grant access.
+            foreach (var set in assets.OfType<ProbeVolumeBakingSet>())
+            {
+                using var serialized = new SerializedObject(set);
+                Register(serialized.FindProperty("cellSharedDataAsset"));
+                Register(serialized.FindProperty("cellBricksDataAsset"));
+                Register(serialized.FindProperty("cellSupportDataAsset"));
+                var scenarios = serialized.FindProperty("scenarios.m_Values");
+                if (scenarios == null || scenarios.arraySize > MaximumSerializedArrayElements) continue;
+                for (var i = 0; i < scenarios.arraySize; i++)
+                {
+                    var scenario = scenarios.GetArrayElementAtIndex(i);
+                    Register(scenario.FindPropertyRelative("cellDataAsset"));
+                    Register(scenario.FindPropertyRelative("cellOptionalDataAsset"));
+                    Register(scenario.FindPropertyRelative("cellProbeOcclusionDataAsset"));
+                }
+
+                void Register(SerializedProperty streamable)
+                {
+                    if (streamable?.FindPropertyRelative("m_Asset")?.objectReferenceValue is TextAsset data)
+                        budget.ProbeVolumeData.Add(data);
+                }
+            }
+        }
+
+        private static bool TryAuditTextAsset(TextAsset text, string path, AuditBudget budget, out string error)
+        {
+            error = null;
+            // GetData returns a view; bytes would allocate a copy of potentially hundreds of MiB.
+            var bytes = text.GetData<byte>().Length;
+            if (budget.ProbeVolumeData.Contains(text))
+            {
+                if (bytes > MaximumProbeVolumeAssetBytes)
+                {
+                    error = $"Probe volume dependency '{path}' is {bytes} bytes; the limit is {MaximumProbeVolumeAssetBytes} bytes.";
+                    return false;
+                }
+                if (!budget.CountedProbeVolumeData.Add(text)) return true;
+                if (budget.ProbeVolumeBytes > MaximumProbeVolumeBytesTotal - bytes)
+                {
+                    error = $"Probe volume dependencies exceed the total byte limit of {MaximumProbeVolumeBytesTotal} bytes.";
+                    return false;
+                }
+                budget.ProbeVolumeBytes += bytes;
+                return true;
+            }
+            if (bytes <= MaximumTextAssetBytes) return true;
+            error = $"Text dependency '{path}' is {bytes} bytes; the limit is {MaximumTextAssetBytes} bytes.";
+            return false;
+        }
+
         private static bool TryAuditAsset(Object asset, string path, AuditBudget budget, out string error)
         {
             error = null;
@@ -399,11 +459,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 case MonoScript:
                     error = $"Addon depends on forbidden script '{path}'.";
                     return false;
-                case TextAsset text when text.bytes.LongLength <= MaximumTextAssetBytes:
-                    return true;
-                case TextAsset:
-                    error = $"Text dependency '{path}' exceeds the byte limit.";
-                    return false;
+                case TextAsset text:
+                    return TryAuditTextAsset(text, path, budget, out error);
                 case Material material:
                     var shaderPath = material.shader ? AssetDatabase.GetAssetPath(material.shader) : string.Empty;
                     if (!material.shader || !IsAllowedShaderPath(shaderPath))
@@ -461,7 +518,11 @@ namespace Vellocet.Sdk.Editor.Maps
 
         private static bool IsAllowedSerializedType(Type type)
         {
-            return (!string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) && (type == typeof(Vellocet.Stereoform.AudioEventReference) || type == typeof(Vellocet.Stereoform.AudioBusReference) || type == typeof(Vellocet.Stereoform.AudioEnvironmentReference))) || type == typeof(SpatialOctreeAsset) || type == typeof(Vellocet.Sdk.Audio.AddonAudioCue) || IsAllowedComponent(type) ||
+            return
+#if VELLOCET_STEREOFORM
+                (!string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) && (type == typeof(Vellocet.Stereoform.AudioEventReference) || type == typeof(Vellocet.Stereoform.AudioBusReference) || type == typeof(Vellocet.Stereoform.AudioEnvironmentReference))) ||
+#endif
+                type == typeof(SpatialOctreeAsset) || type == typeof(Vellocet.Sdk.Audio.AddonAudioCue) || IsAllowedComponent(type) ||
                    IsAllowedVolumeType(type);
         }
 
@@ -545,6 +606,8 @@ namespace Vellocet.Sdk.Editor.Maps
             public readonly HashSet<AudioClip> AudioClips = new();
             public readonly HashSet<Mesh> Meshes = new();
             public readonly HashSet<Texture> Textures = new();
+            public readonly HashSet<TextAsset> ProbeVolumeData = new();
+            public readonly HashSet<TextAsset> CountedProbeVolumeData = new();
             public string OcclusionDataPath;
             public int Components;
             public int DependencyObjects;
@@ -554,6 +617,7 @@ namespace Vellocet.Sdk.Editor.Maps
             public long AudioSamples;
             public long MeshVertices;
             public long TexturePixels;
+            public long ProbeVolumeBytes;
         }
     }
 }

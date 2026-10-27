@@ -67,19 +67,8 @@ namespace Vellocet.Sdk.Editor.VSig
 
             if (sourceStatus != VSigMapSourceStatus.Found)
             {
-                var hasCompiledProgram = scene.GetRootGameObjects()
-                    .SelectMany(root => root.GetComponentsInChildren<VSigSceneRuntime>(true)).Any(runtime => runtime.HasProgram);
-                if (markers.Count == 0 && !hasCompiledProgram)
-                {
-                    RemoveExistingRuntimes(scene, options);
-                    ClearReceipt(receipt);
-                    message = "No entity markers or VSig source were found.";
-                    return true;
-                }
-
-                message =
-                    $"No VSig file was found next to '{sourceScenePath}'. The scene has {markers.Count} entity marker(s) or an existing compiled program.";
-                return false;
+                Guid.TryParse(AssetDatabase.AssetPathToGUID(sourceScenePath), out var nativeSceneId);
+                return InjectText(scene, string.Empty, string.Empty, receipt, out message, options, nativeSceneId);
             }
 
             Guid.TryParse(AssetDatabase.AssetPathToGUID(sourceScenePath), out var sceneId);
@@ -91,22 +80,31 @@ namespace Vellocet.Sdk.Editor.VSig
             out string message, VSigCompiledSceneInjectionOptions options = default, Guid legacySceneId = default)
         {
             message = string.Empty;
-            if (!scene.IsValid() || !scene.isLoaded || !source)
+            if (!scene.IsValid() || !scene.isLoaded)
             {
-                message = "A loaded scene and imported VSig source are required.";
+                message = "A loaded scene is required.";
                 return false;
             }
+            if (!source)
+                return InjectText(scene, string.Empty, string.Empty, receipt, out message, options, legacySceneId);
             var sourcePath = AssetDatabase.GetAssetPath(source);
             if (string.IsNullOrEmpty(sourcePath) || !sourcePath.EndsWith(".vsig", StringComparison.OrdinalIgnoreCase))
             {
                 message = "VSig source must be an imported .vsig asset.";
                 return false;
             }
+            return InjectText(scene, source.text, sourcePath, receipt, out message, options, legacySceneId);
+        }
+
+        private static bool InjectText(Scene scene, string sourceText, string sourcePath, MapCompilationReceipt receipt,
+            out string message, VSigCompiledSceneInjectionOptions options, Guid legacySceneId)
+        {
+            message = string.Empty;
             var markers = CollectMarkers(scene);
             if (!TryValidateMarkerEntityIds(markers, out message)) return false;
 
             var diagnostics = new List<VSigDiagnostic>();
-            var program = VSigSceneCompiler.Parse(source.text, diagnostics, markers, sourcePath);
+            var program = VSigSceneCompiler.Parse(sourceText, diagnostics, markers, sourcePath);
             VSigSceneCompiler.Validate(program, markers, diagnostics);
             var referenced = new HashSet<EntityMarker>(VSigSceneCompiler.ResolveAliases(program, markers, diagnostics).Values.SelectMany(values => values));
             var referencedLights = referenced.OfType<Vellocet.Sdk.Entities.LightMarker>().ToArray();
@@ -125,6 +123,15 @@ namespace Vellocet.Sdk.Editor.VSig
             {
                 message = $"VSig validation failed for '{sourcePath}':\n- {string.Join("\n- ", errors)}";
                 return false;
+            }
+
+            if (program.Uses.Count == 0 && program.Handlers.Count == 0 && program.Procedures.Count == 0)
+            {
+                SetScriptReferences(markers, null);
+                RemoveExistingRuntimes(scene, options);
+                ClearReceipt(receipt);
+                message = "Native entities require no VSig runtime.";
+                return true;
             }
 
             VSigCompiledProgram compiled;
@@ -151,12 +158,7 @@ namespace Vellocet.Sdk.Editor.VSig
                 return false;
             }
             RemoveExistingRuntimes(scene, options);
-            foreach (var light in markers.OfType<Vellocet.Sdk.Entities.LightMarker>())
-                light.SetScriptReferenced(referencedLights.Contains(light));
-            foreach (var label in markers.OfType<Vellocet.Sdk.Entities.LabelMarker>())
-                label.SetScriptReferenced(referenced.Contains(label));
-            foreach (var particle in markers.OfType<Vellocet.Sdk.Entities.ParticleMarker>())
-                particle.SetScriptReferenced(referenced.Contains(particle));
+            SetScriptReferences(markers, referenced);
             var host = FindOrCreateRuntimeHost(scene, options);
             var runtime = host.AddComponent<VSigSceneRuntime>();
             runtime.Configure(compiled, stableMapId: mapId);
@@ -168,6 +170,20 @@ namespace Vellocet.Sdk.Editor.VSig
             message =
                 $"Embedded compiled VSig from '{sourcePath}' ({program.Refs.Count} refs, {program.Uses.Count} modules, {program.StateExports.Count} states, {program.Handlers.Count} handlers, {program.Procedures.Count} procedures).";
             return true;
+        }
+
+        private static void SetScriptReferences(IEnumerable<EntityMarker> markers, ISet<EntityMarker> referenced)
+        {
+            foreach (var marker in markers)
+            {
+                var used = referenced?.Contains(marker) == true;
+                switch (marker)
+                {
+                    case Vellocet.Sdk.Entities.LightMarker light: light.SetScriptReferenced(used); break;
+                    case Vellocet.Sdk.Entities.LabelMarker label: label.SetScriptReferenced(used); break;
+                    case Vellocet.Sdk.Entities.ParticleMarker particle: particle.SetScriptReferenced(used); break;
+                }
+            }
         }
 
         private static GameObject FindOrCreateRuntimeHost(Scene scene, VSigCompiledSceneInjectionOptions options)

@@ -5,7 +5,9 @@ using System.Linq;
 using UnityEngine;
 using Vellocet.Sdk.Addons;
 using Vellocet.Sdk.Utilities;
+#if VELLOCET_STEREOFORM
 using Vellocet.Stereoform;
+#endif
 
 namespace Vellocet.Sdk.Audio
 {
@@ -13,6 +15,7 @@ namespace Vellocet.Sdk.Audio
     public static class AddonAudioBanks
     {
         public const string Capability = "stereoform/2";
+#if VELLOCET_STEREOFORM
         public readonly struct Entry
         {
             public readonly string Bank, Event;
@@ -134,5 +137,6 @@ namespace Vellocet.Sdk.Audio
                 key = null;
             }
         }
+#endif
     }
 }

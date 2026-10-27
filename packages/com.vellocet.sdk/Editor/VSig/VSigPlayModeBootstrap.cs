@@ -58,12 +58,11 @@ namespace Vellocet.Sdk.Editor.VSig
             if (!AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path))
                 return;
 
-            if (!VSigMapSourceUtility.TryFindForScene(scene.path, out var source, out var sourcePath))
-                return;
-
+            VSigMapSourceUtility.TryFindForScene(scene.path, out var source, out var sourcePath);
             var markers = CollectMarkers(scene);
+            if (!source && !Array.Exists(markers, marker => marker is Vellocet.Sdk.Entities.LogicScriptMarker)) return;
             var diagnostics = new List<VSigDiagnostic>();
-            var program = VSigSceneCompiler.Parse(source.text, diagnostics, markers, sourcePath);
+            var program = VSigSceneCompiler.Parse(source ? source.text : string.Empty, diagnostics, markers, sourcePath);
             VSigSceneCompiler.Validate(program, markers, diagnostics);
             if (diagnostics.Exists(diagnostic => diagnostic.Severity == VSigDiagnosticSeverity.Error))
             {
@@ -72,6 +71,8 @@ namespace Vellocet.Sdk.Editor.VSig
                         Debug.LogError($"[VSig] {diagnostic}");
                 return;
             }
+
+            if (program.Uses.Count == 0 && program.Handlers.Count == 0 && program.Procedures.Count == 0) return;
 
             Guid.TryParse(AssetDatabase.AssetPathToGUID(scene.path), out var sceneId);
             try

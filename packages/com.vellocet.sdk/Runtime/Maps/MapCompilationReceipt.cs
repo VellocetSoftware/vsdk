@@ -158,7 +158,7 @@ namespace Vellocet.Sdk.Maps
             var builder = new StringBuilder();
             Append(builder, receipt.mapId);
             Append(builder, receipt.compilerVersion);
-            if (receipt.schemaVersion >= 9) Append(builder, receipt.audioRuntime);
+            Append(builder, receipt.audioRuntime);
             Append(builder, receipt.sourceDependenciesHash);
             Append(builder, receipt.vsigProgramHash);
             Append(builder, receipt.lightmapQuality);
@@ -183,16 +183,13 @@ namespace Vellocet.Sdk.Maps
             Append(builder, receipt.buildId);
             Append(builder, receipt.createdUtc);
             Append(builder, receipt.compilerVersion);
-            if (receipt.schemaVersion >= 9) Append(builder, receipt.audioRuntime);
+            Append(builder, receipt.audioRuntime);
             Append(builder, receipt.unityVersion);
             Append(builder, receipt.sourceScenePath);
             Append(builder, receipt.sourceSceneGuid);
             Append(builder, receipt.sourceSceneHash);
-            if (receipt.schemaVersion >= 8)
-            {
-                Append(builder, receipt.sourceDependenciesHash);
-                Append(builder, receipt.contentRevision);
-            }
+            Append(builder, receipt.sourceDependenciesHash);
+            Append(builder, receipt.contentRevision);
             Append(builder, receipt.compiledScenePath);
             Append(builder, receipt.compiledSceneHash);
             Append(builder, receipt.spatialGraphAddress);
@@ -230,9 +227,6 @@ namespace Vellocet.Sdk.Maps
 
         private static void Append(StringBuilder builder, string value)
         {
-            if (builder == null)
-                return;
-
             builder.Append(value ?? string.Empty);
             builder.Append('\n');
         }

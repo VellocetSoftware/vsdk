@@ -21,18 +21,17 @@ namespace Vellocet.Sdk.Editor.Entities
         private static readonly string ModuleIconPath = Constants.IconsPath + "/module.png";
         private static readonly Texture2D FallbackIcon;
         private static readonly Dictionary<string, Texture2D> IconCache = new();
-        private static readonly Dictionary<int, HashSet<int>> ModuleRootIdsBySceneHandle = new();
 
         static EntityMarkerHierarchyIcons()
         {
             FallbackIcon = (Texture2D)EditorGUIUtility.IconContent("Prefab Icon").image;
             EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyGUI;
-            EditorApplication.hierarchyChanged += ClearModuleCache;
-            EditorApplication.projectChanged += ClearModuleCache;
+            EditorApplication.projectChanged += IconCache.Clear;
         }
 
         private static void OnHierarchyGUI(int instanceId, Rect selectionRect)
         {
+            if (Event.current.type != EventType.Repaint) return;
 #if UNITY_6000_3_OR_NEWER
             var go = EditorUtility.EntityIdToObject(instanceId) as GameObject;
 #else
@@ -72,31 +71,7 @@ namespace Vellocet.Sdk.Editor.Entities
             if (!scene.IsValid() || !scene.isLoaded || string.IsNullOrWhiteSpace(scene.path))
                 return false;
 
-            if (!ModuleRootIdsBySceneHandle.TryGetValue(scene.handle, out var roots))
-            {
-                roots = BuildModuleRootSet(scene);
-                ModuleRootIdsBySceneHandle[scene.handle] = roots;
-            }
-
-            return roots.Contains(gameObject.transform.GetInstanceID());
-        }
-
-        private static HashSet<int> BuildModuleRootSet(Scene scene)
-        {
-            var roots = new HashSet<int>();
-            var model = VSigRouteModelBuilder.Build(scene, true);
-            if (!model.HasSource || model.MarkerIdsByModuleRootId.Count == 0)
-                return roots;
-
-            foreach (var rootId in model.MarkerIdsByModuleRootId.Keys)
-                roots.Add(rootId);
-
-            return roots;
-        }
-
-        private static void ClearModuleCache()
-        {
-            ModuleRootIdsBySceneHandle.Clear();
+            return VSigRouteModelCache.Get(scene).MarkerIdsByModuleRootId.ContainsKey(gameObject.transform.GetInstanceID());
         }
 
         private static Texture2D GetIcon(string iconPath)

@@ -4,13 +4,23 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_capitron_rack")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Capitron Rack")]
-    public sealed class RackMarker : PrefabEntityMarker
+    [EntityClass("func_capitron_rack")]
+    [EntityAuthoring("Industry / Capitron", EntityPlacementKind.Point, "Capitron Rack")]
+    public sealed class RackMarker : ContactOperationMarker
     {
+        [UnityEngine.SerializeField] private CapitronMarker[] slots = Array.Empty<CapitronMarker>();
+        [UnityEngine.SerializeField] private bool useBuiltInSlots = true;
+        public CapitronMarker[] Slots => slots;
+        public bool UseBuiltInSlots => useBuiltInSlots;
+
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.capitron-rack";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddOutput("installed", EntitySignalValueType.Int);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("slot_count", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("installed_count", EntitySignalValueType.Int, true, false);
+        }
     }
 }

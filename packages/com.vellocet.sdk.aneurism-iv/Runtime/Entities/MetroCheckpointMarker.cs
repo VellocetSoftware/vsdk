@@ -5,13 +5,19 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_metro_checkpoint")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Metro Checkpoint")]
-    public sealed class MetroCheckpointMarker : PrefabEntityMarker
+    [EntityClass("func_metro_checkpoint")]
+    [EntityAuthoring("Security", EntityPlacementKind.Point, "Metro Checkpoint")]
+    public sealed class MetroCheckpointMarker : ContactOperationMarker
     {
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.metro-checkpoint";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("request_access", EntitySignalValueType.None);
+            builder.AddOutput("access_changed", EntitySignalValueType.Bool);
+            builder.AddOutput("trespass_detected", EntitySignalValueType.None);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("is_open", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

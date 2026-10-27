@@ -41,7 +41,8 @@ namespace Vellocet.Sdk.Editor.Maps
                     ". Export the game profile from this Unity checkout and reload project resources in Vertex. Installed catalog: " + installedPath);
             }
             var profiles = LoadAssetProfiles(job);
-            if (map.Objects.Any(mesh => mesh.Lightmap != null && (mesh.Lightmap.GenerateUV2 != job.Game.Baking.GenerateLightmapUVs || mesh.Lightmap.ResolutionScale != job.Game.Baking.LightmapScale)))
+            // Explicit renderer settings retain authored texel density, matching Vertex BuildSources.Capture.
+            if (map.Objects.Any(mesh => mesh.Lightmap != null && mesh.Rendering == null && (mesh.Lightmap.GenerateUV2 != job.Game.Baking.GenerateLightmapUVs || mesh.Lightmap.ResolutionScale != job.Game.Baking.LightmapScale)))
                 throw new InvalidDataException("Map lightmap settings must match the game profile.");
             MapSettingsAuthoring.Read(map);
             if (map.MapId != job.MapId) throw new InvalidDataException("The map identity does not match the build request.");

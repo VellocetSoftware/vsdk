@@ -23,61 +23,61 @@ namespace Vellocet.Sdk.Editor
 
     internal static class SdkDocumentation
     {
-        [MenuItem("Tools/Vellocet/SDK/Documentation", priority = 121)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Home", priority = 509)]
         internal static void OpenHome()
         {
             Open(SdkDocumentationPage.Home);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Getting Started", priority = 122)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Getting Started", priority = 510)]
         private static void OpenGettingStarted()
         {
             Open(SdkDocumentationPage.GettingStarted);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Content Add-ons", priority = 123)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Content Add-ons", priority = 511)]
         private static void OpenContentAddons()
         {
             Open(SdkDocumentationPage.ContentAddons);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Audio", priority = 124)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Audio", priority = 512)]
         private static void OpenAudio()
         {
             Open(SdkDocumentationPage.Audio);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Reusable Content Browser", priority = 125)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Reusable Content Browser", priority = 513)]
         private static void OpenReusableContent()
         {
             Open(SdkDocumentationPage.ReusableContent);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/VSig", priority = 127)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/VSig", priority = 514)]
         private static void OpenVSig()
         {
             Open(SdkDocumentationPage.VSig);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Maps", priority = 128)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Maps", priority = 515)]
         private static void OpenMaps()
         {
             Open(SdkDocumentationPage.Maps);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Build and Test", priority = 130)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Build and Test", priority = 516)]
         private static void OpenBuildAndTest()
         {
             Open(SdkDocumentationPage.BuildAndTest);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Package Reference", priority = 131)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Package Reference", priority = 517)]
         private static void OpenPackageReference()
         {
             Open(SdkDocumentationPage.PackageReference);
         }
 
-        [MenuItem("Tools/Vellocet/SDK/Documentation/Troubleshooting", priority = 132)]
+        [MenuItem("Tools/Vellocet/SDK/Documentation/Troubleshooting", priority = 518)]
         private static void OpenTroubleshooting()
         {
             Open(SdkDocumentationPage.Troubleshooting);

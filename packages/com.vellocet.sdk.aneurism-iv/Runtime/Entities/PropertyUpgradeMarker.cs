@@ -5,8 +5,8 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("info_aniv_property_upgrade")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Property Upgrade")]
+    [EntityClass("info_property_upgrade")]
+    [EntityAuthoring("Map setup", EntityPlacementKind.Logic, "Property Upgrade")]
     public sealed class PropertyUpgradeMarker : EntityMarker
     {
         [SerializeField] private string upgradeName;

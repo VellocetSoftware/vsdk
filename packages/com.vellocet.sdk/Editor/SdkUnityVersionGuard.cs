@@ -29,7 +29,7 @@ namespace Vellocet.Sdk.Editor
             $"This project is open in Unity {Application.unityVersion}. Open the project with the required Editor " +
             "version in Unity Hub before compiling or building SDK content.";
 
-        [MenuItem("Tools/Vellocet/SDK/Check Unity Version", priority = 117)]
+        [MenuItem("Tools/Vellocet/SDK/Check Unity Version", priority = 504)]
         private static void CheckFromMenu()
         {
             if (IsSupported)

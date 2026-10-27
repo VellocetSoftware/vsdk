@@ -8,7 +8,7 @@ using Vellocet.Sdk.Entities.Signals;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("trigger_teleport")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Volume, "Trigger Teleport")]
+    [EntityAuthoring("Movement", EntityPlacementKind.Volume, "Trigger Teleport")]
     public sealed partial class TriggerTeleportMarker :
         TriggerVolumeMarkerBase<TriggerTeleportMarker.Input, TriggerTeleportMarker.Output>
     {

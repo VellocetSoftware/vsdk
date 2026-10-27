@@ -5,13 +5,14 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_neurostabilizer")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Neurostabilizer")]
+    [EntityClass("func_neurostabilizer")]
+    [EntityAuthoring("Infrastructure", EntityPlacementKind.Point, "Neurostabilizer")]
     public sealed class NeurostabilizerMarker : PrefabEntityMarker
     {
         public override string ArchetypeId => "aniv.neurostabilizer";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            GameOperationContracts.Utility(builder);
+        }
     }
 }

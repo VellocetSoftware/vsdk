@@ -23,7 +23,7 @@ namespace Vellocet.Sdk.Editor.Tests
             var previous = SceneManager.GetActiveScene();
             var folder = "Assets/CompiledGeometryCheck_" + Guid.NewGuid().ToString("N");
             AssetDatabase.CreateFolder("Assets", Path.GetFileName(folder));
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            var scene = MapTestScenes.CreateEmpty();
             var scenePath = folder + "/Compiled.unity";
             try
             {
@@ -57,7 +57,7 @@ namespace Vellocet.Sdk.Editor.Tests
                 Assert.That(filter.sharedMesh.uv2, Is.EqualTo(uv2), "Existing lightmap UVs must remain intact.");
                 Assert.That(MapGeneratedGeometryUtility.Persist(scene, scenePath, out message), Is.True, message);
                 Assert.That(EditorSceneManager.SaveScene(scene), Is.True);
-                EditorSceneManager.CloseScene(scene, true);
+                MapTestScenes.Close(scene);
                 Assert.That(AssetDatabase.DeleteAsset(sourcePath), Is.True);
                 scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                 filter = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MeshFilter>()).Single();
@@ -70,7 +70,7 @@ namespace Vellocet.Sdk.Editor.Tests
             }
             finally
             {
-                if (scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
+                if (scene.IsValid() && scene.isLoaded) MapTestScenes.Close(scene);
                 if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
                 AssetDatabase.DeleteAsset(folder);
             }
@@ -80,7 +80,7 @@ namespace Vellocet.Sdk.Editor.Tests
         public void MissingStaticWorldMeshFailsBeforeBaking()
         {
             var previous = SceneManager.GetActiveScene();
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            var scene = MapTestScenes.CreateEmpty();
             try
             {
                 var world = new GameObject("Missing wall", typeof(MeshFilter), typeof(MeshRenderer));
@@ -91,7 +91,7 @@ namespace Vellocet.Sdk.Editor.Tests
             }
             finally
             {
-                EditorSceneManager.CloseScene(scene, true);
+                MapTestScenes.Close(scene);
                 if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
             }
         }

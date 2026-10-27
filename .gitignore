@@ -33,3 +33,29 @@ __pycache__/
 !.env.*.example
 *.pfx
 *.p12
+
+# AI assistant / agent files are never committed (Claude Code, Codex, Cursor, Gemini, Copilot,
+# Windsurf, Aider, Cline, Junie, Kiro...). Keep them local only.
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+AGENT.md
+GEMINI.md
+.claude/
+.codex/
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.aider*
+.continue/
+.clinerules
+.roo/
+.kiro/
+.junie/
+.gemini/
+.agents/
+.agent-notes/
+.mcp.json
+.github/copilot-instructions.md

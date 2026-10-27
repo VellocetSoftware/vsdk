@@ -1,0 +1,19 @@
+module folding_station:
+    ref processor: func_item_processor match "*"
+    ref request: func_button match Request
+    ref status: info_label match Status
+    server on request.pressed:
+        processor.start()
+    server on processor.started:
+        request.disable()
+        status.set_text("FOLDING")
+    server on processor.completed:
+        request.enable()
+        status.set_text("FOLDED / READY")
+    server on processor.cancelled:
+        request.enable()
+        status.set_text("CANCELLED")
+    server on processor.rejected(reason):
+        if not processor.busy:
+            request.enable()
+        status.set_text(reason)

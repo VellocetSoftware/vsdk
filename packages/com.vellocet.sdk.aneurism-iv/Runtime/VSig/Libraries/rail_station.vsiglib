@@ -1,0 +1,29 @@
+module rail_station(stop_index: int = 0, dwell: float = 8s):
+    ref train: func_train match "*"
+    ref door: func_door match "StationDoor"
+    ref dispatch: func_button match "Dispatch"
+    state awaiting_close: bool = false
+    server on dispatch.pressed:
+        request_departure
+    input request_departure:
+        if not train.is_moving and train.stop_index == stop_index:
+            if door.is_open:
+                awaiting_close = true
+                door.close()
+            else:
+                train.depart()
+    server on door.close:
+        if awaiting_close:
+            awaiting_close = false
+            if not train.is_moving and train.stop_index == stop_index:
+                train.depart()
+    server on map.ready:
+        arrive
+    server on train.arrive:
+        arrive
+    input arrive:
+        if train.stop_index == stop_index:
+            awaiting_close = false
+            door.open()
+            schedule departure after dwell:
+                request_departure

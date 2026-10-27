@@ -5,13 +5,18 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_dealer_pickup")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Dealer Pickup")]
+    [EntityClass("func_dealer_pickup")]
+    [EntityAuthoring("Commerce", EntityPlacementKind.Point, "Dealer Pickup")]
     public sealed class DealerPickupMarker : WaypointPrefabMarker
     {
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.dealer-pickup";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("collect", EntitySignalValueType.None);
+            builder.AddOutput("collected", EntitySignalValueType.Int);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("busy", EntitySignalValueType.Bool, true, false);
+        }
     }
 }

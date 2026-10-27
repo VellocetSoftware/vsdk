@@ -35,8 +35,7 @@ reference them; remove old generations or legacy copies only after checking
 dependencies. Keep the shared bake folder when pruning old compiled-scene folders.
 
 VSig includes its twelve standard logic modules: use `use counter as captures`
-or `use latch as gate` directly, without importing a library. Legacy imports of
-`Logic.vsiglib` from the SDK or Vertex package still resolve in the compiler.
+or `use latch as gate` directly, without importing a library.
 This works for existing Unity-authored maps as well as Vertex maps.
 The SDK keeps its game-specific `SpawnDoors.vsiglib`. Portable language tests live in Vertex; SDK host and
 Unity adapter checks live in `Tests/Editor/VSigSdkIntegrationTests.cs`.

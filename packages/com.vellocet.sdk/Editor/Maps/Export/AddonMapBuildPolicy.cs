@@ -18,7 +18,7 @@ namespace Vellocet.Sdk.Editor.Maps
     }
 
     /// <summary>
-    ///     Single source of truth for map-package targets, roles, and release requirements.
+    ///     Map-package targets, roles and release requirements.
     /// </summary>
     public static class AddonMapBuildPolicy
     {

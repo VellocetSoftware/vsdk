@@ -8,6 +8,19 @@ namespace Vellocet.Sdk.Aneurism.Tests
 {
     public sealed class AneurismSdkTests
     {
+        [TestCase(typeof(Vellocet.Sdk.Entities.LightMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.AudioEnvironmentMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.MapSettingsMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.ButtonMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.DoorMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.RotatingDoorMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.ScalingDoorMarker), true)]
+        [TestCase(typeof(Vellocet.Sdk.Entities.TriggerWaterMarker), true)]
+        public void OnlyImplementedEntityTypesAreOffered(System.Type markerType, bool allowed)
+        {
+            Assert.That(SdkGame.Current.AllowsEntityMarker(markerType), Is.EqualTo(allowed));
+        }
+
         [TestCase("Assets/Art/Models/entities/door.prefab", false)]
         [TestCase("Assets/Art/Models/entities/door.prefab.meta", false)]
         [TestCase("Assets/Art/Models/entities/private.asset", false)]
@@ -44,7 +57,7 @@ namespace Vellocet.Sdk.Aneurism.Tests
             Assert.That(VSig.VSigGlobalEvents.Catalog.Signals.Any(signal => signal.Source == "gravewar"), Is.False);
             Assert.That(Addons.AddonMedia.AudioType, Is.EqualTo("stereoform.event"));
             Assert.That(SdkGame.Current.SupportsExternalMods, Is.False);
-            Assert.That(ModeIdPolicy.SafeFallbackModeId, Is.EqualTo("aneurism"));
+            Assert.That(ModeIdPolicy.SafeFallbackModeId, Is.EqualTo("nightmare"));
             Assert.That(Maps.MapMusicSets.Name(default), Is.EqualTo("Unassigned"));
             Assert.That(Maps.MapMusicSets.TryParse("Compound", out _), Is.False);
             Assert.That(Maps.MapMusicSets.TryParse(null, out _), Is.True);

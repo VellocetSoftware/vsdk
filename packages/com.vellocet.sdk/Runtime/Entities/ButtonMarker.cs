@@ -9,7 +9,7 @@ namespace Vellocet.Sdk.Entities
 {
     [EntityClass("func_button")]
     [EntityAuthoring("World", EntityPlacementKind.Point, "Button")]
-    public sealed class ButtonMarker : EntityMarker<ButtonMarker.Input, ButtonMarker.Output>, IMapModelMarker
+    public class ButtonMarker : EntityMarker<ButtonMarker.Input, ButtonMarker.Output>, IMapModelMarker
     {
         [SerializeField, Tooltip("Optional game-supplied model preset. Empty uses authored brush geometry.")]
         private string model;
@@ -18,8 +18,9 @@ namespace Vellocet.Sdk.Entities
         [SerializeField, Tooltip("Interaction action text, independent of the button's name.")] private string label = "Press";
         [SerializeField, Min(0)] private float cooldown = .25f;
         [SerializeField] private bool startsDisabled;
-        public string Model => model;
-        public string ArchetypeId => model;
+        protected virtual string DefaultModel => string.Empty;
+        public string Model => string.IsNullOrEmpty(model) ? DefaultModel : model;
+        public string ArchetypeId => Model;
         public string Label => label;
         public string OverrideName => overrideName;
         public float Cooldown => cooldown;

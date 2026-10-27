@@ -11,20 +11,6 @@ namespace Vellocet.Sdk.VSig.Runtime
     {
         private const string RuntimeObjectName = "[VSig Runtime]";
 
-        public static bool Install(Scene scene, VSigCompiledProgram program, bool includeInactiveMarkers = true,
-            HideFlags hideFlags = HideFlags.DontSave, Guid mapId = default)
-        {
-            if (program is not { HasContent: true })
-                return false;
-
-            var runtime = FindOrCreateRuntime(scene, hideFlags);
-            if (!runtime)
-                return false;
-
-            runtime.Configure(program, includeInactiveMarkers, mapId);
-            return runtime.CompileAndRegister();
-        }
-
         public static bool Install(Scene scene, Vertex.VSig.VSigCompiledProgram program, Guid mapId,
             bool includeInactiveMarkers = true, HideFlags hideFlags = HideFlags.DontSave)
         {

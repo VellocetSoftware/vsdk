@@ -1,3 +1,5 @@
+// Binary content catalogs are an Addressables 4 format.
+#if VELLOCET_ADDRESSABLES_4
 // Copyright (c) 2026 Vellocet Corporation. All rights reserved.
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
@@ -83,4 +85,5 @@ namespace Vellocet.Sdk.Tests.Editor
         }
     }
 }
+#endif
 #endif

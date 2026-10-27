@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+#if UNITY_5_3_OR_NEWER
 using UnityEngine;
+#endif
 using Vellocet.Sdk.Entities.Base;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -12,9 +14,11 @@ namespace Vellocet.Sdk.Grimwar
 #endif
     public sealed class GrimwarSdk : SdkGameDefinition
     {
+#if UNITY_5_3_OR_NEWER
         static GrimwarSdk() => Register();
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Register() => SdkGame.Register(new GrimwarSdk());
+#endif
 
         public override string MinimumMapSdkVersion => "4.0.0";
         public override string AudioRuntimeCapability => "wwise";
@@ -36,6 +40,7 @@ namespace Vellocet.Sdk.Grimwar
                 new Vertex.Contracts.EntitySignalParameter("result", "string"))
         };
         public override bool RequiresPackageGameId => false; // Released Grimwar packages predate the shared SDK.
+#if UNITY_5_3_OR_NEWER
         public override int NavigationMask => ~LayerMask.GetMask("EntitySolid", "EntityClip", "RaycastOnly");
         public override int ResolveLayers(SdkLayerSet layers)
         {
@@ -50,6 +55,11 @@ namespace Vellocet.Sdk.Grimwar
             (SdkLayerSet.Shield, "Shield"), (SdkLayerSet.FirstPerson, "FirstPerson"),
             (SdkLayerSet.Trigger, "Trigger"), (SdkLayerSet.Ragdoll, "Ragdoll")
         };
+#else
+        public override int NavigationMask => throw new System.PlatformNotSupportedException("Layer masks require Unity.");
+        public override int ResolveLayers(SdkLayerSet layers) =>
+            throw new System.PlatformNotSupportedException("Layer masks require Unity.");
+#endif
         public override IReadOnlyList<ModeDescriptor> Modes => GameModes;
         public override SdkAssetRootMapping[] AssetRoots => Roots;
         private static readonly string[] Assemblies = { "Vellocet.Sdk", "Grimwar.Game.Entities" };

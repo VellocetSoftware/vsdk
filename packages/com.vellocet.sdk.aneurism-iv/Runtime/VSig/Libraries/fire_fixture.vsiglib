@@ -1,0 +1,50 @@
+# A reusable fixture: native heat owns gameplay; replicated light and flames own presentation.
+module fire_fixture:
+    ref heat: trigger_effect match "*"
+    ref light: env_light match Glow
+    ref flames: env_particle match Flames
+    ref audio: env_ambient match FireAudio
+
+    input ignite:
+        heat.enable()
+
+    input extinguish:
+        heat.disable()
+
+    def present:
+        if heat.is_enabled:
+            light.on()
+            flames.play()
+        else:
+            light.off()
+            flames.stop()
+
+    def present_audio:
+        if flames.is_playing:
+            audio.play()
+        else:
+            audio.stop()
+
+    server on heat.enabled:
+        present
+
+    server on heat.disabled:
+        present
+
+    server on heat.killed:
+        present
+
+    server on map.ready:
+        present
+
+    client on flames.started:
+        audio.play()
+
+    client on flames.stopped:
+        audio.stop()
+
+    client on flames.killed:
+        audio.stop()
+
+    client on map.ready:
+        present_audio

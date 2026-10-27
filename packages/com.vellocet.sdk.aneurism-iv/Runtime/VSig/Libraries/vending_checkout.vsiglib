@@ -1,0 +1,9 @@
+module vending_checkout:
+    ref vending: func_vending_machine match "*"
+    ref status: info_label match "Status"
+    server on vending.purchased(item: string):
+        status.set_text("PURCHASE COMPLETED")
+    server on vending.restocked:
+        status.set_text("RESTOCKED")
+    server on vending.rejected(reason: string):
+        status.set_text(reason)

@@ -80,7 +80,7 @@ namespace Vellocet.Sdk.Editor.Workbench
         private void EnsureSpatialPanel()
         { if (_spatialPanel != null) return; _spatialPanel = new SpatialOctreePreviewPanel(); _spatialPanel.OnEnable(this); }
 
-        [MenuItem("Tools/Vellocet/SDK/Workbench", priority = 119)]
+        [MenuItem("Tools/Vellocet/SDK/Workbench", priority = 500)]
         public static void Open()
         {
             var window = GetWindow<SdkWorkbenchWindow>(WindowTitle);

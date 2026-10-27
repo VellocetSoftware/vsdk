@@ -8,7 +8,7 @@ using Vellocet.Sdk.Entities.Base;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("logic_script")]
-    [EntityAuthoring("Logic", EntityPlacementKind.Logic, "Logic Script")]
+    [EntityAuthoring("Logic", EntityPlacementKind.Logic, "Logic Script", Description = "Attach a module library to this hierarchy. Use its typed settings and public inputs and outputs.")]
     public sealed class LogicScriptMarker : EntityMarker<LogicScriptMarker.Input, LogicScriptMarker.Output>
     {
         public override Vellocet.Sdk.Entities.Signals.EntitySignalCapabilities SignalCapabilities =>

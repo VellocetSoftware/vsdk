@@ -1,0 +1,26 @@
+module warplane_flyby(interval: float = 57.5s, lead_in: float = 12.5s, visible_time: float = 20s):
+    ref planes: env_warplanes match "*"
+    state running: bool = false
+    input start:
+        if not running:
+            running = true
+            pulse
+            schedule repeat every interval:
+                pulse
+    input pulse:
+        planes.play_audio()
+        schedule lead after lead_in:
+            planes.show_planes()
+            schedule finish after visible_time:
+                planes.stop()
+    input stop:
+        running = false
+        cancel repeat
+        cancel lead
+        cancel finish
+        planes.stop()
+    server on game.event_changed(event: string):
+        if event == "Wartime":
+            start
+        else:
+            stop

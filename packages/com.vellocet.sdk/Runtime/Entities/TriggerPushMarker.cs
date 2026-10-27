@@ -11,7 +11,7 @@ using UnityEditor;
 namespace Vellocet.Sdk.Entities
 {
     [EntityClass("trigger_push")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Volume, "Trigger Push")]
+    [EntityAuthoring("Triggers", EntityPlacementKind.Volume, "Trigger Push")]
     public sealed partial class TriggerPushMarker :
         TriggerVolumeMarkerBase<TriggerPushMarker.Input, TriggerPushMarker.Output>
     {

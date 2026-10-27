@@ -5,15 +5,16 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_fire")]
-    [EntityAuthoring("World", EntityPlacementKind.Logic, "Fire")]
+    [EntityClass("env_fire")]
+    [EntityAuthoring("Environment", EntityPlacementKind.Point, "Fire", Description = "Native fire with bounded size, replicated ignition state and hazard/effect control.")]
     public sealed class FireMarker : PrefabEntityMarker
     {
         [SerializeField, Range(.1f, 10f)] private float scale = 1f;
         public float Scale => scale;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            OperationSignalContracts.Ignition(builder);
+        }
         public override string ArchetypeId => "aniv.fire";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
     }
 }

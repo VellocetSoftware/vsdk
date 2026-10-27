@@ -1,3 +1,4 @@
+#if VELLOCET_STEREOFORM
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -105,3 +106,4 @@ namespace Vellocet.Sdk.Editor.Audio
         }
     }
 }
+#endif

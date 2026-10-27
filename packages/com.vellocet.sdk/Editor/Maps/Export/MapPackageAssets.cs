@@ -262,7 +262,7 @@ namespace Vellocet.Sdk.Editor.Maps
 
         public void BeginBuild()
         {
-            _reports = ProjectConfigData.BuildReportFilePaths.ToDictionary(p => p, File.GetLastWriteTimeUtc, StringComparer.Ordinal);
+            _reports = ProjectConfigData.BuildReportFilePaths.Distinct(StringComparer.Ordinal).ToDictionary(p => p, File.GetLastWriteTimeUtc, StringComparer.Ordinal);
             _generateLayout = ProjectConfigData.GenerateBuildLayout; _reportFormat = ProjectConfigData.BuildLayoutReportFileFormat;
             ProjectConfigData.GenerateBuildLayout = true; ProjectConfigData.BuildLayoutReportFileFormat = ProjectConfigData.ReportFileFormat.JSON;
         }
@@ -271,7 +271,7 @@ namespace Vellocet.Sdk.Editor.Maps
 
         public void Audit(AddressablesPlayerBuildResult result, string outputDirectory)
         {
-            var reports = ProjectConfigData.BuildReportFilePaths.Where(p => !_reports.TryGetValue(p, out var modified) || File.GetLastWriteTimeUtc(p) != modified).ToArray();
+            var reports = ProjectConfigData.BuildReportFilePaths.Distinct(StringComparer.Ordinal).Where(p => !_reports.TryGetValue(p, out var modified) || File.GetLastWriteTimeUtc(p) != modified).ToArray();
             if (reports.Length != 1) throw new InvalidDataException("Packaging requires exactly one fresh Unity build-layout report.");
             var layout = BuildLayout.Open(reports[0], readFullFile: true) ?? throw new InvalidDataException("Could not read the bundle build-layout report.");
             try

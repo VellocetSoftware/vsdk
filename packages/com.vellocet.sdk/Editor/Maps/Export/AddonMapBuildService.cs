@@ -94,6 +94,8 @@ namespace Vellocet.Sdk.Editor.Maps
             request.MapId = MapBuildArtifactPlanner.NormalizeMapId(request.MapId);
             request.AddonId = AddonIdPolicy.NormalizeOrEmpty(request.AddonId);
             request.DefaultModeId = MapBuildArtifactPlanner.NormalizeDefaultModeId(request.DefaultModeId);
+            try { request.DefaultModeId = SdkGame.Current.ResolveMapMode(request.MapId, request.DefaultModeId); }
+            catch (ArgumentException error) { return new AddonMapBuildResult { Error = error.Message, Profile = request.Profile }; }
 
             if (string.IsNullOrWhiteSpace(request.MapId))
                 return new AddonMapBuildResult { Error = "Map id is required." };

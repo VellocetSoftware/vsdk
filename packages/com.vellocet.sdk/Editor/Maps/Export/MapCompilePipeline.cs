@@ -159,6 +159,7 @@ namespace Vellocet.Sdk.Editor.Maps
                         return MapCompilePassResult.Fail(geometryMessage);
                     MapSceneUtility.UnpackPrefabInstances(ctx.Scene);
                     var sceneContext = MapSceneUtility.EnsureSceneContract(ctx.Scene, true, out var summary);
+                    MapPlayableBoundsBaker.Bake(ctx.Scene);
                     if (ctx.Options?.BakePolicy != null) VertexBakePolicy.Apply(ctx.Scene, ctx.Options.BakePolicy);
                     if (!sceneContext.IsSceneContractSatisfied)
                         return MapCompilePassResult.Fail(
@@ -348,10 +349,13 @@ namespace Vellocet.Sdk.Editor.Maps
                         runtimeRoot.transform,
                         VSigRuntimeObjectName);
                     if (ctx.Options?.ScriptSource)
+                    {
+                        Guid.TryParse(AssetDatabase.AssetPathToGUID(ctx.SourceScenePath), out var sourceSceneId);
                         return VSigCompiledSceneInjector.InjectSource(ctx.Scene, ctx.Options.ScriptSource, ctx.Receipt,
-                            out var sourceMessage, options)
+                            out var sourceMessage, options, sourceSceneId)
                             ? MapCompilePassResult.Pass(sourceMessage)
                             : MapCompilePassResult.Fail(sourceMessage);
+                    }
                     return VSigCompiledSceneInjector.Inject(ctx.Scene, ctx.SourceScenePath, ctx.Receipt, options,
                         out var message)
                         ? MapCompilePassResult.Pass(message)

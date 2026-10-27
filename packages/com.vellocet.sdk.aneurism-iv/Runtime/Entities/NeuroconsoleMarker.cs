@@ -5,13 +5,16 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_neuroconsole")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Neuroconsole")]
+    [EntityClass("func_neuroconsole")]
+    [EntityAuthoring("Infrastructure", EntityPlacementKind.Point, "Neuroconsole")]
     public sealed class NeuroconsoleMarker : WaypointPrefabMarker
     {
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.neuroconsole";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("open_ui", EntitySignalValueType.None);
+            GameOperationContracts.Utility(builder);
+        }
     }
 }

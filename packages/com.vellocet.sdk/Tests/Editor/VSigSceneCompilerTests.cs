@@ -57,14 +57,13 @@ namespace Vellocet.Sdk.Tests.Editor
                 Assert.That(EditorSceneManager.SaveScene(scene, path), Is.True);
                 Write(folder + "/Map.vsig", "# Geometry-only maps still retain their authored identity.\n");
                 Assert.That(VSigCompiledSceneInjector.Inject(scene, path, null, out var message), Is.True, message);
-                var runtime = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<VSigSceneRuntime>()).Single();
-                Assert.That(runtime.MapId, Is.EqualTo(mapId));
+                Assert.That(scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<VSigSceneRuntime>()), Is.Empty);
                 var door = new GameObject("door"); door.transform.SetParent(root.transform);
                 door.AddComponent<Vertex.Unity.VertexObjectIdentity>().Initialize(mapId, Guid.NewGuid(), "door");
                 door.AddComponent<DoorMarker>().ValidateVertexImport();
                 Write(folder + "/Map.vsig", "ref door: func_door\non map.ready:\n    door.open()\n");
                 Assert.That(VSigCompiledSceneInjector.Inject(scene, path, null, out message), Is.True, message);
-                runtime = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<VSigSceneRuntime>()).Single();
+                var runtime = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<VSigSceneRuntime>()).Single();
                 Assert.That(runtime.MapId, Is.EqualTo(mapId));
                 Assert.That(runtime.CompileAndRegister(), Is.True, "The compiled program must bind the imported hierarchy.");
                 var bytes = runtime.GetVertexProgram().Serialize();
@@ -120,11 +119,10 @@ namespace Vellocet.Sdk.Tests.Editor
                 Assert.That(message, Does.Contain(libraryPath).And.Contain("3"));
                 Assert.That(runtime && runtime.GetVertexProgram().Serialize().SequenceEqual(bytes), Is.True);
                 AssetDatabase.DeleteAsset(folder + "/Map.vsig");
-                Assert.That(VSigCompiledSceneInjector.Inject(scene, scenePath, null, out message), Is.False);
-                Assert.That(runtime && runtime.GetVertexProgram().Serialize().SequenceEqual(bytes), Is.True);
+                Assert.That(VSigCompiledSceneInjector.Inject(scene, scenePath, null, out message), Is.True, message);
+                Assert.That(runtime == null, Is.True, "Removing behavior from a native scene removes its VM.");
                 Object.DestroyImmediate(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<DoorMarker>()).Single().gameObject);
-                Assert.That(VSigCompiledSceneInjector.Inject(scene, scenePath, null, out message), Is.False);
-                Assert.That(runtime && runtime.GetVertexProgram().Serialize().SequenceEqual(bytes), Is.True);
+                Assert.That(VSigCompiledSceneInjector.Inject(scene, scenePath, null, out message), Is.True, message);
 
                 File.WriteAllText(external, library);
                 var diagnostics = new List<VSigDiagnostic>();

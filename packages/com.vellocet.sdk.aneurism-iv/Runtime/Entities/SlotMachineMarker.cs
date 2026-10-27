@@ -5,13 +5,23 @@ using Vellocet.Sdk.Entities.Signals;
 
 namespace Vellocet.Sdk.Aneurism.Entities
 {
-    [EntityClass("prop_slot_machine")]
-    [EntityAuthoring("Gameplay", EntityPlacementKind.Logic, "Slot Machine")]
-    public sealed class SlotMachineMarker : PrefabEntityMarker
+    [EntityClass("func_slot_machine")]
+    [EntityAuthoring("Commerce", EntityPlacementKind.Point, "Slot Machine")]
+    public sealed class SlotMachineMarker : ContactOperationMarker
     {
+        public override bool SupportsInteraction => true;
         public override string ArchetypeId => "aniv.slot-machine";
-        public override string[] Inputs => Array.Empty<string>();
-        public override string[] Outputs => Array.Empty<string>();
-        public override EntitySignalCapabilities SignalCapabilities => EntitySignalCapabilities.None;
+        public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
+        {
+            builder.AddInput("spin", EntitySignalValueType.None);
+            builder.AddOutput("started", EntitySignalValueType.None);
+            builder.AddOutput("settled", EntitySignalValueType.Int);
+            builder.AddOutput("completed", EntitySignalValueType.Int);
+            builder.AddOutput("rejected", EntitySignalValueType.String);
+            builder.AddProperty("is_spinning", EntitySignalValueType.Bool, true, false);
+            builder.AddProperty("pot", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("spin_cost", EntitySignalValueType.Int, true, false);
+            builder.AddProperty("result", EntitySignalValueType.String, true, false);
+        }
     }
 }

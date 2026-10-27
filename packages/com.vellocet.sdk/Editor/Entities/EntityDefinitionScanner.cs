@@ -23,7 +23,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 .Where(assembly => assembly != null && !assembly.IsDynamic)
                 .SelectMany(GetTypesSafely)
                 .Where(type => type != null && typeof(EntityMarker).IsAssignableFrom(type) && !type.IsAbstract &&
-                               !type.IsGenericTypeDefinition)
+                               !type.IsGenericTypeDefinition && SdkGame.Current.AllowsEntityMarker(type))
                 .Select(CreateMarkerInfo)
                 .Where(info => info != null)
                 .OrderBy(info => info.Category, StringComparer.OrdinalIgnoreCase)

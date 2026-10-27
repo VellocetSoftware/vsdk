@@ -1,0 +1,11 @@
+module security_feedback:
+    ref camera: func_security_camera match "*"
+    ref alarm: env_ambient match "Alarm"
+    ref status: info_label match "Status"
+    server on camera.alarm_started:
+        alarm.play()
+        status.set_text("ALARM")
+    server on camera.alarm_stopped:
+        alarm.stop()
+    server on camera.cleared:
+        status.set_text("CLEARED")
