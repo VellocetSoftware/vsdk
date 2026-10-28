@@ -27,7 +27,7 @@ namespace Vellocet.Sdk.Addons
         private const int MaximumTypeNameCharacters = 4096;
 
         private const string RebuildInstruction =
-            "Recompile this map with the current ANEURISM IV SDK and publish the updated catalog and bundles.";
+            "Recompile this map with the current game SDK and publish the updated catalog and bundles.";
 
         public static bool TryValidateFile(string path, out string error)
         {
@@ -163,7 +163,7 @@ namespace Vellocet.Sdk.Addons
 #pragma warning restore CS0649
 #else
         /// <summary>
-        ///     Addressables binary catalog v3 (BinaryContentCatalogData/BinaryStorageBuffer).
+        ///     Version-specific Addressables binary catalog metadata (BinaryStorageBuffer).
         ///     Uses checked managed reads: Unity's deserializer logs exceptions and uses unsafe reads,
         ///     so it cannot serve as a quiet preflight for untrusted, possibly truncated catalog bytes.
         ///     Tests serialize through the installed Addressables package to detect format changes.
@@ -189,7 +189,14 @@ namespace Vellocet.Sdk.Addons
             internal void Validate()
             {
                 RequireRange(0, 32);
-                if (ReadUInt(0) != 0x0de38942 || ReadUInt(4) != 3)
+#if VELLOCET_ADDRESSABLES_4
+                const uint magic = 0x0de38942;
+                const uint version = 3;
+#else
+                var magic = unchecked((uint)nameof(UnityEngine.AddressableAssets.ResourceLocators.ContentCatalogData).GetHashCode());
+                const uint version = 2;
+#endif
+                if (ReadUInt(0) != magic || ReadUInt(4) != version)
                     throw new InvalidDataException(
                         $"Unsupported Addressables binary catalog header or version. {RebuildInstruction}");
 
