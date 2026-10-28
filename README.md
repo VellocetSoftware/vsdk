@@ -21,6 +21,14 @@ folder. `--sdk` accepts a manifest, the `Vertex/` folder, or the repository root
 select a manifest explicitly when several exist. Developer connections use a local
 editor selected with `--vertex`.
 
+## Shared desktop UI
+
+The launcher pins `Vellocet.UI.Avalonia` 0.3.0 from `vendor/nuget`, matching
+Vertex and Stereoform. `App.axaml` selects the Red accent preset. Black surfaces,
+control states, system typography and form spacing belong to `vellocet-ui`;
+SDK setup logic and field labels stay here. The setup window uses the shared
+`comfortable` density. Update the immutable package and checksum together.
+
 ## Standalone resources
 
 Choose a resource type, then **Create** or **Open** its manifest. **Open folder**

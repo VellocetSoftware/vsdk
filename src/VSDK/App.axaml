@@ -1,23 +1,9 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:Vellocet.UI.Avalonia"
              x:Class="VSDK.App"
              RequestedThemeVariant="Dark">
-    <Application.Resources>
-        <ResourceDictionary>
-            <FontFamily x:Key="VellocetFont">avares://VSDK/Assets/Fonts#Monda</FontFamily>
-
-            <SolidColorBrush x:Key="VellocetBlack">#060606</SolidColorBrush>
-            <SolidColorBrush x:Key="VellocetNearBlack">#0B0B0B</SolidColorBrush>
-            <SolidColorBrush x:Key="VellocetWhite">#FFFFFF</SolidColorBrush>
-            <SolidColorBrush x:Key="VellocetSoftWhite">#E9E9E9</SolidColorBrush>
-            <SolidColorBrush x:Key="VellocetMuted">#A2A2A2</SolidColorBrush>
-            <SolidColorBrush x:Key="VellocetLineStrong">#555555</SolidColorBrush>
-            <SolidColorBrush x:Key="VellocetRed">#FF3030</SolidColorBrush>
-        </ResourceDictionary>
-    </Application.Resources>
-
     <Application.Styles>
-        <FluentTheme />
-        <StyleInclude Source="avares://VSDK/Styles/VellocetTheme.axaml" />
+        <ui:VellocetTheme Accent="Red" />
     </Application.Styles>
 </Application>

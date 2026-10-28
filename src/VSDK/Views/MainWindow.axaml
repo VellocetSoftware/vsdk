@@ -1,63 +1,104 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="using:Avalonia.Data.Converters"
         x:Class="VSDK.Views.MainWindow" Width="700" Height="650" MinWidth="560" MinHeight="460"
-        Title="SDK" Icon="/Assets/vellocet-logo.ico">
-  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel Margin="32" Spacing="18">
-      <Image Source="/Assets/vellocet-logo.png" Width="38" Height="38" HorizontalAlignment="Left"/>
-      <TextBlock x:Name="Heading" Text="SDK setup" FontSize="28" FontWeight="SemiBold"/>
-      <TextBlock x:Name="Workflow" Text="Connect your SDK to Vertex." TextWrapping="Wrap"/>
-      <StackPanel x:Name="ResourcePanel" IsVisible="False" Spacing="10">
-        <TextBlock Text="Standalone resources" FontSize="20" FontWeight="SemiBold"/>
-        <TextBlock Text="Create or open a resource, edit its source, then build or playtest it. These tools do not require the engine editor." TextWrapping="Wrap"/>
-        <ComboBox x:Name="ResourceType" AutomationProperties.Name="Resource type" HorizontalAlignment="Stretch"/>
-        <TextBox x:Name="NewResourceId" Text="my_content" PlaceholderText="New resource ID" AutomationProperties.Name="New resource ID"/>
-        <Grid ColumnDefinitions="*,Auto,Auto">
-          <TextBox x:Name="ResourcePath" PlaceholderText="Resource manifest" AutomationProperties.Name="Resource manifest"/>
-          <Button Grid.Column="1" Content="Create…" Click="CreateResourceClicked" Margin="8,0,0,0"/>
-          <Button Grid.Column="2" Content="Open…" Click="ChooseResourceClicked" Margin="8,0,0,0"/>
-        </Grid>
-        <TextBox x:Name="ResourceOutput" PlaceholderText="Build output folder" AutomationProperties.Name="Resource build output"/>
-        <CheckBox x:Name="ResourceRelease" Content="Release package"/>
+        Classes="comfortable" Title="SDK" Icon="/Assets/vellocet-logo.ico">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Grid ColumnDefinitions="40,*" ColumnSpacing="16" Margin="24,24,24,16">
+      <Image Source="/Assets/vellocet-logo.png" Width="40" Height="40" VerticalAlignment="Center"
+             AutomationProperties.Name="Vellocet SDK" />
+      <StackPanel Grid.Column="1" Classes="field">
+        <TextBlock x:Name="Heading" Text="SDK setup" Classes="display" TextWrapping="Wrap" />
+        <TextBlock x:Name="Workflow" Text="Connect your SDK to Vertex." Classes="muted" />
+      </StackPanel>
+    </Grid>
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Classes="sections" Margin="24,0,24,16">
+        <Border Classes="section" IsVisible="{Binding #Locations.IsVisible}">
+          <StackPanel x:Name="Locations" Classes="form">
+            <StackPanel Classes="field">
+              <TextBlock Text="Installation" Classes="sectionHeading" />
+              <TextBlock x:Name="EngineRequirement" Classes="muted" />
+            </StackPanel>
+            <StackPanel Classes="field">
+              <Label Classes="fieldLabel" Content="Engine executable" Target="{Binding #EnginePath}" />
+              <Grid Classes="actionRow" ColumnDefinitions="*,104">
+                <TextBox x:Name="EnginePath" PlaceholderText="Engine executable or app" AutomationProperties.Name="Engine executable" />
+                <Button Grid.Column="1" Content="Choose…" Tag="EnginePath" Click="ChooseExecutableClicked" />
+              </Grid>
+            </StackPanel>
+            <Button x:Name="InstallEngine" IsVisible="False" Click="InstallEngineClicked" HorizontalAlignment="Left" />
+            <TextBlock x:Name="Requirements" TextWrapping="Wrap"
+                       IsVisible="{Binding #Requirements.Text, Converter={x:Static converters:StringConverters.IsNotNullOrEmpty}}" />
+            <StackPanel x:Name="GameSettings" Classes="field">
+              <Label Classes="fieldLabel" Content="Game executable · optional until you playtest" Target="{Binding #GamePath}" />
+              <Grid Classes="actionRow" ColumnDefinitions="*,104">
+                <TextBox x:Name="GamePath" PlaceholderText="Installed game executable or app" AutomationProperties.Name="Game executable" />
+                <Button Grid.Column="1" Content="Choose…" Tag="GamePath" Click="ChooseExecutableClicked" />
+              </Grid>
+            </StackPanel>
+            <Button Content="Check installation again" Click="RecheckClicked" HorizontalAlignment="Left" />
+          </StackPanel>
+        </Border>
+        <Border Classes="section" IsVisible="{Binding #ResourcePanel.IsVisible}">
+          <StackPanel x:Name="ResourcePanel" IsVisible="False" Classes="form">
+            <StackPanel Classes="field">
+              <TextBlock Text="Standalone resources" Classes="sectionHeading" />
+              <TextBlock Text="Create or open content, edit its source, then build or playtest it. These tools do not require the engine editor." Classes="muted" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+              <StackPanel Classes="field">
+                <Label Classes="fieldLabel" Content="Resource type" Target="{Binding #ResourceType}" />
+                <ComboBox x:Name="ResourceType" AutomationProperties.Name="Resource type" HorizontalAlignment="Stretch" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Classes="field">
+                <Label Classes="fieldLabel" Content="New resource ID" Target="{Binding #NewResourceId}" />
+                <TextBox x:Name="NewResourceId" Text="my_content" PlaceholderText="New resource ID" AutomationProperties.Name="New resource ID" />
+              </StackPanel>
+            </Grid>
+            <StackPanel Classes="field">
+              <Label Classes="fieldLabel" Content="Resource manifest" Target="{Binding #ResourcePath}" />
+              <Grid Classes="actionRow" ColumnDefinitions="*,104,104">
+                <TextBox x:Name="ResourcePath" PlaceholderText="Resource manifest" AutomationProperties.Name="Resource manifest" />
+                <Button Grid.Column="1" Content="Create…" Click="CreateResourceClicked" />
+                <Button Grid.Column="2" Content="Open…" Click="ChooseResourceClicked" />
+              </Grid>
+            </StackPanel>
+            <Grid Classes="actionRow" ColumnDefinitions="*,*,*">
+              <Button Content="Edit source" Tag="edit" Click="ResourceActionClicked" />
+              <Button Grid.Column="1" Content="Content…" Tag="content" Click="ResourceActionClicked" />
+              <Button Grid.Column="2" Content="Open folder" Tag="folder" Click="ResourceActionClicked" />
+            </Grid>
+            <StackPanel Classes="field">
+              <Label Classes="fieldLabel" Content="Build output folder" Target="{Binding #ResourceOutput}" />
+              <TextBox x:Name="ResourceOutput" PlaceholderText="Build output folder" AutomationProperties.Name="Resource build output" />
+            </StackPanel>
+            <CheckBox x:Name="ResourceRelease" Content="Release package" />
+            <Grid Classes="actionRow" ColumnDefinitions="*,*,*">
+              <Button Content="Validate" Tag="validate" Click="ResourceActionClicked" />
+              <Button Grid.Column="1" Content="Build" Tag="build" Click="ResourceActionClicked" />
+              <Button Grid.Column="2" Content="Play in game" Tag="test" Click="ResourceActionClicked" />
+            </Grid>
+          </StackPanel>
+        </Border>
+        <Expander Header="Installation details">
+          <StackPanel Classes="form">
+            <SelectableTextBlock x:Name="InstallPath" TextWrapping="Wrap" />
+            <TextBlock Text="Maps and preferences stay outside this installation. Update the complete game SDK through its distributor. Change engine and game locations in Vertex’s Build → Advanced settings." Classes="muted" />
+            <Button Content="Documentation" Click="DocumentationClicked" HorizontalAlignment="Left" />
+          </StackPanel>
+        </Expander>
+      </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Row="2" Classes="statusBar" Padding="24,16">
+      <StackPanel Classes="form">
+        <TextBlock x:Name="Status" Text="Checking installation…" TextWrapping="Wrap" />
         <WrapPanel>
-          <Button Content="Edit source" Tag="edit" Click="ResourceActionClicked" Margin="0,0,8,8"/>
-          <Button Content="Content…" Tag="content" Click="ResourceActionClicked" Margin="0,0,8,8"/>
-          <Button Content="Open folder" Tag="folder" Click="ResourceActionClicked" Margin="0,0,8,8"/>
-          <Button Content="Validate" Tag="validate" Click="ResourceActionClicked" Margin="0,0,8,8"/>
-          <Button Content="Build" Tag="build" Click="ResourceActionClicked" Margin="0,0,8,8"/>
-          <Button Content="Play in game" Tag="test" Click="ResourceActionClicked" Margin="0,0,8,8"/>
+          <Button x:Name="Configure" Content="Finish setup and open Vertex" IsEnabled="False" Classes="primary" Click="ConfigureClicked" Margin="0,0,8,0" />
+          <Button x:Name="OpenVertexButton" Content="Open Vertex" IsEnabled="False" Click="OpenVertexClicked" Margin="0,0,8,0" />
+          <Button x:Name="CancelSetup" Content="Cancel operation" IsVisible="False" Click="CancelClicked" />
         </WrapPanel>
       </StackPanel>
-      <StackPanel x:Name="Locations" Spacing="14">
-        <TextBlock x:Name="EngineRequirement" TextWrapping="Wrap"/>
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBox x:Name="EnginePath" PlaceholderText="Engine executable or app" AutomationProperties.Name="Engine executable"/>
-          <Button Grid.Column="1" Content="Choose…" Tag="EnginePath" Click="ChooseExecutableClicked" Margin="8,0,0,0"/>
-        </Grid>
-        <Button x:Name="InstallEngine" IsVisible="False" Click="InstallEngineClicked"/>
-        <TextBlock x:Name="Requirements" TextWrapping="Wrap"/>
-        <Button Content="Check installation again" Click="RecheckClicked"/>
-        <StackPanel x:Name="GameSettings" Spacing="8">
-          <TextBlock Text="Game executable · optional until you playtest" TextWrapping="Wrap"/>
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBox x:Name="GamePath" PlaceholderText="Installed game executable or app" AutomationProperties.Name="Game executable"/>
-            <Button Grid.Column="1" Content="Choose…" Tag="GamePath" Click="ChooseExecutableClicked" Margin="8,0,0,0"/>
-          </Grid>
-        </StackPanel>
-      </StackPanel>
-      <TextBlock x:Name="Status" Text="Checking installation…" TextWrapping="Wrap"/>
-      <WrapPanel>
-        <Button x:Name="Configure" Content="Finish setup and open Vertex" IsEnabled="False" Classes="primary" Click="ConfigureClicked" Margin="0,0,8,8"/>
-        <Button x:Name="CancelSetup" Content="Cancel operation" IsVisible="False" Click="CancelClicked" Margin="0,0,8,8"/>
-        <Button x:Name="OpenVertexButton" Content="Open Vertex" IsEnabled="False" Click="OpenVertexClicked" Margin="0,0,8,8"/>
-      </WrapPanel>
-      <Expander Header="Installation details">
-        <StackPanel Spacing="10">
-          <SelectableTextBlock x:Name="InstallPath" TextWrapping="Wrap"/>
-          <TextBlock Text="Maps and preferences stay outside this installation. Update the complete game SDK through its distributor. Change engine and game locations in Vertex’s Build → Advanced settings." TextWrapping="Wrap"/>
-          <Button Content="Documentation" Click="DocumentationClicked"/>
-        </StackPanel>
-      </Expander>
-    </StackPanel>
-  </ScrollViewer>
+    </Border>
+  </Grid>
 </Window>
