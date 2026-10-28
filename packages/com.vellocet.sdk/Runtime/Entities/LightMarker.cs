@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
 using UnityEngine;
-using Entities.MapObjects;
 using Vellocet.Sdk.Entities.Base;
 
 namespace Vellocet.Sdk.Entities
