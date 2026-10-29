@@ -60,7 +60,9 @@ namespace Vellocet.Sdk.Editor.Maps
 
                 var script = folder + "/" + job.Script.Substring((Input + "Scripts/").Length);
                 var sourcePath = Workspace + "/Source/" + id + ".unity";
-                Directory.CreateDirectory(Path.GetDirectoryName(sourcePath));
+                // Register the generated folder before the scene builder validates its asset path.
+                if (!MapEditorPathUtility.EnsureAssetFolder(Path.GetDirectoryName(sourcePath)))
+                    throw new IOException("Could not create the generated scene folder: " + sourcePath);
                 File.WriteAllText(sourcePath + ".meta", "fileFormatVersion: 2\nguid: " +
                     AssetCatalog.Hash(Encoding.UTF8.GetBytes(job.ProjectId + "/" + job.MapId + "/" + sourcePath)).Substring(0, 32) + "\n");
                 var resources = VertexSdkRegistry.CaptureResources(job, context.Root, context.Inputs);
