@@ -54,19 +54,25 @@ namespace Vellocet.Sdk.Editor.Distribution
         protected virtual IEnumerable<string> DeveloperCompilerInputs => Array.Empty<string>();
         protected virtual string DeveloperAuthoringCache => null;
 
-        private string DeveloperFingerprint() => DeveloperSources().CurrentFingerprint();
+        private string DeveloperFingerprint() => DeveloperSources().CurrentFingerprint(Hash);
 
         private CompilerSourceInputs DeveloperSources()
         {
-            // File metadata is the incremental invalidation key; publication and staging verify file hashes.
+            // Metadata reuses known hashes; identical asset re-saves do not invalidate the compiler.
             // Maps and their generated scenes are deliberately outside the SDK-owned source roots.
             var roots = Constants.SdkAssetRootMappings.Select(mapping => mapping.SourceRoot)
-                .Concat(new[] { "ProjectSettings", "StereoformTools", "Tools/Sdk" })
+                .Concat(new[] { "ProjectSettings/ProjectVersion.txt", "ProjectSettings/TagManager.asset",
+                    "ProjectSettings/DynamicsManager.asset", "ProjectSettings/NavMeshAreas.asset",
+                    "ProjectSettings/AudioManager.asset", "ProjectSettings/GraphicsSettings.asset",
+                    "ProjectSettings/QualitySettings.asset", "StereoformTools", "Tools/Sdk" })
                 .Concat(DeveloperCompilerInputs).Select(Path.GetFullPath).ToList();
             roots.AddRange(PackageInfo.GetAllRegisteredPackages().Where(package => package.source != PackageSource.BuiltIn)
                 .Select(package => Path.GetFullPath(package.resolvedPath)));
             roots.Add(Path.GetFullPath("Packages/manifest.json"));
-            return new CompilerSourceInputs { Paths = roots.Distinct(StringComparer.Ordinal).ToArray(), ScriptRoot = Path.GetFullPath("Assets") };
+            var inputs = new CompilerSourceInputs { Paths = roots.Distinct(StringComparer.Ordinal).ToArray(), ScriptRoot = Path.GetFullPath("Assets") };
+            var prior = SdkArtifactPathUtility.ToAbsolutePath(DistributionRoot + "/DeveloperSDK/developer-source.json");
+            if (File.Exists(prior)) inputs.Files = BuildProtocol.Read<CompilerSourceInputs>(prior).Files;
+            return inputs;
         }
 
         public void Build(string outputRoot, string toolsRoot, Action<string> progress = null)
@@ -85,7 +91,7 @@ namespace Vellocet.Sdk.Editor.Distribution
             progress?.Invoke("Preparing the game's SDK content…");
             var profile = EnsureAssetProfile();
             var sourceInputs = toolsRoot == null ? DeveloperSources() : null;
-            if (sourceInputs != null) sourceInputs.Fingerprint = sourceInputs.CurrentFingerprint();
+            if (sourceInputs != null) sourceInputs.Fingerprint = sourceInputs.CurrentFingerprint(Hash);
             var stage = output + ".staging-" + Guid.NewGuid().ToString("N");
             var previous = output + ".previous";
             try
@@ -175,7 +181,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 }.Serialize());
                 if (sourceInputs != null)
                 {
-                    if (sourceInputs.CurrentFingerprint() != sourceInputs.Fingerprint) throw new CompilerInputsChangedException();
+                    if (sourceInputs.CurrentFingerprint(Hash) != sourceInputs.Fingerprint) throw new CompilerInputsChangedException();
                     File.WriteAllBytes(stage + "/developer-source.json", BuildProtocol.Serialize(sourceInputs));
                 }
                 if (Directory.Exists(previous)) Directory.Delete(previous, true);
