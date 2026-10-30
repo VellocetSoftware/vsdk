@@ -120,6 +120,32 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(VertexMapCompiler.EntityContractDifference(authored, installed, Map("test_entity")), Is.Null);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void AvatarVisibilityAndVariantsDoNotChangeCompilationButTheirPropertyContractsRemainStrict(bool authoredHasAvatar)
+        {
+            var authored = Catalog();
+            var installed = Catalog();
+            foreach (var catalog in new[] { authored, installed })
+            {
+                catalog.Entities[0].Placement = "point";
+                catalog.Entities[0].Geometry = "none";
+            }
+            var visible = (authoredHasAvatar ? authored : installed).Entities[0];
+            visible.AvatarEnabledProperty = "enabled";
+            visible.AvatarVariants = new[] { new EntityAvatarVariant
+                { Property = "speed", Value = 1, Model = "asset:game.models/avatar" } };
+            var before = authored.Serialize();
+            var after = installed.Serialize();
+            CollectionAssert.AreEqual(VertexMapCompiler.EntityContract(authored), VertexMapCompiler.EntityContract(installed));
+            Assert.That(VertexMapCompiler.EntityContractDifference(authored, installed, Map("test_entity")), Is.Null);
+            CollectionAssert.AreEqual(before, authored.Serialize());
+            CollectionAssert.AreEqual(after, installed.Serialize());
+            installed.Entities[0].Properties.Single(property => property.Id == "enabled").DefaultValue = false;
+            Assert.That(VertexMapCompiler.EntityContractDifference(authored, installed, Map("test_entity")),
+                Does.Contain("enabled").And.Contain("default"));
+        }
+
         private static EntityCatalog Catalog() => new() { SdkId = "com.vellocet.sdk", SdkVersion = "1",
             Entities = new[] { Definition("test_entity") },
             Globals = new[] { new GlobalEventDefinition { Source = "game", Name = "ready" } } };
