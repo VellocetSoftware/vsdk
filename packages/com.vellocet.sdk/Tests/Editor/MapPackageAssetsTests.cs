@@ -10,6 +10,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Editor.Tools;
 using Vellocet.Sdk.Maps;
@@ -355,6 +356,9 @@ namespace Vellocet.Sdk.Tests.Editor
             const string root = "Assets/VertexPackageChecks";
             if (AssetDatabase.IsValidFolder(root) || AssetDatabase.IsValidFolder(UnityBuildProtocol.AssetRoot)) Assert.Ignore("A package workspace is already in use.");
             var setup = EditorSceneManager.GetSceneManagerSetup();
+            if (Enumerable.Range(0, SceneManager.sceneCount).Any(index => SceneManager.GetSceneAt(index).isDirty))
+                Assert.Ignore("Bundle dependency calculation can reload scenes; run this integration test with saved scenes.");
+            Scene scene = default;
             var previousSettings = AddressableAssetSettingsDefaultObject.Settings;
             var previousHost = SdkHost.Context;
             var createdDefaultFolder = !AssetDatabase.IsValidFolder("Assets/AddressableAssetsData");
@@ -402,14 +406,23 @@ namespace Vellocet.Sdk.Tests.Editor
                 profile = ScriptableObject.CreateInstance<VertexAssetCatalogProfile>();
                 profile.folders = new[] { new VertexAssetFolder { folder = root + "/Base", ownership = "base" },
                     new VertexAssetFolder { folder = root + "/Custom", ownership = "custom" } };
-                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                SceneManager.SetActiveScene(scene);
                 var mesh = new Mesh { name = "Shared mesh", vertices = new[] { Vector3.zero, Vector3.right, Vector3.up }, triangles = new[] { 0, 1, 2 } };
-                AssetDatabase.CreateAsset(mesh, root + "/Custom/Geometry.asset");
+                var geometryPath = UnityBuildProtocol.AssetRoot + "/Output/VertexGeometry.asset";
+                AssetDatabase.CreateAsset(mesh, geometryPath);
+                var subMesh = Object.Instantiate(mesh); subMesh.name = "Shared submesh";
+                AssetDatabase.AddObjectToAsset(subMesh, mesh); AssetDatabase.SaveAssets();
                 foreach (var material in new[] { first, second, developer })
-                { var go = new GameObject(material.name, typeof(MeshFilter), typeof(MeshRenderer)); go.GetComponent<MeshFilter>().sharedMesh = mesh; go.GetComponent<Renderer>().sharedMaterial = material; }
+                { var go = new GameObject(material.name, typeof(MeshFilter), typeof(MeshRenderer)); go.GetComponent<MeshFilter>().sharedMesh = material == second ? subMesh : mesh; go.GetComponent<Renderer>().sharedMaterial = material; }
                 var scenePath = UnityBuildProtocol.AssetRoot + "/Output/Map.unity";
                 Assert.That(EditorSceneManager.SaveScene(scene, scenePath), Is.True);
                 var plan = new MapPackageAssets(new[] { profile }, settings); plan.Prepare(scene);
+                var preparedMeshes = scene.GetRootGameObjects().SelectMany(item => item.GetComponentsInChildren<MeshFilter>(true))
+                    .Select(filter => filter.sharedMesh).ToArray();
+                CollectionAssert.Contains(preparedMeshes, mesh, "The native main mesh must retain its original reference.");
+                CollectionAssert.Contains(preparedMeshes, subMesh, "The native submesh must retain its original reference.");
+                Assert.That(preparedMeshes.Select(AssetDatabase.GetAssetPath).Distinct(), Is.EqualTo(new[] { geometryPath }));
                 Assert.That(second.GetTexture("_EmissionMap"), Is.Null, "A custom material must not pull its installed texture into the package.");
                 var binding = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MapBinding>()).Single();
                 var textureBinding = binding.Entries.Single(entry => entry.key == "installed/texture");
@@ -427,7 +440,9 @@ namespace Vellocet.Sdk.Tests.Editor
                 Assert.That(plan.Inventory.Single(a => a.Source == root + "/Base/Installed.asset").Bundles, Is.Empty);
                 Assert.That(plan.Inventory.Single(a => a.Source == VertexDeveloperTextureImporter.AssetPath).Bundles, Is.Empty,
                     "The map bundle must contain neither developer materials nor their textures.");
-                Assert.That(plan.Inventory.Count(a => a.Source == root + "/Custom/Geometry.asset"), Is.EqualTo(1));
+                Assert.That(plan.Inventory.Count(a => a.Source == geometryPath), Is.EqualTo(1));
+                Assert.That(plan.Inventory.Single(a => a.Source == geometryPath).Bundles, Has.Length.EqualTo(1),
+                    "A generated geometry container and its submeshes must appear once in the built bundles.");
                 Assert.That(plan.Inventory.Any(a => a.Source == root + "/Custom/Unused.asset"), Is.False, "Owning a folder does not bundle unused assets.");
                 var mapBundles = Directory.GetFiles(output, "*.bundle");
                 schema.IncludeInBuild = false;
@@ -462,7 +477,9 @@ namespace Vellocet.Sdk.Tests.Editor
                     Assert.That(loaded.Take(mapBundles.Length).Contains(developerBundle), Is.False);
                     var packedDeveloper = developerBundle.LoadAssetWithSubAssets<Material>(VertexDeveloperTextureImporter.AssetPath)
                         .Single(material => material.name == developerBinding.subObject);
-                    scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                    EditorSceneManager.CloseScene(scene, true);
+                    scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    SceneManager.SetActiveScene(scene);
                     developerBinding = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MapBinding>())
                         .SelectMany(item => item.Entries).Single(entry => entry.key == developerAddress);
                     Assert.That(MapBinding.TryAssign(developerBinding.target, developerBinding.propertyPath, packedDeveloper), Is.True);
@@ -508,7 +525,7 @@ namespace Vellocet.Sdk.Tests.Editor
             }
             finally
             {
-                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                if (scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
                 AddressableAssetSettingsDefaultObject.Settings = previousSettings;
                 SdkHost.RegisterContext(previousHost);
                 if (createdDefaultFolder)
@@ -516,7 +533,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 if (profile) Object.DestroyImmediate(profile);
                 AssetDatabase.DeleteAsset(root); AssetDatabase.DeleteAsset(UnityBuildProtocol.AssetRoot);
                 if (Directory.Exists(output)) Directory.Delete(output, true);
-                if (setup.Any(s => s.isActive && s.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
+                if (setup.Any(item => item.isActive && item.isLoaded)) EditorSceneManager.RestoreSceneManagerSetup(setup);
             }
         }
 
