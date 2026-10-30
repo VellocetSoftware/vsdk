@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
@@ -29,7 +28,48 @@ namespace Vellocet.Sdk.Editor.Distribution
         /// <summary>Repository-relative folder that distributions must be written inside (never the folder itself).</summary>
         protected virtual string DistributionRoot => "Builds";
 
-        public void Build(string outputRoot, string toolsRoot)
+        /// <summary>Incrementally prepares the same isolated compiler used by distributed SDKs.</summary>
+        public string PrepareDeveloper(Action<string> progress = null)
+        {
+            var output = DistributionRoot + "/DeveloperSDK";
+            var manifest = SdkArtifactPathUtility.ToAbsolutePath(output + "/" + SdkGame.Current.DisplayName.Replace(' ', '_') + ".vertexsdk");
+            var stamp = Path.Combine(Path.GetDirectoryName(manifest), "developer-source.json");
+            progress?.Invoke("Checking the add-on compiler inputs…");
+            var fingerprint = DeveloperFingerprint();
+            if (!File.Exists(manifest) || !File.Exists(stamp) ||
+                BuildProtocol.Read<CompilerSourceInputs>(stamp).Fingerprint != fingerprint ||
+                !File.Exists(Path.Combine(Path.GetDirectoryName(manifest), "Compiler.inputs.json")) ||
+                !Directory.Exists(Path.Combine(Path.GetDirectoryName(manifest), "Compiler")))
+            {
+                try { Build(output, null, progress); }
+                catch (CompilerInputsChangedException)
+                {
+                    progress?.Invoke("SDK inputs changed during preparation. Capturing the current inputs…");
+                    Build(output, null, progress);
+                }
+            }
+            return manifest;
+        }
+
+        protected virtual IEnumerable<string> DeveloperCompilerInputs => Array.Empty<string>();
+        protected virtual string DeveloperAuthoringCache => null;
+
+        private string DeveloperFingerprint() => DeveloperSources().CurrentFingerprint();
+
+        private CompilerSourceInputs DeveloperSources()
+        {
+            // File metadata is the incremental invalidation key; publication and staging verify file hashes.
+            // Maps and their generated scenes are deliberately outside the SDK-owned source roots.
+            var roots = Constants.SdkAssetRootMappings.Select(mapping => mapping.SourceRoot)
+                .Concat(new[] { "ProjectSettings", "StereoformTools", "Tools/Sdk" })
+                .Concat(DeveloperCompilerInputs).Select(Path.GetFullPath).ToList();
+            roots.AddRange(PackageInfo.GetAllRegisteredPackages().Where(package => package.source != PackageSource.BuiltIn)
+                .Select(package => Path.GetFullPath(package.resolvedPath)));
+            roots.Add(Path.GetFullPath("Packages/manifest.json"));
+            return new CompilerSourceInputs { Paths = roots.Distinct(StringComparer.Ordinal).ToArray(), ScriptRoot = Path.GetFullPath("Assets") };
+        }
+
+        public void Build(string outputRoot, string toolsRoot, Action<string> progress = null)
         {
             var output = SdkArtifactPathUtility.ToAbsolutePath(outputRoot)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -42,21 +82,29 @@ namespace Vellocet.Sdk.Editor.Distribution
             if (toolsRoot != null) ValidateTools(toolsRoot);
             toolchain[SdkGame.Current.Id] = SourceRevision();
             var name = SdkGame.Current.DisplayName.Replace(' ', '_');
+            progress?.Invoke("Preparing the game's SDK content…");
             var profile = EnsureAssetProfile();
+            var sourceInputs = toolsRoot == null ? DeveloperSources() : null;
+            if (sourceInputs != null) sourceInputs.Fingerprint = sourceInputs.CurrentFingerprint();
             var stage = output + ".staging-" + Guid.NewGuid().ToString("N");
             var previous = output + ".previous";
             try
             {
                 Directory.CreateDirectory(stage);
-                // Preserve validated preview fingerprints across atomic SDK publications.
-                if (Directory.Exists(output + "/Authoring")) CopyTree(output + "/Authoring", stage + "/Authoring");
+                // Reuse the developer connection's current previews before considering the previous SDK's cache.
+                var authoringCache = toolsRoot == null && DeveloperAuthoringCache != null
+                    ? SdkArtifactPathUtility.ToAbsolutePath(DeveloperAuthoringCache) : null;
+                if (authoringCache == null || !Directory.Exists(authoringCache)) authoringCache = output + "/Authoring";
+                if (Directory.Exists(authoringCache)) CopyTree(authoringCache, stage + "/Authoring");
                 var content = stage + "/Content";
                 var compiler = stage + "/Compiler";
                 var package = compiler + "/Packages/com.vellocet.sdk";
+                progress?.Invoke("Exporting SDK-owned content for the add-on compiler…");
                 var exported = SdkContentExporter.ExportToOutputRoot(SdkArtifactPathUtility.ToRepositoryRelativePath(content));
                 if (!exported.Succeeded) throw new InvalidDataException(SdkContentExporter.BuildSummary(exported));
                 var validation = SdkContentExporter.ValidateOutputRoot(SdkArtifactPathUtility.ToRepositoryRelativePath(content));
                 if (!validation.Succeeded) throw new InvalidDataException(SdkContentExporter.BuildValidationSummary(validation));
+                progress?.Invoke("Exporting compiler assemblies…");
                 var sdk = SdkPackageExporter.ExportToOutputRoot(SdkArtifactPathUtility.ToRepositoryRelativePath(package));
                 if (!sdk.Succeeded) throw new InvalidDataException(SdkPackageExporter.BuildSummary(sdk));
                 Directory.Move(content + "/Assets", compiler + "/Assets");
@@ -64,6 +112,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 File.Copy(content + "/" + Constants.SdkContentManifestFileName,
                     compiler + "/ProjectSettings/VellocetSdkContentOwnership.json");
                 Directory.Delete(content, true);
+                progress?.Invoke("Preparing compiler dependencies…");
                 EmbedPackages(compiler);
                 if (SdkGame.Current.AudioRuntimeCapability == Vellocet.Sdk.Audio.AddonAudioBanks.Capability)
                 {
@@ -94,6 +143,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 File.WriteAllText(compiler + "/Assets/CustomContent/.keep", "");
                 var gamePath = stage + "/Authoring/" + name + ".vertexgame";
                 Directory.CreateDirectory(Path.GetDirectoryName(gamePath));
+                progress?.Invoke("Publishing compiler authoring catalogs…");
                 var game = ExportGameProfile(profile, gamePath);
                 if (toolsRoot != null) game.Build.EditorSaveLabel = null;
                 PrepareCompiler(compiler, game);
@@ -111,6 +161,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 }
                 File.WriteAllText(stage + "/toolchain.json", toolchain.ToString());
 
+                progress?.Invoke("Verifying the prepared compiler…");
                 var inventory = new BuildInputs { Files = Directory.GetFiles(compiler, "*", SearchOption.AllDirectories)
                     .Select(path => new BuildFile { Path = Path.GetRelativePath(compiler, path).Replace('\\', '/'),
                         Bytes = new FileInfo(path).Length, Sha256 = Hash(path) }).OrderBy(file => file.Path, StringComparer.Ordinal).ToArray() };
@@ -122,13 +173,24 @@ namespace Vellocet.Sdk.Editor.Distribution
                     CompilerProject = "Compiler", CompilerInputs = "Compiler.inputs.json",
                     ResourceTools = ResourceTools
                 }.Serialize());
+                if (sourceInputs != null)
+                {
+                    if (sourceInputs.CurrentFingerprint() != sourceInputs.Fingerprint) throw new CompilerInputsChangedException();
+                    File.WriteAllBytes(stage + "/developer-source.json", BuildProtocol.Serialize(sourceInputs));
+                }
                 if (Directory.Exists(previous)) Directory.Delete(previous, true);
                 if (Directory.Exists(output)) Directory.Move(output, previous);
                 try { Directory.Move(stage, output); }
                 catch { if (Directory.Exists(previous)) Directory.Move(previous, output); throw; }
+                if (Directory.Exists(previous)) Directory.Delete(previous, true);
                 Debug.Log("VERTEX_SDK_PUBLISHED: " + output + " (" + inventory.Files.Length + " verified compiler files)");
             }
             finally { if (Directory.Exists(stage)) Directory.Delete(stage, true); }
+        }
+
+        private sealed class CompilerInputsChangedException : IOException
+        {
+            public CompilerInputsChangedException() : base("SDK inputs changed while preparing the add-on compiler. Let the current asset changes finish, then export again.") { }
         }
 
         internal static void ValidateTools(string toolsRoot)
@@ -298,8 +360,9 @@ namespace Vellocet.Sdk.Editor.Distribution
 
         private static string Hash(string file)
         {
-            using var stream = File.OpenRead(file); using var sha = SHA256.Create();
-            return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+            if (!Vellocet.Sdk.Utilities.SdkFileHashUtility.TryComputeSha256(file, out var hash))
+                throw new IOException("Could not hash compiler input: " + file);
+            return hash;
         }
 
         protected static void CopyTree(string source, string destination)
