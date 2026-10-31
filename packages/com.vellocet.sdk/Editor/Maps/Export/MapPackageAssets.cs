@@ -152,6 +152,9 @@ namespace Vellocet.Sdk.Editor.Maps
                 if (_copies.TryGetValue(value, out var copy)) return copy;
                 var ownership = Ownership(path);
                 if (ownership is "base" or "engine" or "dependency") return value;
+                // Native containers already serialize as one owned asset. Copying their
+                // subassets duplicates them when the container's main object is also used.
+                if (AssetDatabase.IsNativeAsset(value)) return value;
                 AssetDatabase.TryGetGUIDAndLocalFileIdentifier(value, out string guid, out long localId);
                 const string folder = UnityBuildProtocol.AssetRoot + "/Output/PackageAssets";
                 if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder(UnityBuildProtocol.AssetRoot + "/Output", "PackageAssets");

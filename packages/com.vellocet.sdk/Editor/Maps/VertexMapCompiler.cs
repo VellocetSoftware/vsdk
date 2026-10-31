@@ -142,6 +142,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 entity.Category = "Entities";
                 entity.IconPng = null;
                 entity.AvatarModel = null;
+                entity.AvatarEnabledProperty = null;
                 entity.AvatarVariants = null;
                 entity.Warnings = null;
                 entity.Properties = entity.Properties.OrderBy(property => property.Id, StringComparer.Ordinal).ToArray();
