@@ -1,5 +1,3 @@
-// Binary content catalogs are an Addressables 4 format.
-#if VELLOCET_ADDRESSABLES_4
 // Copyright (c) 2026 Vellocet Corporation. All rights reserved.
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
@@ -44,6 +42,7 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(error, Does.Contain("forbidden provider"));
         }
 
+#if VELLOCET_ADDRESSABLES_4
         [Test]
         public void CoreLibraryKey_DoesNotEmbedAnEditorSpecificAssemblyName()
         {
@@ -51,6 +50,8 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(ReadUInt(bytes, FindTypeRecord(bytes, "key")), Is.EqualTo(uint.MaxValue));
             Assert.That(AddonCatalogCompatibility.TryValidate(bytes, out var error), Is.True, error);
         }
+
+#endif
 
         [TestCase(0u)]
         [TestCase(4u)]
@@ -124,7 +125,11 @@ namespace Vellocet.Sdk.Tests.Editor
 
         [TestCase(0u)]
         [TestCase(1u)]
+#if VELLOCET_ADDRESSABLES_4
         [TestCase(2u)]
+#else
+        [TestCase(3u)]
+#endif
         [TestCase(4u)]
         [TestCase(uint.MaxValue)]
         public void UnsupportedCatalogVersion_FailsClosed(uint version)
@@ -277,7 +282,11 @@ namespace Vellocet.Sdk.Tests.Editor
                     typeof(BundledAssetProvider).FullName, new object[] { "asset-" + i }, new object[] { "bundle" }));
             for (var i = entries.Count; i < keyCount; i++)
                 entries[1].Keys.Add("alias-" + i);
+#if VELLOCET_ADDRESSABLES_4
             var data = new BinaryContentCatalogData("preflight-test")
+#else
+            var data = new ContentCatalogData(entries, "preflight-test")
+#endif
             {
                 InstanceProviderData = ObjectInitializationData.CreateSerializedInitializationData<InstanceProvider>(),
                 SceneProviderData = ObjectInitializationData.CreateSerializedInitializationData(
@@ -291,7 +300,9 @@ namespace Vellocet.Sdk.Tests.Editor
             for (var i = data.ResourceProviderData.Count; i < providerCount; i++)
                 data.ResourceProviderData.Add(ObjectInitializationData
                     .CreateSerializedInitializationData<BundledAssetProvider>());
+#if VELLOCET_ADDRESSABLES_4
             data.SetData(entries);
+#endif
             return data.SerializeToByteArray();
         }
 
@@ -336,5 +347,4 @@ namespace Vellocet.Sdk.Tests.Editor
 
     }
 }
-#endif
 #endif

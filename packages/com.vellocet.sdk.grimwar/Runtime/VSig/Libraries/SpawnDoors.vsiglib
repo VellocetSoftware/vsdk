@@ -1,24 +1,35 @@
 module spawn_door_set:
     ref trigger: trigger_multiple match Trigger*
     ref doors: func_door match Door*
+    ref sound_door: func_door match Door1
     ref audio: env_ambient match Audio
     const open_audio_event = "Play_amb_slidedoors_open"
     const close_audio_event = "Play_amb_slidedoors_close"
+    state occupied_triggers: int = 0
 
-    server on trigger.start_touch:
-        doors.open
+    server on trigger.start_touch_all:
+        occupied_triggers = occupied_triggers + 1
+        if occupied_triggers == 1:
+            doors.open
 
-    client on doors.open:
+    client on sound_door.opening:
+        audio.stop
         audio.play(open_audio_event)
 
     server on trigger.end_touch_all:
-        doors.close
+        if occupied_triggers > 0:
+            occupied_triggers = occupied_triggers - 1
+        if occupied_triggers == 0:
+            doors.close
 
-    client on doors.close:
+    client on sound_door.closing:
+        audio.stop
         audio.play(close_audio_event)
 
     input restore_initial_state:
+        occupied_triggers = 0
         doors.close
+        trigger.reset
 
     input open:
         doors.open
@@ -32,3 +43,5 @@ module spawn_door_set:
     input disable:
         trigger.disable
         trigger.reset
+        occupied_triggers = 0
+        doors.close

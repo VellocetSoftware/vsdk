@@ -19,7 +19,7 @@ namespace Vellocet.Sdk.Editor.Entities
         internal static string GeometryRole(Type type)
         {
             if (typeof(IMovingBrushEntityMarker).IsAssignableFrom(type) || typeof(IEntityImportGroup).IsAssignableFrom(type) || type == typeof(DamageableMarker) || type == typeof(ButtonMarker)) return "brushes";
-            if (typeof(IBoundedEntityMarker).IsAssignableFrom(type)) return "bounds";
+            if (typeof(IBoundedEntityMarker).IsAssignableFrom(type) || typeof(ICenteredBoundsEntityMarker).IsAssignableFrom(type)) return "bounds";
             return "none";
         }
         public const int ImportRevision = 1;
@@ -109,7 +109,8 @@ namespace Vellocet.Sdk.Editor.Entities
                             var scale = (float)context.Map.MetersPerUnit;
                             var children = marker.transform.Cast<Transform>().ToArray();
                             foreach (var child in children) child.SetParent(context.Root.transform, true);
-                            marker.transform.position -= marker.transform.up * ((float)size.Y * scale / 2);
+                            if (marker is not ICenteredBoundsEntityMarker)
+                                marker.transform.position -= marker.transform.up * ((float)size.Y * scale / 2);
                             marker.transform.localScale = new Vector3((float)size.X * scale, (float)size.Y * scale, (float)size.Z * scale);
                             foreach (var child in children) child.SetParent(marker.transform, true);
                             // The SDK runtime creates its trigger collider. No blocking level collider is imported here.

@@ -85,7 +85,7 @@ namespace Vellocet.Sdk.Aneurism
              markerType == typeof(Vellocet.Sdk.Entities.ScreenShakeMarker));
 
         public override bool AllowsComponent(string typeName, string assemblyName) =>
-            assemblyName == "Vellocet.Sdk" && typeName is "Entities.MapObjects.LightStyle" or "UI.HUD.PointOfInterest" or
+            assemblyName == "Vellocet.Sdk" && typeName is "Vellocet.Sdk.Entities.LightStyle" or "UI.HUD.PointOfInterest" or
                 "Vellocet.Sdk.Entities.Doors.DoorSoundSet" or "Vellocet.Sdk.Aneurism.Entities.AnivDoorSettings" ||
             assemblyName == "Vellocet.Stereoform" && typeName == "Vellocet.Stereoform.AudioEmitter";
 

@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Entities.MapObjects
+namespace Vellocet.Sdk.Entities
 {
-    [CreateAssetMenu(fileName = "New LightStyle", menuName = "AneurismIV/LightStyle")]
+    [MovedFrom("Entities.MapObjects")]
+    [CreateAssetMenu(fileName = "New LightStyle", menuName = "Vellocet/Light Style")]
     public class LightStyle : ScriptableObject
     {
         [SerializeField] private AnimationCurve intensityCurve;

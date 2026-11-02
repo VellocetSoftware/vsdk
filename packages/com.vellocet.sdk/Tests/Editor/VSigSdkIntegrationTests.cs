@@ -469,10 +469,9 @@ var later_variable: float = later_constant
         public void StandardLogicLibrary_EveryModuleExpandsAndValidates()
         {
             var libraryPath = StandardLogicLibraryPath();
-            // __vsig__ is an import path, not an asset; the Vertex package ships the same source as an asset.
-            var libraryProgram = VSigSceneCompiler.Parse(AssetDatabase.LoadAssetAtPath<TextAsset>(
-                    "Packages/com.vellocet.vertex/Runtime/VSig/Libraries/Logic.vsiglib").text,
-                new List<VSigDiagnostic>());
+            Assert.That(VSigSourceSet.Empty.TryResolve(null, libraryPath, out _, out var librarySource),
+                Is.True, "The compiler must resolve its standard logic library.");
+            var libraryProgram = VSigSceneCompiler.Parse(librarySource, new List<VSigDiagnostic>());
             var moduleNames = libraryProgram.Modules.Select(module => module.Name).ToArray();
 
             Assert.That(moduleNames, Is.Not.Empty);

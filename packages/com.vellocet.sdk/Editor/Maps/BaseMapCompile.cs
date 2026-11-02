@@ -61,11 +61,10 @@ namespace Vellocet.Sdk.Editor.Maps
             var sceneGuid = AssetDatabase.AssetPathToGUID(scenePath);
             if (string.IsNullOrEmpty(sceneGuid)) sceneGuid = AssetCatalog.Hash(Encoding.UTF8.GetBytes("base-map/" + map.id)).Substring(0, 32);
 
-            var backup = new Backup(BackupRoot + "/" + map.id, folder, definitionPath);
+            var backup = new Backup(BackupRoot + "/" + map.id, folder, definitionPath, settings.Prepare);
             var development = EditorUserBuildSettings.development;
             try
             {
-                settings.Prepare?.Invoke();
                 Directory.CreateDirectory(folder);
                 File.WriteAllText(scenePath + ".meta", "fileFormatVersion: 2\nguid: " + sceneGuid + "\n");
                 options.SyncBakedArtifactsToAuthoring = false; // Bakes belong to the compiled scene only.
@@ -123,10 +122,13 @@ namespace Vellocet.Sdk.Editor.Maps
             private const string Addresses = "Assets/AddressableAssetsData";
             private readonly string _root, _folder, _definition;
 
-            public Backup(string root, string folder, string definition)
+            public Backup(string root, string folder, string definition, Action prepare)
             {
                 _root = root; _folder = folder; _definition = definition;
                 if (Directory.Exists(_root)) Restore();
+                // Game preparation may validate every published map. Keep the previous
+                // compiled scene available until preparation has finished.
+                prepare?.Invoke();
                 Directory.CreateDirectory(_root);
                 if (Directory.Exists(_folder)) Directory.Move(_folder, _root + "/Compiled");
                 if (File.Exists(_folder + ".meta")) File.Move(_folder + ".meta", _root + "/Compiled.meta");

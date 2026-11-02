@@ -181,7 +181,12 @@ namespace Vellocet.Sdk.Editor.Entities
         {
             var entity = RawEntity(marker.EntityClassName, marker.transform, options.Catalog);
             var definition = options.Catalog.Entities.Single(t => t.Id == marker.EntityClassName);
-            if (definition.Geometry == "bounds" || marker is AmbientMarker { IsVolumetric: true })
+            if (marker is ICenteredBoundsEntityMarker centered)
+            {
+                var size = centered.BoundsSize;
+                entity.Size = new Vector3Data(size.x, size.y, size.z);
+            }
+            else if (definition.Geometry == "bounds" || marker is AmbientMarker { IsVolumetric: true })
                 entity.Position = Position(marker.transform.position + marker.transform.up * (Mathf.Abs(marker.transform.lossyScale.y) / 2));
             var fields = VertexEntityCatalogExporter.SerializedFields(marker.GetType()).ToDictionary(VertexEntityCatalogExporter.PropertyId);
             var values = entity.Properties.ToDictionary(p => p.Id, p => p.Value);

@@ -140,8 +140,10 @@ namespace Vellocet.Sdk.Editor.Maps
             var bundle = group.GetSchema<BundledAssetGroupSchema>();
             if (bundle != null)
             {
-                bundle.BuildPath.SetVariableByName(settings, Constants.LocalBuildVar);
-                bundle.LoadPath.SetVariableByName(settings, Constants.LocalLoadVar);
+                if (bundle.BuildPath.GetName(settings) != Constants.LocalBuildVar)
+                    bundle.BuildPath.SetVariableByName(settings, Constants.LocalBuildVar);
+                if (bundle.LoadPath.GetName(settings) != Constants.LocalLoadVar)
+                    bundle.LoadPath.SetVariableByName(settings, Constants.LocalLoadVar);
                 bundle.BundleMode = BundledAssetGroupSchema.BundlePackingMode.PackTogether;
                 bundle.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZ4;
                 bundle.IncludeInBuild = true;

@@ -77,16 +77,22 @@ namespace Vellocet.Sdk.Grimwar
             new(ModeCatalog.GravewarId, "Gravewar", "mode.gravewar", "gr")
         };
         private static readonly SdkAssetRootMapping[] Roots = {
+            new("Assets/Art/Materials/Decals", Constants.SdkManagedContentRoot + "/Materials/Decals"),
+            new("Assets/Art/Materials/Shaders", Constants.SdkManagedContentRoot + "/Materials/Shaders"),
             new(Constants.SharedMaterialsEntitiesRoot, Constants.SdkMaterialsEntitiesRoot),
             new(Constants.SharedMaterialsEnvironmentRoot, Constants.SdkMaterialsEnvironmentRoot),
             new(Constants.SharedMaterialsPropsRoot, Constants.SdkMaterialsPropsRoot),
             new(Constants.SharedModelsEntitiesRoot, Constants.SdkModelsEntitiesRoot),
             new(Constants.SharedModelsModularRoot, Constants.SdkModelsModularRoot),
             new(Constants.SharedModelsPropsRoot, Constants.SdkModelsPropsRoot),
+            new("Assets/Art/Textures/Decals", Constants.SdkManagedContentRoot + "/Textures/Decals"),
+            new("Assets/Art/Textures/Hatching", Constants.SdkManagedContentRoot + "/Textures/Hatching"),
+            new("Assets/Art/Textures/VFX/blood", Constants.SdkManagedContentRoot + "/Textures/VFX/blood"),
             new(Constants.SharedTexturesEntitiesRoot, Constants.SdkTexturesEntitiesRoot),
             new(Constants.SharedTexturesEnvironmentRoot, Constants.SdkTexturesEnvironmentRoot),
             new(Constants.SharedTexturesPropsRoot, Constants.SdkTexturesPropsRoot),
             new(Constants.SharedShadersSkyRoot, Constants.SdkShadersSkyRoot),
+            new("Assets/Art/VFX/Shaders/Decals", Constants.SdkManagedContentRoot + "/Shaders/Decals"),
             new(Constants.SharedEntityKitsRoot, Constants.SdkEntityKitsRoot)
         };
     }
