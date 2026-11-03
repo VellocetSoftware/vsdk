@@ -18,6 +18,22 @@ namespace Vellocet.Sdk.Editor.Entities
     {
         private const string MenuPath = "Tools/Vellocet/SDK/Export Entity Catalog…";
 
+        public static Model.LightingPreviewProfile CreateLightingPreview(string name) => new()
+        {
+            Name = name,
+            Environment = new Model.MapEnvironment { SunIntensity = 0, AmbientColor = "#202020" },
+            Lights = new[] { LightType.Point, LightType.Spot }.Select(type => new Model.LightPreviewBinding
+            {
+                SdkId = "com.vellocet.sdk", TypeId = "env_light",
+                Kind = type == LightType.Spot ? "spot" : "point",
+                When = new[] { new Model.EntityWarningCondition
+                    { Property = "light_type", Values = new object[] { (int)type } } },
+                ColorProperty = "color", IntensityProperty = "intensity", RangeProperty = "range",
+                SpotAngleProperty = type == LightType.Spot ? "spot_angle" : null,
+                EnabledProperty = "enabled", ShadowsProperty = "shadows"
+            }).ToArray()
+        };
+
         [MenuItem(MenuPath, true)]
         private static bool CanExport() => !EditorApplication.isPlayingOrWillChangePlaymode &&
                                            !EditorApplication.isCompiling && !EditorApplication.isUpdating &&

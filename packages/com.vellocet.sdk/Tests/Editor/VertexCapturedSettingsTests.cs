@@ -15,6 +15,17 @@ namespace Vellocet.Sdk.Editor.Tests
     public sealed class VertexCapturedSettingsTests
     {
         [Test]
+        public void LightingPreviewMatchesTheSharedLightEntity()
+        {
+            var profile = VertexEntityCatalogExporter.CreateLightingPreview("SDK / URP direct lighting");
+            profile.ValidateCatalogs(new[] { VertexEntityCatalogExporter.Create() });
+            var restored = LightingPreviewProfile.Deserialize(profile.Serialize());
+            Assert.That(restored.Lights.Select(light => light.Kind), Is.EquivalentTo(new[] { "point", "spot" }));
+            Assert.That(restored.Lights.All(light => light.TypeId == "env_light" &&
+                light.EnabledProperty == "enabled" && light.ShadowsProperty == "shadows"), Is.True);
+        }
+
+        [Test]
         public void NativeBoundsKeepColliderOffsetsAndChildWorldPose()
         {
             var catalog = VertexEntityCatalogExporter.Create();
