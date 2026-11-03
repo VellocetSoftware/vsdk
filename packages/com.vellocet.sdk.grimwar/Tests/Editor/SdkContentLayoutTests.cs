@@ -32,6 +32,21 @@ namespace Vellocet.Sdk.Tests
             }
         }
 
+        [TestCase("Materials/Modular/strut_trim_01.mat")]
+        [TestCase("Materials/Templates/environment_base_01.mat")]
+        [TestCase("Textures/Modular/strut_trim_albedo_01.png")]
+        public void ModelMaterialDependencies_AreIncludedInTheDistributedSdk(string relativePath)
+        {
+            var source = "Assets/Art/" + relativePath;
+            var installed = Constants.SdkManagedContentRoot + "/" + relativePath;
+            Assert.That(SdkContentPathUtility.TryMapSourceToInstalledPath(source, out var mapped), Is.True, source);
+            Assert.That(mapped, Is.EqualTo(installed));
+            Assert.That(SdkContentPathUtility.TryMapInstalledToSourcePath(installed, out mapped), Is.True, installed);
+            Assert.That(mapped, Is.EqualTo(source));
+            Assert.That(SharedAssetAddressUtility.CreateAddress(installed),
+                Is.EqualTo(SharedAssetAddressUtility.CreateAddress(source)));
+        }
+
         [Test]
         public void SharedAssets_MapIntoReadOnlySdkRoot_WithStableAddresses()
         {

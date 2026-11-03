@@ -79,6 +79,8 @@ namespace Vellocet.Sdk.Grimwar
         private static readonly SdkAssetRootMapping[] Roots = {
             new("Assets/Art/Materials/Decals", Constants.SdkManagedContentRoot + "/Materials/Decals"),
             new("Assets/Art/Materials/Shaders", Constants.SdkManagedContentRoot + "/Materials/Shaders"),
+            new("Assets/Art/Materials/Modular", Constants.SdkManagedContentRoot + "/Materials/Modular"),
+            new("Assets/Art/Materials/Templates", Constants.SdkManagedContentRoot + "/Materials/Templates"),
             new(Constants.SharedMaterialsEntitiesRoot, Constants.SdkMaterialsEntitiesRoot),
             new(Constants.SharedMaterialsEnvironmentRoot, Constants.SdkMaterialsEnvironmentRoot),
             new(Constants.SharedMaterialsPropsRoot, Constants.SdkMaterialsPropsRoot),
@@ -87,6 +89,7 @@ namespace Vellocet.Sdk.Grimwar
             new(Constants.SharedModelsPropsRoot, Constants.SdkModelsPropsRoot),
             new("Assets/Art/Textures/Decals", Constants.SdkManagedContentRoot + "/Textures/Decals"),
             new("Assets/Art/Textures/Hatching", Constants.SdkManagedContentRoot + "/Textures/Hatching"),
+            new("Assets/Art/Textures/Modular", Constants.SdkManagedContentRoot + "/Textures/Modular"),
             new("Assets/Art/Textures/VFX/blood", Constants.SdkManagedContentRoot + "/Textures/VFX/blood"),
             new(Constants.SharedTexturesEntitiesRoot, Constants.SdkTexturesEntitiesRoot),
             new(Constants.SharedTexturesEnvironmentRoot, Constants.SdkTexturesEnvironmentRoot),
