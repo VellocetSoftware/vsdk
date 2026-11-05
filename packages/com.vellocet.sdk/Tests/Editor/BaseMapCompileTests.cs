@@ -3,10 +3,12 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Maps;
 
@@ -20,6 +22,9 @@ namespace Vellocet.Sdk.Editor.Tests
         [SetUp]
         public void SetUp()
         {
+            _folder = null;
+            if (Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))
+                Assert.Ignore("Save open scenes before running scene tests.");
             _setup = EditorSceneManager.GetSceneManagerSetup();
             _folder = "Assets/BaseMapCompileTest_" + Guid.NewGuid().ToString("N");
             Directory.CreateDirectory(_folder + "/Compiled");
@@ -31,10 +36,52 @@ namespace Vellocet.Sdk.Editor.Tests
         [TearDown]
         public void TearDown()
         {
+            if (_folder == null) return;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             AssetDatabase.DeleteAsset(_folder);
             if (_setup.Length > 0 && System.Array.TrueForAll(_setup, scene => !string.IsNullOrEmpty(scene.path) && File.Exists(scene.path)))
                 EditorSceneManager.RestoreSceneManagerSetup(_setup);
+        }
+
+        [Test]
+        public void SuccessfulCompilationActivatesDraftBeforePublicationAndPreservesSource()
+        {
+            var source = _folder + "/Source.unity";
+            var original = File.ReadAllBytes(source);
+            var map = ScriptableObject.CreateInstance<MapDefinition>();
+            map.id = ModeCatalog.All[0].MapIdPrefix + "_compile_test";
+            map.displayName = "Native compile test";
+            map.authoringScenePath = source;
+            AssetDatabase.CreateAsset(map, _folder + "/MapDefinition.asset");
+            var published = false;
+            var settings = new BaseMapSettings
+            {
+                Publish = compiled =>
+                {
+                    Assert.That(compiled.Enabled, Is.True);
+                    Assert.That(compiled.IsDraft, Is.False);
+                    Assert.That(BaseMapAuthoring.TryValidateCompiled(compiled, out var error), Is.True, error);
+                    Assert.That(File.ReadAllBytes(source), Is.EqualTo(original));
+                    published = true;
+                    // Exercise successful compilation without leaving project Addressables changes behind.
+                    throw new OperationCanceledException("Restore the test publication.");
+                }
+            };
+            var options = new MapCompiler.CompileOptions
+            {
+                SkipLightingBake = true,
+                SkipSpatialOctreeBake = true,
+                Log = TestContext.WriteLine
+            };
+
+            Assert.Throws<OperationCanceledException>(() =>
+                BaseMapCompile.Compile(settings, map, source, options, keepsSource: true));
+
+            Assert.That(published, Is.True, "The native compiler must complete and reach publication.");
+            Assert.That(File.ReadAllBytes(source), Is.EqualTo(original));
+            map = AssetDatabase.LoadAssetAtPath<MapDefinition>(_folder + "/MapDefinition.asset");
+            Assert.That(map.IsDraft, Is.True, "A failed publication must restore the draft definition.");
+            Assert.That(File.ReadAllText(_folder + "/Compiled/previous.txt"), Is.EqualTo("previous output"));
         }
 
         [Test]
