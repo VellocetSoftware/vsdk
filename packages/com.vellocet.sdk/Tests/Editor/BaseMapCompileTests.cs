@@ -15,10 +15,12 @@ namespace Vellocet.Sdk.Editor.Tests
     public sealed class BaseMapCompileTests
     {
         private string _folder;
+        private SceneSetup[] _setup;
 
         [SetUp]
         public void SetUp()
         {
+            _setup = EditorSceneManager.GetSceneManagerSetup();
             _folder = "Assets/BaseMapCompileTest_" + Guid.NewGuid().ToString("N");
             Directory.CreateDirectory(_folder + "/Compiled");
             File.WriteAllText(_folder + "/Compiled/previous.txt", "previous output");
@@ -27,13 +29,19 @@ namespace Vellocet.Sdk.Editor.Tests
         }
 
         [TearDown]
-        public void TearDown() => AssetDatabase.DeleteAsset(_folder);
+        public void TearDown()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            AssetDatabase.DeleteAsset(_folder);
+            if (_setup.Length > 0 && System.Array.TrueForAll(_setup, scene => !string.IsNullOrEmpty(scene.path) && File.Exists(scene.path)))
+                EditorSceneManager.RestoreSceneManagerSetup(_setup);
+        }
 
         [Test]
         public void PreparationSeesPreviousOutputAndFailureLeavesItIntact()
         {
             var map = ScriptableObject.CreateInstance<MapDefinition>();
-            map.id = "nm_rollback_test";
+            map.id = ModeCatalog.All[0].MapIdPrefix + "_rollback_test";
             map.compiledScenePath = _folder + "/Compiled/previous.unity";
             AssetDatabase.CreateAsset(map, _folder + "/MapDefinition.asset");
             var guid = AssetDatabase.AssetPathToGUID(_folder + "/Compiled/previous.txt");
@@ -55,7 +63,7 @@ namespace Vellocet.Sdk.Editor.Tests
             Assert.That(AssetDatabase.AssetPathToGUID(_folder + "/Compiled/previous.txt"), Is.EqualTo(guid));
             var restored = AssetDatabase.LoadAssetAtPath<MapDefinition>(_folder + "/MapDefinition.asset");
             Assert.That(restored.compiledScenePath, Is.EqualTo(_folder + "/Compiled/previous.unity"));
-            Assert.That(Directory.Exists("Library/VellocetBaseMaps/nm_rollback_test"), Is.False);
+            Assert.That(Directory.Exists("Library/VellocetBaseMaps/" + map.id), Is.False);
         }
     }
 }

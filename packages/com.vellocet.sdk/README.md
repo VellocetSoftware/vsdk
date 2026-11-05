@@ -38,3 +38,7 @@ or `use latch as gate` directly, without importing a library.
 This works for existing Unity-authored maps as well as Vertex maps.
 The SDK keeps its game-specific `SpawnDoors.vsiglib`. Portable language tests live in Vertex; SDK host and
 Unity adapter checks live in `Tests/Editor/VSigSdkIntegrationTests.cs`.
+
+## Unity editor workflows
+
+Both games use the shared [Unity editor workflows](Documentation~/UnityEditorWorkflows.md), including normal Map Definition asset creation and legacy scene compilation. Shared commands live under **Tools > Vellocet**.

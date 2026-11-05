@@ -15,6 +15,13 @@ namespace Vellocet.Sdk.Editor.Tools
         private static readonly ISdkHostContext DefaultContext = new DefaultSdkHostContext();
         private static ISdkHostContext _context;
 
+        public static SdkEditorActions Actions { get; private set; }
+        public static void RegisterActions(SdkEditorActions actions)
+        {
+            Actions = actions ?? throw new System.ArgumentNullException(nameof(actions));
+            Workbench.SdkWorkbenchWindow.OpenVertex = SdkEditorCommands.OpenVertex;
+        }
+
         public static ISdkHostContext Context => _context ?? DefaultContext;
         public static bool IsBaseProject => Context.IsBaseProject;
         public static string ModeName => string.IsNullOrWhiteSpace(Context.ModeName) ? "Add-on" : Context.ModeName;
@@ -27,6 +34,7 @@ namespace Vellocet.Sdk.Editor.Tools
         public static void ClearContext()
         {
             _context = null;
+            Actions = null;
         }
 
         private sealed class DefaultSdkHostContext : ISdkHostContext

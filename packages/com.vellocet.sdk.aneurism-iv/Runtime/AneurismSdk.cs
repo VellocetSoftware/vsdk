@@ -40,13 +40,6 @@ namespace Vellocet.Sdk.Aneurism
             }
         }
         public override string DefaultModeId => "nightmare";
-        public override string ResolveMapMode(string mapId, string requestedModeId = null)
-        {
-            var mode = MapGameMode.CanonicalId(MapGameMode.Resolve(mapId));
-            if (!string.IsNullOrWhiteSpace(requestedModeId) && requestedModeId != mode)
-                throw new ArgumentException($"Map '{mapId}' requires mode '{mode}', not '{requestedModeId}'.");
-            return mode;
-        }
         public override bool SupportsExternalMods => false;
         public override string DocumentationSection => "ANEURISM_IV";
         public override IReadOnlyList<Vertex.Contracts.GlobalSignalDefinition> AdditionalGlobalEvents => GlobalEvents;

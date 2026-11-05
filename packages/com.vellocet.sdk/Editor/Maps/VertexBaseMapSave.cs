@@ -36,6 +36,7 @@ namespace Vellocet.Sdk.Editor.Maps
             var parsed = MapAsset.Deserialize(File.ReadAllBytes(context.PathFor(job.Map)));
             VertexMapCompiler.ValidateAuthoring(job, context.PathFor, parsed);
             var id = job.RuntimeMapId;
+            SdkGame.Current.ResolveMapMode(id);
             BuildProtocol.ValidateMapContentId(id);
             var folder = ResolveFolder(settings.MapsRoot, id, job.MapId);
             var scenes = EditorSceneManager.GetSceneManagerSetup();
@@ -136,7 +137,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 map.id = id;
                 map.author = settings.Author;
                 map.version = settings.Version;
-                map.defaultModeId = settings.DefaultModeId;
+                map.defaultModeId = SdkGame.Current.ResolveMapMode(id);
                 map.contentKind = MapCompilationReceipt.BaseContentKind;
                 AssetDatabase.CreateAsset(map, path);
             }

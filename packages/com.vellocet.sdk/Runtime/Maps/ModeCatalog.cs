@@ -106,6 +106,19 @@ namespace Vellocet.Sdk
             return false;
         }
 
+        public static bool TryResolveMapMode(string mapId, out string modeId)
+        {
+            modeId = string.Empty;
+            if (!Addons.AddonFilePolicy.TryGetCanonicalContentId(mapId, out _)) return false;
+            var separator = mapId.IndexOf('_');
+            if (separator <= 0 || separator == mapId.Length - 1) return false;
+            var prefix = mapId.Substring(0, separator);
+            foreach (var mode in Modes)
+                if (string.Equals(mode.MapIdPrefix, prefix, StringComparison.Ordinal))
+                { modeId = mode.Id; return true; }
+            return false;
+        }
+
         public static string ResolveMapIdPrefix(string modeId, string fallbackModeId = null)
         {
             var canonicalModeId = NormalizeId(modeId, fallbackModeId);

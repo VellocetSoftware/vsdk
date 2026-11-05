@@ -9,17 +9,34 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Vellocet.Sdk.Maps
 {
+    [CreateAssetMenu(fileName = "MapDefinition", menuName = "Vellocet/Maps/Map Definition", order = 110)]
     public sealed class MapDefinition : ScriptableObject
     {
-        [Header("Debug")]
         [field: SerializeField]
-        public bool Enabled { get; private set; } = true;
+        public bool Enabled { get; private set; }
+        [field: SerializeField, InspectorName("Editor Only")]
+        public bool EditorOnly { get; private set; }
+        [SerializeField, HideInInspector] private bool activateOnFirstCompile = true;
+        public bool IsDraft => activateOnFirstCompile;
+
+        public bool IsAvailable(bool inEditor) => Enabled && !IsDraft && (!EditorOnly || inEditor);
+
+        public void SetAvailability(bool enabled, bool editorOnly)
+        { Enabled = enabled; EditorOnly = editorOnly; }
+
+        // Publication is transactional; callers mark completion only after compiler verification.
+        public void MarkCompiled()
+        {
+            if (activateOnFirstCompile) Enabled = true;
+            activateOnFirstCompile = false;
+        }
 
         public string id;
         public string displayName;
         public string author;
         public string version;
-        public string defaultModeId;
+        // Compatibility data only. The map ID is authoritative.
+        [HideInInspector] public string defaultModeId;
         public MapMusicSet musicSet;
 
         [HideInInspector] public AddonMountData addon;

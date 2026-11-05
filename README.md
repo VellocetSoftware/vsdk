@@ -11,7 +11,7 @@ Create or open `.vertex` maps in Vertex. **Play in Game** compiles the current m
 installs its add-on and launches the installed game. **Export add-on** creates a
 package for distribution. Grimwar's public SDK contains no private gameplay source
 and offers no game playback in Unity. Its developers instead connect the private
-game checkout through Unity's **Tools → Vertex → Open Map Editor**, then use
+game checkout through Unity's **Tools → Vellocet → SDK → Open Vertex Map Editor…**, then use
 **Save to Unity** and play in that editor.
 
 These choices come from the game's profile and SDK connection. Studios can expose

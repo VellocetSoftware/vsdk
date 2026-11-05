@@ -40,7 +40,7 @@ namespace Vellocet.Sdk.Editor.Workbench
         private void OnGUI()
         {
             SdkEditorGui.DrawWindowBackground(position);
-            DrawSdkHeader("Vellocet SDK", "Game integration", "Author maps and build add-ons.", 90);
+            DrawSdkHeader("Vellocet SDK", "Game integration", "Author Unity scenes or Vertex maps and build add-ons.", 90);
             if (!SdkUnityVersionGuard.IsSupported)
             { EditorGUILayout.HelpBox(SdkUnityVersionGuard.RequirementMessage, MessageType.Error); return; }
             _authorWorkspace = (AuthorWorkspaceTab)GUILayout.Toolbar((int)_authorWorkspace, new[] { "Maps", "Content", "Diagnostics" });
@@ -51,24 +51,24 @@ namespace Vellocet.Sdk.Editor.Workbench
             switch (_authorWorkspace)
             {
                 case AuthorWorkspaceTab.Vertex:
-                    if (OpenBaseMapBuilder != null)
-                    {
-                        EditorGUILayout.LabelField("Base maps in Unity", EditorStyles.boldLabel);
-                        EditorGUILayout.LabelField("Compile a Unity scene for the base game.", EditorStyles.wordWrappedLabel);
-                        if (GUILayout.Button("Open Base Map Builder", GUILayout.Height(34))) OpenBaseMapBuilder();
-                        EditorGUILayout.Space(16);
-                    }
+                    EditorGUILayout.LabelField("Author a Unity scene", EditorStyles.boldLabel);
+                    EditorGUILayout.HelpBox("Create a Map Definition, assign its Authoring Scene and a prefixed ID, then Compile Map. Keep one map per folder.", MessageType.Info);
+                    using (new EditorGUI.DisabledScope(!Vellocet.Foundation.Editor.EditorCommandState.CanEdit))
+                        if (GUILayout.Button("Create Map Definition", GUILayout.Height(34))) Tools.SdkEditorCommands.CreateMapDefinition();
+                    EditorGUILayout.Space(16);
                     EditorGUILayout.LabelField("Make maps in Vertex", EditorStyles.boldLabel);
                     EditorGUILayout.HelpBox("Open or create a map, then choose Build → Export add-on. Game developers can use Save to Unity to add it to the base game.", MessageType.Info);
-                    if (OpenVertex != null)
-                    { if (GUILayout.Button("Open Vertex", GUILayout.Height(34))) OpenVertex(); }
+                    if (Tools.SdkHost.Actions?.DeveloperConnection != null)
+                    { if (GUILayout.Button("Open Vertex", GUILayout.Height(34))) Tools.SdkEditorCommands.OpenVertex(); }
                     else EditorGUILayout.LabelField("Launch Vertex from your game's SDK.", EditorStyles.wordWrappedLabel);
                     if (GUILayout.Button("SDK documentation")) SdkDocumentation.OpenHome();
                     break;
                 case AuthorWorkspaceTab.Content:
                     EnsureAddonContentPanel(); _addonContentPanel.Draw(); break;
                 case AuthorWorkspaceTab.Diagnostics:
-                    EditorGUILayout.HelpBox("Inspect compiled maps. Update the SDK through its distributor and run VSDK setup again.", MessageType.None);
+                    EditorGUILayout.HelpBox("Inspect compiled maps. Validate reports problems without repairing assets; Prepare Game Content applies preparation.", MessageType.None);
+                    using (new EditorGUI.DisabledScope(!Vellocet.Foundation.Editor.EditorCommandState.CanEdit))
+                        if (GUILayout.Button("Validate Project")) Vellocet.Foundation.Editor.GameEditorCommands.ValidateProject();
                     _spatial = EditorGUILayout.Foldout(_spatial, "Spatial inspection", true);
                     if (_spatial) { EnsureSpatialPanel(); _spatialPanel.DrawPreviewWorkspace(); }
                     break;

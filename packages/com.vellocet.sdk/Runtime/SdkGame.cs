@@ -10,8 +10,14 @@ namespace Vellocet.Sdk
         public abstract string DisplayName { get; }
         public abstract string DefaultModeId { get; }
         public virtual string FallbackModeId => DefaultModeId;
-        public virtual string ResolveMapMode(string mapId, string requestedModeId = null) =>
-            string.IsNullOrWhiteSpace(requestedModeId) ? DefaultModeId : requestedModeId;
+        public virtual string ResolveMapMode(string mapId, string requestedModeId = null)
+        {
+            if (!ModeCatalog.TryResolveMapMode(mapId, out var mode))
+                throw new ArgumentException($"Map '{mapId}' needs a registered mode prefix and a name.", nameof(mapId));
+            if (!string.IsNullOrWhiteSpace(requestedModeId) && requestedModeId != mode)
+                throw new ArgumentException($"Map '{mapId}' requires mode '{mode}', not '{requestedModeId}'.");
+            return mode;
+        }
         public virtual Maps.MapMusicSet DefaultMusicSet => default;
         public abstract IReadOnlyList<ModeDescriptor> Modes { get; }
         public abstract SdkAssetRootMapping[] AssetRoots { get; }

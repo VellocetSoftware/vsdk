@@ -420,6 +420,13 @@ namespace Vellocet.Sdk.Addons
                 return false;
             }
 
+            if (!ModeCatalog.TryResolveMapMode(content.id, out var resolvedMode) ||
+                !string.IsNullOrEmpty(map.defaultModeId) && map.defaultModeId != resolvedMode)
+            {
+                error = $"Map '{content.id}' needs a registered mode prefix matching its legacy mode metadata.";
+                return false;
+            }
+
             if (!Maps.MapMusicSets.TryParse(map.musicSet, out _))
             {
                 error = $"Map '{content.id}' has an unknown music set '{map.musicSet}'.";

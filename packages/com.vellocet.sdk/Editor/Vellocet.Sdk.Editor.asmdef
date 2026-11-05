@@ -19,7 +19,8 @@
     "Vellocet.Stereoform",
     "Vellocet.Spatial",
     "Vellocet.Spatial.Editor",
-    "Vellocet.Content.Core"
+    "Vellocet.Content.Core",
+    "Vellocet.Foundation.Editor"
   ],
   "includePlatforms": [
     "Editor"

@@ -25,6 +25,7 @@ namespace Vellocet.Sdk.Editor.Maps
         public string DefaultModeId, Author = "", Version = "1";
         /// <summary>Runs before every compile, e.g. to validate project settings or regenerate content catalogs.</summary>
         public Action Prepare;
+        public Func<MapCompiler.CompileOptions> CreateCompileOptions;
         /// <summary>Registers the published map with the game's content catalog (Addressables etc.).</summary>
         public Action<MapDefinition> Publish;
         /// <summary>Returns an error for a compiled map the game cannot ship, given the source and compiled scene paths.</summary>
@@ -46,8 +47,12 @@ namespace Vellocet.Sdk.Editor.Maps
         public static MapDefinition Compile(BaseMapSettings settings, MapDefinition map, string sourceScenePath,
             MapCompiler.CompileOptions options, bool keepsSource)
         {
-            if (!map || map.IsAddon || string.IsNullOrWhiteSpace(map.id))
-                throw new InvalidOperationException("Choose a base map definition with an ID.");
+            Vellocet.Foundation.Editor.EditorCommandState.RequireMapCompilation();
+            if (!BaseMapAuthoring.TryValidateSource(map, out var sourceError, sourceScenePath))
+                throw new InvalidOperationException(sourceError);
+            if (!MapEntityIntegrityValidator.TryCaptureInIsolation(sourceScenePath, out var authored, out var integrityError))
+                throw new InvalidDataException(integrityError);
+            options ??= new MapCompiler.CompileOptions();
             if (Lightmapping.isRunning || StaticOcclusionCulling.isRunning || EditorApplication.isCompiling)
                 throw new InvalidOperationException("Wait for the Editor and any active bake to finish.");
             if (Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))
@@ -72,6 +77,9 @@ namespace Vellocet.Sdk.Editor.Maps
                 var result = MapCompiler.Compile(AssetDatabase.LoadAssetAtPath<SceneAsset>(sourceScenePath), map.id, map.id,
                     MapCompilationReceipt.BaseContentKind, scenePath, options);
                 if (!result.Success) throw new InvalidDataException(result.Error ?? "Compilation failed for " + map.id);
+                if (!MapEntityIntegrityValidator.TryCaptureInIsolation(scenePath, out var compiled, out integrityError) ||
+                    !MapEntityIntegrityValidator.TryCompare(authored, compiled, out integrityError))
+                    throw new InvalidDataException(integrityError);
                 if (settings.Verify?.Invoke(sourceScenePath, scenePath) is { } verifyError) throw new InvalidDataException(verifyError);
 
                 // Scene reloads and bake imports invalidate previously loaded asset objects.
@@ -92,6 +100,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 map.contentRevision = MapCompilationReceiptUtility.ComputeContentRevision(receipt);
                 map.compiledUtc = receipt.createdUtc;
                 map.musicSet = result.MusicSet;
+                map.defaultModeId = SdkGame.Current.ResolveMapMode(map.id);
+                map.MarkCompiled();
                 map.sceneReference = new AssetReference(AssetDatabase.AssetPathToGUID(scenePath));
                 EditorUtility.SetDirty(map);
                 AssetDatabase.SaveAssetIfDirty(map);

@@ -22,14 +22,9 @@ namespace Vellocet.Sdk.Aneurism
         public static bool TryResolve(string mapName, out GameModeId mode)
         {
             mode = default;
-            if (string.IsNullOrWhiteSpace(mapName)) return false;
+            if (!ModeCatalog.TryResolveMapMode(mapName, out var resolved)) return false;
             for (var index = 0; index < Descriptors.Count; index++)
-            {
-                var prefix = Descriptors[index].MapIdPrefix + "_";
-                if (!mapName.StartsWith(prefix, StringComparison.Ordinal) || mapName.Length <= prefix.Length) continue;
-                mode = (GameModeId)index;
-                return true;
-            }
+                if (Descriptors[index].Id == resolved) { mode = (GameModeId)index; return true; }
             return false;
         }
 
