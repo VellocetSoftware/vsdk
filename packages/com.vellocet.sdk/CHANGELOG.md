@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Cache absent VSig map sources across hierarchy edits, invalidate on project/import/Undo changes, and cover missing-source recovery.
+
 - Removes map definition aliases and the pre-JSON `vertex-owner.json` format; maps are found by ID only.
 - Requires current Vertex formats: older compiled maps, VSig programs and entity catalogs must be rebuilt.
 

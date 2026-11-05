@@ -16,11 +16,12 @@ namespace Vellocet.Sdk.Editor.VSig
     public static class VSigRouteModelCache
     {
         private static readonly Dictionary<(int Scene, bool IncludeInactive), VSigRouteModel> Models = new();
+        private static readonly HashSet<string> MissingSources = new();
         private static readonly ProfilerMarker BuildMarker = new("VSig.Editor.BuildRouteModel");
 
         static VSigRouteModelCache()
         {
-            EditorApplication.hierarchyChanged += Clear;
+            EditorApplication.hierarchyChanged += Models.Clear;
             EditorApplication.projectChanged += Clear;
             Undo.undoRedoPerformed += Clear;
             EditorSceneManager.sceneClosed += SceneClosed;
@@ -33,7 +34,12 @@ namespace Vellocet.Sdk.Editor.VSig
             if (!scene.IsValid() || !scene.isLoaded) return VSigRouteModel.Empty(scene, null);
             var key = (scene.handle, includeInactive);
             if (Models.TryGetValue(key, out var model)) return model;
-            using (BuildMarker.Auto()) model = VSigRouteModelBuilder.Build(scene, includeInactive);
+            using (BuildMarker.Auto())
+                model = MissingSources.Contains(scene.path)
+                    ? VSigRouteModel.Empty(scene, null)
+                    : VSigRouteModelBuilder.Build(scene, includeInactive);
+            // Hierarchy edits cannot create a source asset; project/import changes invalidate this cache.
+            if (!model.HasSource && !string.IsNullOrEmpty(scene.path)) MissingSources.Add(scene.path);
             Models[key] = model;
             return model;
         }
@@ -44,7 +50,11 @@ namespace Vellocet.Sdk.Editor.VSig
             Models.Remove((scene.handle, false));
         }
 
-        internal static void Clear() => Models.Clear();
+        internal static void Clear()
+        {
+            Models.Clear();
+            MissingSources.Clear();
+        }
         private static void SceneClosed(Scene scene) => Invalidate(scene);
 
         private static void ObjectsChanged(ref ObjectChangeEventStream changes)

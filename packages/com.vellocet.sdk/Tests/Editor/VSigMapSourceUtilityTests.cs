@@ -30,6 +30,29 @@ namespace Vellocet.Sdk.Tests
         }
 
         [Test]
+        public void MissingSourceCacheSurvivesHierarchyEditsAndFindsNewlyImportedSources()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            try
+            {
+                var scenePath = _assetFolder + "/CachedMap.unity";
+                Assert.That(EditorSceneManager.SaveScene(scene, scenePath), Is.True);
+                Assert.That(VSigRouteModelCache.Get(scene).HasSource, Is.False);
+                VSigRouteModelCache.Invalidate(scene);
+                Assert.That(VSigRouteModelCache.Get(scene).HasSource, Is.False);
+                var sourcePath = _assetFolder + "/CachedMap.vsig";
+                File.WriteAllText(sourcePath, "# Newly added source\n");
+                AssetDatabase.ImportAsset(sourcePath, ImportAssetOptions.ForceSynchronousImport);
+                Assert.That(VSigRouteModelCache.Get(scene).HasSource, Is.True,
+                    "Importing a source must invalidate a cached absence immediately.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            }
+        }
+
+        [Test]
         public void ExternalCompiledSceneHasNoLocalSourceAndDoesNotLogAnAssetDatabaseError()
         {
             var status = VSigMapSourceUtility.FindForScene(_assetFolder + "/MissingCompilerOutput/Map.unity", out var source, out _, out _);
