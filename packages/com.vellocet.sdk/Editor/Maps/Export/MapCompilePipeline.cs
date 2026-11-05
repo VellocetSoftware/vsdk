@@ -371,6 +371,14 @@ namespace Vellocet.Sdk.Editor.Maps
                     : MapCompilePassResult.Fail(message));
 
             yield return new DelegateMapCompilePass(
+                "finalize-generated-meshes",
+                0.975f,
+                "Finalizing generated render mesh memory.",
+                ctx => MapGeneratedGeometryUtility.FinalizeMeshes(ctx.Scene, ctx.CompiledScenePath, out var message)
+                    ? MapCompilePassResult.Pass(message)
+                    : MapCompilePassResult.Fail(message));
+
+            yield return new DelegateMapCompilePass(
                 "validate-runtime-dependencies",
                 0.98f,
                 "Validating compiled scene runtime dependencies.",

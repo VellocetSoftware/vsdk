@@ -124,6 +124,36 @@ namespace Vellocet.Sdk.Editor.Maps
             return true;
         }
 
+        internal static bool FinalizeMeshes(Scene scene, string compiledScenePath, out string message)
+        {
+            if (!Validate(scene, out message)) return false;
+            var path = MapEditorPathUtility.GetSceneDataFolderAssetPath(compiledScenePath) + "/VertexGeometry.asset";
+            var filters = MapSceneTraversalUtility.GetComponents<MeshFilter>(scene);
+            var keepReadable = new HashSet<Mesh>(MapSceneTraversalUtility.GetComponents<MeshCollider>(scene)
+                .Select(collider => collider.sharedMesh).Concat(MapSceneTraversalUtility.GetComponents<SkinnedMeshRenderer>(scene)
+                    .Select(renderer => renderer.sharedMesh)));
+            foreach (var filter in filters)
+            {
+                var renderer = filter.GetComponent<MeshRenderer>();
+                // SurfaceProvider maps collision triangles to render submeshes when materials differ.
+                if (!renderer || renderer.sharedMaterials.Length > 1 || !filter.gameObject.isStatic ||
+                    MapRendererOptimizationUtility.HasRuntimeMotionRisk(filter.transform))
+                    keepReadable.Add(filter.sharedMesh);
+            }
+            var count = 0;
+            foreach (var mesh in filters.Select(filter => filter.sharedMesh).Where(mesh => mesh && mesh.isReadable &&
+                         !keepReadable.Contains(mesh) && AssetDatabase.GetAssetPath(mesh) == path).Distinct())
+            {
+                using var serialized = new SerializedObject(mesh);
+                serialized.FindProperty("m_IsReadable").boolValue = false;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                count++;
+            }
+            if (count > 0) AssetDatabase.SaveAssetIfDirty(new GUID(AssetDatabase.AssetPathToGUID(path)));
+            message = $"Released CPU readability for {count} generated render mesh(es); collision, moving and multi-material meshes stay readable.";
+            return true;
+        }
+
         private static bool IsVertexAsset(Object asset) => asset &&
             AssetDatabase.GetAssetPath(asset).EndsWith(".vertexmesh", StringComparison.OrdinalIgnoreCase);
     }

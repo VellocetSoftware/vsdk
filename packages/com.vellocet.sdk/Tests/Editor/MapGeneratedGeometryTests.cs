@@ -17,6 +17,9 @@ namespace Vellocet.Sdk.Editor.Tests
 {
     public sealed class MapGeneratedGeometryTests
     {
+        [SetUp]
+        public void StartWithEmptyScene() => EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
         [Test]
         public void CompiledRenderAndCollisionMeshesSurviveRemovalOfTheirVertexSource()
         {
@@ -56,6 +59,8 @@ namespace Vellocet.Sdk.Editor.Tests
                 Assert.That(filter.sharedMesh, Is.SameAs(collider.sharedMesh), "Shared geometry stays shared.");
                 Assert.That(filter.sharedMesh.uv2, Is.EqualTo(uv2), "Existing lightmap UVs must remain intact.");
                 Assert.That(MapGeneratedGeometryUtility.Persist(scene, scenePath, out message), Is.True, message);
+                Assert.That(MapGeneratedGeometryUtility.FinalizeMeshes(scene, scenePath, out message), Is.True, message);
+                Assert.That(filter.sharedMesh.isReadable, Is.True, "Collision meshes remain readable.");
                 Assert.That(EditorSceneManager.SaveScene(scene), Is.True);
                 MapTestScenes.Close(scene);
                 Assert.That(AssetDatabase.DeleteAsset(sourcePath), Is.True);
@@ -71,6 +76,57 @@ namespace Vellocet.Sdk.Editor.Tests
             finally
             {
                 if (scene.IsValid() && scene.isLoaded) MapTestScenes.Close(scene);
+                if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
+                AssetDatabase.DeleteAsset(folder);
+            }
+        }
+
+        [TestCase(false, 1, false, false)]
+        [TestCase(true, 1, false, true)]
+        [TestCase(false, 2, false, true)]
+        [TestCase(false, 1, true, true)]
+        public void FinalizationReleasesOnlyRenderMeshesWithoutRuntimeReaders(
+            bool collision, int materialCount, bool moving, bool expectedReadable)
+        {
+            var previous = SceneManager.GetActiveScene();
+            var folder = "Assets/CompiledReadabilityCheck_" + Guid.NewGuid().ToString("N");
+            AssetDatabase.CreateFolder("Assets", Path.GetFileName(folder));
+            var scene = MapTestScenes.CreateEmpty();
+            try
+            {
+                var sourcePath = folder + "/Map.vertexmesh";
+                File.WriteAllBytes(sourcePath, new MapAsset
+                {
+                    MapId = Guid.NewGuid(), MetersPerUnit = 1,
+                    Objects = new[] { new MapObject
+                    {
+                        Id = Guid.NewGuid(), Name = "World triangle",
+                        Vertices = new[] { Vertex(0, 0), Vertex(0, 2), Vertex(3, 0) },
+                        Surfaces = Enumerable.Range(0, materialCount).Select(_ => new MapSurface
+                            { Material = "builtin:checker", Indices = new[] { 0, 1, 2 } }).ToArray(),
+                        Lightmap = new MapLightmap { GenerateUV2 = true, ResolutionScale = 1 }
+                    } }
+                }.Serialize());
+                AssetDatabase.ImportAsset(sourcePath, ImportAssetOptions.ForceSynchronousImport);
+                var instance = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath), scene);
+                PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                var filter = instance.GetComponentInChildren<MeshFilter>();
+                if (collision) filter.gameObject.AddComponent<MeshCollider>().sharedMesh = filter.sharedMesh;
+                if (moving) filter.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+                var uv2 = filter.sharedMesh.uv2;
+                var scenePath = folder + "/Compiled.unity";
+                Assert.That(EditorSceneManager.SaveScene(scene, scenePath), Is.True);
+                Assert.That(MapGeneratedGeometryUtility.Persist(scene, scenePath, out var message), Is.True, message);
+                Assert.That(MapGeneratedGeometryUtility.FinalizeMeshes(scene, scenePath, out message), Is.True, message);
+                Assert.That(filter.sharedMesh.isReadable, Is.EqualTo(expectedReadable));
+                var finalizedPath = AssetDatabase.GetAssetPath(filter.sharedMesh);
+                AssetDatabase.ImportAsset(finalizedPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                Assert.That(filter.sharedMesh.isReadable, Is.EqualTo(expectedReadable), "Readability survives serialization.");
+                Assert.That(filter.sharedMesh.uv2, Is.EqualTo(uv2), "Finalization preserves baked lightmap UVs.");
+            }
+            finally
+            {
+                MapTestScenes.Close(scene);
                 if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
                 AssetDatabase.DeleteAsset(folder);
             }
