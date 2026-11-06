@@ -101,9 +101,10 @@ namespace Vellocet.Sdk.Editor.Maps
             { error = "Compiled scene is missing or its reference is stale. Compile the map."; return false; }
             if (!MapCompilationReceiptUtility.TryLoad(map.compilationReceiptPath, out var receipt) ||
                 !MapCompilationReceipt.IsSupportedSchemaVersion(receipt.schemaVersion) ||
-                !MapCompilationReceiptUtility.HasValidSeal(receipt) || receipt.mapId != map.id ||
+                !MapCompilationReceiptUtility.HasValidSeal(receipt) ||
+                MapCompilationReceiptValidator.GetIdentityMismatch(receipt, MapCompilationReceipt.BaseContentKind,
+                    map.id, null, StringComparison.Ordinal) != MapCompilationReceiptValidator.IdentityMismatch.None ||
                 receipt.seal != map.compilationSeal || receipt.compiledScenePath != map.compiledScenePath ||
-                receipt.contentKind != MapCompilationReceipt.BaseContentKind ||
                 MapCompilationReceiptUtility.ComputeContentRevision(receipt) != map.contentRevision)
             { error = "Compilation receipt is missing or stale. Compile the map."; return false; }
             if (!string.IsNullOrEmpty(map.authoringScenePath) && !AssetDatabase.LoadAssetAtPath<SceneAsset>(map.authoringScenePath))
