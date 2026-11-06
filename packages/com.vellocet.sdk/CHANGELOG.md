@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- World text uses native Best Fit. Auto-sized labels require Advanced Text Generator in UI Toolkit project settings.
+
 - Cache absent VSig map sources across hierarchy edits, invalidate on project/import/Undo changes, and cover missing-source recovery.
 
 - Removes map definition aliases and the pre-JSON `vertex-owner.json` format; maps are found by ID only.
