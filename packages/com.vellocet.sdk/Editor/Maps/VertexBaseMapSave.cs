@@ -137,7 +137,6 @@ namespace Vellocet.Sdk.Editor.Maps
                 map.id = id;
                 map.author = settings.Author;
                 map.version = settings.Version;
-                map.defaultModeId = SdkGame.Current.ResolveMapMode(id);
                 map.contentKind = MapCompilationReceipt.BaseContentKind;
                 AssetDatabase.CreateAsset(map, path);
             }

@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Vellocet Corporation. All rights reserved.
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
-using System;
 using UnityEditor;
 using UnityEngine;
 using Vellocet.Sdk.Addons;
@@ -13,8 +12,6 @@ namespace Vellocet.Sdk.Editor.Workbench
 {
     public sealed class SdkWorkbenchWindow : SdkBrandedEditorWindow
     {
-        public static Action OpenVertex { get; set; }
-        public static Action OpenBaseMapBuilder { get; set; }
         private const string WindowTitle = "SDK Workbench";
         [SerializeField] private AuthorWorkspaceTab _authorWorkspace;
         [SerializeField] private Vector2 _scroll;
@@ -27,7 +24,7 @@ namespace Vellocet.Sdk.Editor.Workbench
             titleContent = new GUIContent(WindowTitle);
             minSize = new Vector2(660, 460);
             ReloadSdkBrandingAssets();
-            if ((int)_authorWorkspace > 2) _authorWorkspace = AuthorWorkspaceTab.Vertex;
+            if ((int)_authorWorkspace > 2) _authorWorkspace = AuthorWorkspaceTab.Maps;
         }
 
         private void OnDisable()
@@ -50,7 +47,7 @@ namespace Vellocet.Sdk.Editor.Workbench
             EditorGUILayout.Space(16);
             switch (_authorWorkspace)
             {
-                case AuthorWorkspaceTab.Vertex:
+                case AuthorWorkspaceTab.Maps:
                     EditorGUILayout.LabelField("Author a Unity scene", EditorStyles.boldLabel);
                     EditorGUILayout.HelpBox("Create a Map Definition, assign its Authoring Scene and a prefixed ID, then Compile Map. Keep one map per folder.", MessageType.Info);
                     using (new EditorGUI.DisabledScope(!Vellocet.Foundation.Editor.EditorCommandState.CanEdit))
@@ -87,7 +84,7 @@ namespace Vellocet.Sdk.Editor.Workbench
         public static void Open()
         {
             var window = GetWindow<SdkWorkbenchWindow>(WindowTitle);
-            window._authorWorkspace = AuthorWorkspaceTab.Vertex;
+            window._authorWorkspace = AuthorWorkspaceTab.Maps;
         }
         internal static void OpenAddonContent(AddonAuthoringProject project = null, UnityEngine.Object source = null)
         {
@@ -98,6 +95,6 @@ namespace Vellocet.Sdk.Editor.Workbench
             if (source) window._addonContentPanel.SelectSource(source);
             window.Repaint();
         }
-        private enum AuthorWorkspaceTab { Vertex, Content, Diagnostics }
+        private enum AuthorWorkspaceTab { Maps, Content, Diagnostics }
     }
 }

@@ -360,7 +360,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 Assert.Ignore("Bundle dependency calculation can reload scenes; run this integration test with saved scenes.");
             Scene scene = default;
             var previousSettings = AddressableAssetSettingsDefaultObject.Settings;
-            var previousHost = SdkHost.Context;
+            var previousActions = SdkHost.Actions;
             var createdDefaultFolder = !AssetDatabase.IsValidFolder("Assets/AddressableAssetsData");
             var output = Path.GetFullPath("Library/VertexPackageChecks/" + Guid.NewGuid().ToString("N"));
             VertexAssetCatalogProfile profile = null;
@@ -375,7 +375,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 settings.profileSettings.SetValue(settings.activeProfileId, Constants.LocalBuildVar, output);
                 settings.profileSettings.SetValue(settings.activeProfileId, Constants.LocalLoadVar, output);
                 var group = settings.CreateGroup("Package", false, false, false, null, typeof(BundledAssetGroupSchema));
-                SdkHost.RegisterContext(new BaseHost());
+                SdkHost.Actions = new SdkEditorActions { BaseMaps = new BaseMapSettings() };
                 SharedAssetAddressableEditorUtility.EnsureSdkSharedAssets(settings);
                 var baseGroup = SharedAssetAddressableEditorUtility.EnsureSharedGroup(settings);
                 foreach (var item in settings.groups.Where(g => g && g.GetSchema<BundledAssetGroupSchema>()))
@@ -527,7 +527,7 @@ namespace Vellocet.Sdk.Tests.Editor
             {
                 if (scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
                 AddressableAssetSettingsDefaultObject.Settings = previousSettings;
-                SdkHost.RegisterContext(previousHost);
+                SdkHost.Actions = previousActions;
                 if (createdDefaultFolder)
                 { EditorBuildSettings.RemoveConfigObject(AddressableAssetSettingsDefaultObject.kDefaultConfigObjectName); AssetDatabase.DeleteAsset("Assets/AddressableAssetsData"); }
                 if (profile) Object.DestroyImmediate(profile);
@@ -537,10 +537,5 @@ namespace Vellocet.Sdk.Tests.Editor
             }
         }
 
-        private sealed class BaseHost : ISdkHostContext
-        {
-            public bool IsBaseProject => true;
-            public string ModeName => "Base";
-        }
     }
 }

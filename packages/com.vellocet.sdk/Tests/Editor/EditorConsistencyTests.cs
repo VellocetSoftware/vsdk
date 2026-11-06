@@ -41,6 +41,7 @@ namespace Vellocet.Sdk.Editor.Tests
         {
             var attribute = (CreateAssetMenuAttribute)Attribute.GetCustomAttribute(typeof(MapDefinition), typeof(CreateAssetMenuAttribute));
             Assert.That(attribute.menuName, Is.EqualTo("Vellocet/Maps/Map Definition"));
+            Assert.That(typeof(MapDefinition).GetField("defaultModeId"), Is.Null);
             var map = Create("MapDefinition.asset");
             Assert.That(map.Enabled, Is.False);
             Assert.That(map.IsDraft, Is.True);
@@ -50,6 +51,22 @@ namespace Vellocet.Sdk.Editor.Tests
             map.MarkCompiled();
             Assert.That(map.Enabled, Is.False, "Recompilation must preserve explicit disabling.");
             Assert.That(map.EditorOnly, Is.True);
+        }
+
+        [Test]
+        public void BaseProjectStatusComesFromRegisteredMapCapabilities()
+        {
+            var previous = Tools.SdkHost.Actions;
+            try
+            {
+                Tools.SdkHost.Actions = null;
+                Assert.That(Tools.SdkHost.IsBaseProject, Is.False);
+                Tools.SdkHost.Actions = new Tools.SdkEditorActions();
+                Assert.That(Tools.SdkHost.IsBaseProject, Is.False);
+                Tools.SdkHost.Actions.BaseMaps = new BaseMapSettings();
+                Assert.That(Tools.SdkHost.IsBaseProject, Is.True);
+            }
+            finally { Tools.SdkHost.Actions = previous; }
         }
 
         [TestCase(false, false, false, false)]

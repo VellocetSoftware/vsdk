@@ -25,8 +25,7 @@ authoring scene rather than the compiled scene.
 
 **Enabled** controls whether a compiled map is available. **Editor Only** keeps an
 enabled development map available in the Editor and excludes it from player builds.
-Game mode comes from the ID prefix. Legacy stored mode metadata must agree with
-that prefix and cannot override it.
+Game mode comes from the ID prefix.
 
 Existing game folders remain supported:
 

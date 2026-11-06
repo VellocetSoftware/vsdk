@@ -96,8 +96,6 @@ namespace Vellocet.Sdk.Editor.Maps
         {
             if (!TryValidateIdentityAndFolder(map, out error)) return false;
             if (map.IsDraft) { error = "Compile the draft map first."; return false; }
-            if (!string.IsNullOrEmpty(map.defaultModeId) && map.defaultModeId != SdkGame.Current.ResolveMapMode(map.id))
-            { error = "Legacy mode metadata conflicts with the map ID. Recompile the map."; return false; }
             if (!File.Exists(map.compiledScenePath) || map.sceneReference == null ||
                 AssetDatabase.GUIDToAssetPath(map.sceneReference.AssetGUID) != map.compiledScenePath)
             { error = "Compiled scene is missing or its reference is stale. Compile the map."; return false; }

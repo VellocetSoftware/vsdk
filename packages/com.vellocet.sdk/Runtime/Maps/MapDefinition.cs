@@ -35,8 +35,6 @@ namespace Vellocet.Sdk.Maps
         public string displayName;
         public string author;
         public string version;
-        // Compatibility data only. The map ID is authoritative.
-        [HideInInspector] public string defaultModeId;
         public MapMusicSet musicSet;
 
         [HideInInspector] public AddonMountData addon;

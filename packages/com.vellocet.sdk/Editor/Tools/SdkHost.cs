@@ -4,44 +4,10 @@
 #if UNITY_EDITOR
 namespace Vellocet.Sdk.Editor.Tools
 {
-    public interface ISdkHostContext
-    {
-        bool IsBaseProject { get; }
-        string ModeName { get; }
-    }
-
     public static class SdkHost
     {
-        private static readonly ISdkHostContext DefaultContext = new DefaultSdkHostContext();
-        private static ISdkHostContext _context;
-
-        public static SdkEditorActions Actions { get; private set; }
-        public static void RegisterActions(SdkEditorActions actions)
-        {
-            Actions = actions ?? throw new System.ArgumentNullException(nameof(actions));
-            Workbench.SdkWorkbenchWindow.OpenVertex = SdkEditorCommands.OpenVertex;
-        }
-
-        public static ISdkHostContext Context => _context ?? DefaultContext;
-        public static bool IsBaseProject => Context.IsBaseProject;
-        public static string ModeName => string.IsNullOrWhiteSpace(Context.ModeName) ? "Add-on" : Context.ModeName;
-
-        public static void RegisterContext(ISdkHostContext context)
-        {
-            _context = context;
-        }
-
-        public static void ClearContext()
-        {
-            _context = null;
-            Actions = null;
-        }
-
-        private sealed class DefaultSdkHostContext : ISdkHostContext
-        {
-            public bool IsBaseProject => false;
-            public string ModeName => "Add-on";
-        }
+        public static SdkEditorActions Actions { get; set; }
+        public static bool IsBaseProject => Actions?.BaseMaps != null;
     }
 }
 #endif

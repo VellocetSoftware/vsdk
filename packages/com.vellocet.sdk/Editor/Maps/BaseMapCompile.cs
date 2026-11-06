@@ -22,7 +22,7 @@ namespace Vellocet.Sdk.Editor.Maps
         /// <summary>Folder that holds one subfolder per base map, e.g. <c>Assets/GameContent/Maps</c>.</summary>
         public string MapsRoot;
         /// <summary>Defaults for a new MapDefinition; existing definitions keep their values.</summary>
-        public string DefaultModeId, Author = "", Version = "1";
+        public string Author = "", Version = "1";
         /// <summary>Runs before every compile, e.g. to validate project settings or regenerate content catalogs.</summary>
         public Action Prepare;
         public Func<MapCompiler.CompileOptions> CreateCompileOptions;
@@ -100,7 +100,6 @@ namespace Vellocet.Sdk.Editor.Maps
                 map.contentRevision = MapCompilationReceiptUtility.ComputeContentRevision(receipt);
                 map.compiledUtc = receipt.createdUtc;
                 map.musicSet = result.MusicSet;
-                map.defaultModeId = SdkGame.Current.ResolveMapMode(map.id);
                 map.MarkCompiled();
                 map.sceneReference = new AssetReference(AssetDatabase.AssetPathToGUID(scenePath));
                 EditorUtility.SetDirty(map);
