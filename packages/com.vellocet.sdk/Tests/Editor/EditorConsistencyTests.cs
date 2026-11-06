@@ -88,6 +88,23 @@ namespace Vellocet.Sdk.Editor.Tests
         }
 
         [Test]
+        public void NestedDefinitionsAreProtectedFromParentCompilation()
+        {
+            var parent = Create("MapDefinition.asset");
+            AssetDatabase.CreateFolder(_root, "Compiled");
+            AssetDatabase.CreateFolder(_root + "/Compiled", "Child");
+            var child = ScriptableObject.CreateInstance<MapDefinition>();
+            child.id = parent.id + "_child";
+            var childPath = _root + "/Compiled/Child/MapDefinition.asset";
+            AssetDatabase.CreateAsset(child, childPath);
+            Assert.That(BaseMapAuthoring.TryValidateIdentityAndFolder(parent, out var error), Is.False);
+            Assert.That(error, Does.Contain("Compiled output"));
+            Assert.That(BaseMapAuthoring.TryValidateIdentityAndFolder(child, out error), Is.False);
+            Assert.That(error, Does.Contain("Compiled output"));
+            Assert.That(File.Exists(childPath), Is.True);
+        }
+
+        [Test]
         public void MissingSourceIsADraftAndGeneratedScenesCannotBeSources()
         {
             var map = Create("MapDefinition.asset");

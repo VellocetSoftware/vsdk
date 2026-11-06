@@ -57,6 +57,10 @@ namespace Vellocet.Sdk.Editor.Maps
             foreach (var other in Definitions())
             {
                 if (other == map) continue;
+                var otherPath = AssetDatabase.GetAssetPath(other);
+                if (path.StartsWith(BaseMapCompile.CompiledFolder(other) + "/", StringComparison.OrdinalIgnoreCase) ||
+                    otherPath.StartsWith(BaseMapCompile.CompiledFolder(map) + "/", StringComparison.OrdinalIgnoreCase))
+                { error = "Keep map definitions outside Compiled output folders: " + otherPath; return false; }
                 if (string.Equals(map.id, other.id, StringComparison.OrdinalIgnoreCase))
                 { error = "Another map already uses ID '" + map.id + "': " + AssetDatabase.GetAssetPath(other); return false; }
                 if (string.Equals(folder, Path.GetDirectoryName(AssetDatabase.GetAssetPath(other)), StringComparison.OrdinalIgnoreCase))

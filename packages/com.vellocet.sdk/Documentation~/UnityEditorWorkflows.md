@@ -18,7 +18,7 @@ Creation makes a draft asset. Its first successful compile enables it. Failed or
 canceled compilation leaves previous output and availability intact. Recompiling
 an existing disabled map does not enable it.
 
-Keep one definition per folder. Compiled scenes, bake data, and the receipt live
+Keep one definition per folder, outside every map's `Compiled` output. Compiled scenes, bake data, and the receipt live
 in that folder's `Compiled` directory. Compilation manages the scene reference,
 music selection, content revision, and Addressables entries. Keep editing the
 authoring scene rather than the compiled scene.
