@@ -72,7 +72,7 @@ namespace Vellocet.Sdk.Entities
 
         public void CaptureVertexLabel()
         {
-            // Vertex positions the label's center, not the corner of the default 100-metre text box.
+            // Vertex positions the label's center.
             Label.alignment = TextAnchor.MiddleCenter;
             vertexLabel = true;
             vertexText = Label.text; vertexColor = Label.color; vertexFontSize = Label.fontSize;
