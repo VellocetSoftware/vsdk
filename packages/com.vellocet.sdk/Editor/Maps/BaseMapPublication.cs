@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using Vellocet.Sdk.Maps;
+using Vellocet.Content.Editor;
 
 namespace Vellocet.Sdk.Editor.Maps
 {
@@ -20,7 +21,7 @@ namespace Vellocet.Sdk.Editor.Maps
             var published = map.Enabled && !map.IsDraft;
             if (published && !BaseMapAuthoring.TryValidateCompiled(map, out var error))
                 throw new InvalidDataException(map.id + ": " + error);
-            var destination = Group(settings, !published ? DisabledGroupName : map.EditorOnly ? EditorOnlyGroupName : playerGroup,
+            var destination = AddressablesContentUtility.GetOrCreateGroup(settings, !published ? DisabledGroupName : map.EditorOnly ? EditorOnlyGroupName : playerGroup,
                 published && !map.EditorOnly);
             var changed = false;
             if (!settings.GetLabels().Contains(Constants.MapLabel)) { settings.AddLabel(Constants.MapLabel); changed = true; }
@@ -52,11 +53,22 @@ namespace Vellocet.Sdk.Editor.Maps
             var thumbnail = map.thumbnailReference?.AssetGUID;
             if (!string.IsNullOrEmpty(thumbnail))
             {
-                var users = BaseMapAuthoring.Definitions().Where(other => other.Enabled && !other.IsDraft &&
-                    other.thumbnailReference?.AssetGUID == thumbnail).ToArray();
-                var thumbnailGroup = users.Any(other => !other.EditorOnly) ? Group(settings, playerGroup, true) :
-                    users.Length > 0 ? Group(settings, EditorOnlyGroupName, false) : destination;
-                Entry(thumbnail, settings.FindAssetEntry(thumbnail)?.address ?? thumbnailAddress, thumbnailGroup);
+                var existing = settings.FindAssetEntry(thumbnail);
+                var sharedAddress = SharedAssetAddressUtility.CreateAddress(AssetDatabase.GUIDToAssetPath(thumbnail));
+                AddressableAssetGroup thumbnailGroup;
+                if (existing != null && !string.IsNullOrEmpty(sharedAddress) && existing.address == sharedAddress)
+                    thumbnailGroup = SharedAssetAddressableEditorUtility.EnsureSharedGroup(settings);
+                else if (existing != null && existing.parentGroup.Name != playerGroup &&
+                         existing.parentGroup.Name != EditorOnlyGroupName && existing.parentGroup.Name != DisabledGroupName)
+                    thumbnailGroup = existing.parentGroup;
+                else
+                {
+                    var users = BaseMapAuthoring.Definitions().Where(other => other.Enabled && !other.IsDraft &&
+                        other.thumbnailReference?.AssetGUID == thumbnail).ToArray();
+                    thumbnailGroup = users.Any(other => !other.EditorOnly) ? AddressablesContentUtility.GetOrCreateGroup(settings, playerGroup, true) :
+                        users.Length > 0 ? AddressablesContentUtility.GetOrCreateGroup(settings, EditorOnlyGroupName, false) : destination;
+                }
+                Entry(thumbnail, existing?.address ?? thumbnailAddress, thumbnailGroup);
             }
             if (!string.IsNullOrEmpty(map.authoringScenePath) && map.authoringScenePath != map.compiledScenePath)
             {
@@ -78,15 +90,5 @@ namespace Vellocet.Sdk.Editor.Maps
             }
         }
 
-        private static AddressableAssetGroup Group(AddressableAssetSettings settings, string name, bool include)
-        {
-            var group = settings.FindGroup(name);
-            if (!group)
-                group = settings.CreateGroup(name, false, false, false, null,
-                    typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
-            var schema = group.GetSchema<BundledAssetGroupSchema>() ?? group.AddSchema<BundledAssetGroupSchema>();
-            if (schema.IncludeInBuild != include) { schema.IncludeInBuild = include; EditorUtility.SetDirty(schema); }
-            return group;
-        }
     }
 }

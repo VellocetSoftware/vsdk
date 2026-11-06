@@ -47,7 +47,12 @@ namespace Vellocet.Sdk.Editor.Tests
         }
 
         [UnityTest]
-        public IEnumerator SuccessfulCompilationActivatesDraftBeforePublicationAndPreservesSource()
+        public IEnumerator SuccessfulCompilationActivatesDraftBeforePublicationAndPreservesSource() => CompileAndRollback(false);
+
+        [UnityTest]
+        public IEnumerator ExistingOutputPathsUseTheSamePublicationAndRollback() => CompileAndRollback(true);
+
+        private IEnumerator CompileAndRollback(bool existingLayout)
         {
             yield return null;
             var source = _folder + "/Source.unity";
@@ -61,14 +66,34 @@ namespace Vellocet.Sdk.Editor.Tests
             map.displayName = "Native compile test";
             map.authoringScenePath = source;
             AssetDatabase.CreateAsset(map, _folder + "/MapDefinition.asset");
+            var scenePath = existingLayout ? _folder + "/existing.unity" : null;
+            var receiptPath = existingLayout ? _folder + "/Generated/compilation.json" : null;
+            string sceneGuid = null;
+            if (existingLayout)
+            {
+                File.Copy(source, scenePath);
+                AssetDatabase.ImportAsset(scenePath, ImportAssetOptions.ForceSynchronousImport);
+                sceneGuid = AssetDatabase.AssetPathToGUID(scenePath);
+                Directory.CreateDirectory(_folder + "/Generated");
+                File.WriteAllText(receiptPath, "previous receipt");
+            }
             var published = false;
             var settings = new BaseMapSettings
             {
                 Publish = compiled =>
                 {
+                    if (existingLayout)
+                    {
+                        Assert.That(compiled.compiledScenePath, Is.EqualTo(scenePath));
+                        Assert.That(compiled.compilationReceiptPath, Is.EqualTo(receiptPath));
+                        Assert.That(compiled.sceneReference.AssetGUID, Is.EqualTo(sceneGuid));
+                    }
                     Assert.That(compiled.Enabled, Is.True);
                     Assert.That(compiled.IsDraft, Is.False);
                     Assert.That(BaseMapAuthoring.TryValidateCompiled(compiled, out var error), Is.True, error);
+                    Assert.That(BaseMapArtifactValidator.TryValidate(compiled, out error,
+                        new BaseMapValidationOptions { AllowSkippedSpatialOctreeBake = false }), Is.False);
+                    Assert.That(error, Does.Contain("bake was skipped"));
                     Assert.That(File.ReadAllBytes(source), Is.EqualTo(original));
                     var compiledBytes = File.ReadAllBytes(compiled.compiledScenePath);
                     File.AppendAllText(compiled.compiledScenePath, "\n");
@@ -89,9 +114,15 @@ namespace Vellocet.Sdk.Editor.Tests
 
             yield return null;
             Assert.Throws<OperationCanceledException>(() =>
-                BaseMapCompile.Compile(settings, map, source, options, keepsSource: true));
+                BaseMapCompile.Compile(settings, map, source, options, keepsSource: true, scenePath, receiptPath));
 
             Assert.That(published, Is.True, "The native compiler must complete and reach publication.");
+            if (existingLayout)
+            {
+                Assert.That(File.ReadAllBytes(scenePath), Is.EqualTo(original));
+                Assert.That(File.ReadAllText(receiptPath), Is.EqualTo("previous receipt"));
+                Assert.That(AssetDatabase.AssetPathToGUID(scenePath), Is.EqualTo(sceneGuid));
+            }
             Assert.That(File.ReadAllBytes(source), Is.EqualTo(original));
             map = AssetDatabase.LoadAssetAtPath<MapDefinition>(_folder + "/MapDefinition.asset");
             Assert.That(map.IsDraft, Is.True, "A failed publication must restore the draft definition.");

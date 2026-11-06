@@ -20,7 +20,8 @@
     "Vellocet.Spatial",
     "Vellocet.Spatial.Editor",
     "Vellocet.Content.Core",
-    "Vellocet.Foundation.Editor"
+    "Vellocet.Foundation.Editor",
+    "Vellocet.Content.Editor"
   ],
   "includePlatforms": [
     "Editor"

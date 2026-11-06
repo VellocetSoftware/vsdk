@@ -33,8 +33,7 @@ namespace Vellocet.Sdk.Editor.Maps
     }
 
     /// <summary>
-    /// Compiles a base map into its single <c>Compiled</c> folder. Nothing outside that folder, the definition and
-    /// Addressables changes; a failure restores all three.
+    /// Compiles a base map and restores its output, definition and Addressables if compilation or publication fails.
     /// </summary>
     public static class BaseMapCompile
     {
@@ -45,7 +44,7 @@ namespace Vellocet.Sdk.Editor.Maps
             Path.GetDirectoryName(AssetDatabase.GetAssetPath(map))?.Replace('\\', '/') + "/" + CompiledFolderName;
 
         public static MapDefinition Compile(BaseMapSettings settings, MapDefinition map, string sourceScenePath,
-            MapCompiler.CompileOptions options, bool keepsSource)
+            MapCompiler.CompileOptions options, bool keepsSource, string scenePath = null, string receiptPath = null)
         {
             Vellocet.Foundation.Editor.EditorCommandState.RequireMapCompilation();
             if (!BaseMapAuthoring.TryValidateSource(map, out var sourceError, sourceScenePath))
@@ -58,19 +57,38 @@ namespace Vellocet.Sdk.Editor.Maps
             if (Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))
                 throw new InvalidOperationException("Save the open scenes before compiling a map.");
             var definitionPath = AssetDatabase.GetAssetPath(map);
-            var folder = CompiledFolder(map);
+            var layout = BaseMapArtifactLayout.FromDefinitionPath(definitionPath, map.id);
+            var folder = layout.CompiledRoot;
             if (sourceScenePath.StartsWith(folder + "/", StringComparison.Ordinal))
                 throw new InvalidOperationException("Choose the authoring scene, not its compiled output.");
-            var scenePath = folder + "/" + map.id + ".unity";
+            scenePath ??= layout.CompiledScenePath;
+            receiptPath ??= layout.ReceiptPath;
+            var definitionRoot = Path.GetDirectoryName(definitionPath).Replace('\\', '/') + "/";
+            var outputs = scenePath.StartsWith(folder + "/", StringComparison.Ordinal) &&
+                          receiptPath.StartsWith(folder + "/", StringComparison.Ordinal)
+                ? new[] { folder }
+                : new[] { scenePath, Path.ChangeExtension(scenePath, null),
+                    MapSpatialGraphArtifacts.ResolveAssetPath(scenePath, map.id), receiptPath };
+            foreach (var output in outputs)
+            {
+                if (!output.StartsWith(definitionRoot, StringComparison.Ordinal) || output.Contains("/../") ||
+                    output == definitionPath || output == sourceScenePath ||
+                    definitionPath.StartsWith(output + "/", StringComparison.OrdinalIgnoreCase) ||
+                    sourceScenePath.StartsWith(output + "/", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Compiled output must stay in the map folder and cannot overwrite authoring content: " + output);
+                if (BaseMapAuthoring.Definitions().Any(other => other != map &&
+                        AssetDatabase.GetAssetPath(other).StartsWith(output + "/", StringComparison.OrdinalIgnoreCase)))
+                    throw new InvalidOperationException("Compiled output would overwrite another map definition: " + output);
+            }
             // A stable scene GUID keeps the map's Addressables entry and content revision across recompiles.
             var sceneGuid = AssetDatabase.AssetPathToGUID(scenePath);
             if (string.IsNullOrEmpty(sceneGuid)) sceneGuid = AssetCatalog.Hash(Encoding.UTF8.GetBytes("base-map/" + map.id)).Substring(0, 32);
 
-            var backup = new Backup(BackupRoot + "/" + map.id, folder, definitionPath, settings.Prepare);
+            var backup = new Backup(BackupRoot + "/" + map.id, outputs, definitionPath, settings.Prepare);
             var development = EditorUserBuildSettings.development;
             try
             {
-                Directory.CreateDirectory(folder);
+                Directory.CreateDirectory(Path.GetDirectoryName(scenePath));
                 File.WriteAllText(scenePath + ".meta", "fileFormatVersion: 2\nguid: " + sceneGuid + "\n");
                 options.SyncBakedArtifactsToAuthoring = false; // Bakes belong to the compiled scene only.
                 if (options.RequireNonDevelopmentBuild) EditorUserBuildSettings.development = false;
@@ -88,11 +106,12 @@ namespace Vellocet.Sdk.Editor.Maps
                 var receipt = result.Receipt;
                 receipt.mapTitle = map.displayName;
                 MapCompilationReceiptUtility.Seal(receipt);
-                var receiptPath = folder + "/" + Constants.CompilationReceiptFileName;
+                Directory.CreateDirectory(Path.GetDirectoryName(receiptPath));
                 File.WriteAllText(receiptPath, MapCompilationReceiptUtility.Serialize(receipt));
                 AssetDatabase.ImportAsset(receiptPath);
 
                 map.contentKind = MapCompilationReceipt.BaseContentKind;
+                if (string.IsNullOrEmpty(map.sceneAddress)) map.sceneAddress = receipt.sceneAddress;
                 map.authoringScenePath = keepsSource ? sourceScenePath : string.Empty;
                 map.compiledScenePath = scenePath;
                 map.compilationReceiptPath = receiptPath;
@@ -122,55 +141,86 @@ namespace Vellocet.Sdk.Editor.Maps
             }
         }
 
-        /// <summary>
-        /// Moves the previous output out of Assets (instant, keeps GUIDs) and copies the small files the compiler
-        /// rewrites. A pending backup from an interrupted compile is restored first.
-        /// </summary>
         private sealed class Backup
         {
             private const string Addresses = "Assets/AddressableAssetsData";
-            private readonly string _root, _folder, _definition;
+            private readonly string root;
 
-            public Backup(string root, string folder, string definition, Action prepare)
+            [Serializable]
+            private sealed class Manifest
             {
-                _root = root; _folder = folder; _definition = definition;
-                if (Directory.Exists(_root)) Restore();
-                // Game preparation may validate every published map. Keep the previous
-                // compiled scene available until preparation has finished.
+                public string definition;
+                public string[] outputs;
+                public bool[] existed;
+                public bool addressesExisted;
+            }
+
+            public Backup(string root, string[] outputs, string definition, Action prepare)
+            {
+                this.root = root;
+                if (Directory.Exists(root)) Restore();
+                // Preparation validates published maps, so it must see their previous output.
                 prepare?.Invoke();
-                Directory.CreateDirectory(_root);
-                if (Directory.Exists(_folder)) Directory.Move(_folder, _root + "/Compiled");
-                if (File.Exists(_folder + ".meta")) File.Move(_folder + ".meta", _root + "/Compiled.meta");
-                Copy(_definition, _root + "/MapDefinition.asset");
-                Copy(_definition + ".meta", _root + "/MapDefinition.asset.meta");
-                if (Directory.Exists(Addresses)) FileUtil.CopyFileOrDirectory(Addresses, _root + "/Addresses");
-                File.WriteAllText(_root + "/pending", _folder);
-                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                Directory.CreateDirectory(root);
+                var manifest = new Manifest
+                {
+                    definition = definition,
+                    outputs = outputs.SelectMany(path => new[] { path, path + ".meta" }).ToArray(),
+                    addressesExisted = Directory.Exists(Addresses)
+                };
+                manifest.existed = manifest.outputs.Select(Exists).ToArray();
+                Copy(definition, root + "/MapDefinition.asset");
+                Copy(definition + ".meta", root + "/MapDefinition.asset.meta");
+                if (manifest.addressesExisted) FileUtil.CopyFileOrDirectory(Addresses, root + "/Addresses");
+                File.WriteAllText(root + "/pending.json", JsonUtility.ToJson(manifest));
+                try
+                {
+                    for (var i = 0; i < manifest.outputs.Length; i++)
+                        Move(manifest.outputs[i], root + "/Output" + i);
+                    AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                }
+                catch { Restore(); throw; }
             }
 
             public void Restore()
             {
-                if (Directory.Exists(_folder)) Directory.Delete(_folder, true);
-                if (File.Exists(_folder + ".meta")) File.Delete(_folder + ".meta");
-                if (Directory.Exists(_root + "/Compiled")) Directory.Move(_root + "/Compiled", _folder);
-                if (File.Exists(_root + "/Compiled.meta")) File.Move(_root + "/Compiled.meta", _folder + ".meta");
-                Copy(_root + "/MapDefinition.asset", _definition);
-                Copy(_root + "/MapDefinition.asset.meta", _definition + ".meta");
-                if (Directory.Exists(_root + "/Addresses"))
+                var manifestPath = root + "/pending.json";
+                if (!File.Exists(manifestPath))
+                    throw new InvalidDataException("Map backup is incomplete; recover it before recompiling: " + root);
+                var manifest = JsonUtility.FromJson<Manifest>(File.ReadAllText(manifestPath));
+                for (var i = 0; i < manifest.outputs.Length; i++)
                 {
-                    if (Directory.Exists(Addresses)) Directory.Delete(Addresses, true);
-                    Directory.Move(_root + "/Addresses", Addresses);
+                    var saved = root + "/Output" + i;
+                    if (Exists(saved) || !manifest.existed[i]) Delete(manifest.outputs[i]);
+                    Move(saved, manifest.outputs[i]);
                 }
+                Copy(root + "/MapDefinition.asset", manifest.definition);
+                Copy(root + "/MapDefinition.asset.meta", manifest.definition + ".meta");
+                if (Directory.Exists(root + "/Addresses") || !manifest.addressesExisted) Delete(Addresses);
+                Move(root + "/Addresses", Addresses);
                 Discard();
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             }
 
             public void Discard()
             {
-                try { if (Directory.Exists(_root)) Directory.Delete(_root, true); }
+                try { if (Directory.Exists(root)) Directory.Delete(root, true); }
                 catch (IOException error) { Debug.LogWarning("Map backup cleanup deferred: " + error.Message); }
             }
 
+            private static bool Exists(string path) => File.Exists(path) || Directory.Exists(path);
+            private static void Delete(string path)
+            {
+                if (Directory.Exists(path)) Directory.Delete(path, true);
+                else if (File.Exists(path)) File.Delete(path);
+            }
+            private static void Move(string from, string to)
+            {
+                if (!Exists(from)) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(to));
+                if (Directory.Exists(from)) Directory.Move(from, to);
+                else File.Move(from, to);
+            }
             private static void Copy(string from, string to)
             {
                 if (File.Exists(from)) File.Copy(from, to, true);

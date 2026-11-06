@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 using Vellocet.Foundation.Editor;
 using Vellocet.Sdk.Editor.Tools;
@@ -13,9 +15,8 @@ namespace Vellocet.Sdk.Editor.Maps
 {
     public static class BaseMapAuthoring
     {
-        public static IEnumerable<MapDefinition> Definitions() => AssetDatabase.FindAssets("t:MapDefinition", new[] { "Assets" })
-            .Select(AssetDatabase.GUIDToAssetPath).OrderBy(path => path, StringComparer.Ordinal)
-            .Select(AssetDatabase.LoadAssetAtPath<MapDefinition>).Where(map => map && !map.IsAddon);
+        public static IEnumerable<MapDefinition> Definitions() => EditorAssetDiscovery.FindAll<MapDefinition>()
+            .Where(map => !map.IsAddon).OrderBy(map => AssetDatabase.GetAssetPath(map), StringComparer.Ordinal);
 
         public static bool IsVertexOwned(MapDefinition map)
         {
@@ -92,41 +93,26 @@ namespace Vellocet.Sdk.Editor.Maps
             finally { if (!Application.isBatchMode) EditorUtility.ClearProgressBar(); }
         }
 
-        public static bool TryValidateCompiled(MapDefinition map, out string error)
-        {
-            if (!TryValidateIdentityAndFolder(map, out error)) return false;
-            if (map.IsDraft) { error = "Compile the draft map first."; return false; }
-            if (!File.Exists(map.compiledScenePath) || map.sceneReference == null ||
-                AssetDatabase.GUIDToAssetPath(map.sceneReference.AssetGUID) != map.compiledScenePath)
-            { error = "Compiled scene is missing or its reference is stale. Compile the map."; return false; }
-            if (!MapCompilationReceiptUtility.TryLoad(map.compilationReceiptPath, out var receipt) ||
-                !MapCompilationReceipt.IsSupportedSchemaVersion(receipt.schemaVersion) ||
-                !MapCompilationReceiptUtility.HasValidSeal(receipt) ||
-                MapCompilationReceiptValidator.GetIdentityMismatch(receipt, MapCompilationReceipt.BaseContentKind,
-                    map.id, null, StringComparison.Ordinal) != MapCompilationReceiptValidator.IdentityMismatch.None ||
-                receipt.seal != map.compilationSeal || receipt.compiledScenePath != map.compiledScenePath ||
-                MapCompilationReceiptUtility.ComputeContentRevision(receipt) != map.contentRevision)
-            { error = "Compilation receipt is missing or stale. Compile the map."; return false; }
-            if (!string.IsNullOrEmpty(map.authoringScenePath) && !AssetDatabase.LoadAssetAtPath<SceneAsset>(map.authoringScenePath))
-            { error = "The authoring scene is missing."; return false; }
-            if (!HasCurrentHash(map.compiledScenePath, receipt.compiledSceneHash) ||
-                !string.IsNullOrEmpty(map.authoringScenePath) &&
-                (map.authoringScenePath != receipt.sourceScenePath || !HasCurrentHash(map.authoringScenePath, receipt.sourceSceneHash)))
-            { error = "Scene content changed since compilation. Compile the map."; return false; }
-            error = null;
-            return true;
-        }
+        public static bool TryValidateCompiled(MapDefinition map, out string error) =>
+            BaseMapArtifactValidator.TryValidate(map, out error);
 
-        private static bool HasCurrentHash(string path, string expected) =>
-            Utilities.SdkFileHashUtility.TryComputeSha256(path, out var actual) &&
-            string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
-
-        public static IReadOnlyList<string> ValidateAll()
+        public static IReadOnlyList<string> ValidateAll(Func<MapDefinition, BaseMapValidationOptions> policy = null,
+            bool forPlayer = false)
         {
             var errors = new List<string>();
-            foreach (var map in Definitions().Where(map => map.Enabled))
-                if (!TryValidateCompiled(map, out var error)) errors.Add(map.id + ": " + error);
+            foreach (var map in Definitions().Where(map => forPlayer ? map.IsAvailable(false) : map.Enabled))
+                if (!BaseMapArtifactValidator.TryValidate(map, out var error, policy?.Invoke(map)))
+                    errors.Add(map.id + ": " + error);
             return errors;
+        }
+
+        public static void ValidateForBuild(AddressableAssetSettings settings, string mapsRoot,
+            Func<MapDefinition, BaseMapValidationOptions> policy = null)
+        {
+            var errors = new List<string>(ValidateAll(policy, forPlayer: true));
+            BaseMapShippingGuard.ValidateBuild(errors, settings, mapsRoot);
+            if (errors.Count > 0)
+                throw new BuildFailedException("Base maps are not ready for shipping.\n" + string.Join("\n", errors));
         }
     }
 }

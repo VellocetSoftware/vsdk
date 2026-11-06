@@ -39,6 +39,17 @@ namespace Vellocet.Sdk.Editor.Maps
 
         private const string SpatialGraphReferencePropertyName = "spatialGraphReference";
 
+        public static bool TryResolveDependency(MapDefinition map, out MapSpatialGraphArtifact artifact, out string error)
+        {
+            artifact = default;
+            if (!map) { error = "MapDefinition is missing."; return false; }
+            var path = ResolveAssetPath(map.compiledScenePath, map.id);
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            { error = "Spatial graph asset is missing: " + path; return false; }
+            return TryResolveArtifact(AssetDatabase.LoadAssetAtPath<SpatialOctreeAsset>(path),
+                ResolveAddress(map.id), out artifact, out error);
+        }
+
         public static string ResolveAssetPath(string compiledScenePath, string mapId)
         {
             var compiledRoot = string.IsNullOrWhiteSpace(compiledScenePath)

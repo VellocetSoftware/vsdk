@@ -93,6 +93,78 @@ namespace Vellocet.Sdk.Editor.Tests
             Assert.That(Directory.Exists(_root + "/Compiled"), Is.False);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DisabledMapsPreserveBorrowedThumbnailOwnership(bool sdkOwned)
+        {
+            var map = Create("MapDefinition.asset");
+            var definitionPath = AssetDatabase.GetAssetPath(map);
+            var texturePath = sdkOwned
+                ? AssetDatabase.FindAssets("t:Texture2D", new[] { Constants.PackageAssetsPath })
+                    .Select(AssetDatabase.GUIDToAssetPath).First()
+                : _root + "/SharedIcon.asset";
+            if (!sdkOwned) AssetDatabase.CreateAsset(new Texture2D(1, 1), texturePath);
+            var guid = AssetDatabase.AssetPathToGUID(texturePath);
+            map = AssetDatabase.LoadAssetAtPath<MapDefinition>(definitionPath);
+            map.MarkCompiled();
+            map.SetAvailability(false, false);
+            map.thumbnailReference = new UnityEngine.AddressableAssets.AssetReference(guid);
+            EditorUtility.SetDirty(map);
+            AssetDatabase.SaveAssetIfDirty(map);
+            var settings = UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.Create(_root + "/Settings", "Settings", true, true);
+            var owner = settings.CreateGroup(sdkOwned ? Constants.BaseGroupName : "Game Icons", false, false, false, null,
+                typeof(UnityEditor.AddressableAssets.Settings.GroupSchemas.BundledAssetGroupSchema),
+                typeof(UnityEditor.AddressableAssets.Settings.GroupSchemas.ContentUpdateGroupSchema));
+            var entry = settings.CreateOrMoveEntry(guid, owner);
+            var address = sdkOwned ? SharedAssetAddressUtility.CreateAddress(texturePath) : "inventory/icon";
+            Assert.That(address, Is.Not.Null.And.Not.Empty);
+            entry.address = address;
+            var playerGroup = sdkOwned ? Constants.BaseGroupName : "Maps";
+            map = AssetDatabase.LoadAssetAtPath<MapDefinition>(definitionPath);
+            BaseMapPublication.Synchronize(settings, map, playerGroup, "definition", "scene");
+            Assert.That(settings.FindAssetEntry(guid).parentGroup, Is.SameAs(owner));
+            Assert.That(settings.FindAssetEntry(guid).address, Is.EqualTo(address));
+            Assert.That(BaseMapPublication.Synchronize(settings, map, playerGroup, "definition", "scene"), Is.False);
+        }
+
+        [Test]
+        public void ShippingGuardRemovesSourcesAndRejectsMapBuildScenes()
+        {
+            var map = Create("MapDefinition.asset");
+            var definitionPath = AssetDatabase.GetAssetPath(map);
+            var source = _root + "/Source.unity";
+            var compiled = _root + "/Published.unity";
+            var loose = _root + "/Loose.unity";
+            EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single), source);
+            File.Copy(source, compiled);
+            File.Copy(source, loose);
+            AssetDatabase.ImportAsset(compiled, ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(loose, ImportAssetOptions.ForceSynchronousImport);
+            map = AssetDatabase.LoadAssetAtPath<MapDefinition>(definitionPath);
+            map.authoringScenePath = source;
+            map.compiledScenePath = compiled;
+            EditorUtility.SetDirty(map);
+            AssetDatabase.SaveAssetIfDirty(map);
+            var settings = UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.Create(_root + "/Settings", "Settings", true, true);
+            foreach (var path in new[] { source, compiled, loose })
+                settings.CreateOrMoveEntry(AssetDatabase.AssetPathToGUID(path), settings.DefaultGroup);
+            Assert.That(settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(compiled)), Is.Not.Null);
+            Assert.That(BaseMapShippingGuard.Normalize(settings, _root, persistChanges: false), Is.True);
+            Assert.That(settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(source)), Is.Null);
+            Assert.That(settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(loose)), Is.Null);
+            Assert.That(settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(compiled)), Is.Not.Null);
+            var scenes = EditorBuildSettings.scenes;
+            try
+            {
+                EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(compiled, true) };
+                var issues = new System.Collections.Generic.List<string>();
+                BaseMapShippingGuard.ValidateBuild(issues, settings, _root);
+                Assert.That(issues, Has.Count.EqualTo(1));
+                Assert.That(issues[0], Does.Contain("must ship via compiled Addressables"));
+            }
+            finally { EditorBuildSettings.scenes = scenes; }
+        }
+
         [Test]
         public void SharedOutputIsRejectedBeforeAnyCompilerWrite()
         {

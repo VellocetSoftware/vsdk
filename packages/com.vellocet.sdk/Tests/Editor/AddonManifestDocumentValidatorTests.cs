@@ -25,6 +25,14 @@ namespace Vellocet.Sdk.Tests
         [TestCase("{\"contents\":[{\"map\":{\"unknown\":true}}]}")]
         [TestCase("{\"contents\":[{\"map\":{\"platforms\":{}}}]}")]
         [TestCase("{\"contents\":[{\"audio\":{\"files\":[{\"unknown\":1}]}}]}")]
+        [TestCase("{\"id\":42}")]
+        [TestCase("{\"schemaVersion\":\"9\"}")]
+        [TestCase("{\"schemaVersion\":2147483648}")]
+        [TestCase("{\"requires\":[42]}")]
+        [TestCase("{\"contents\":[{\"map\":{\"platforms\":[0]}}]}")]
+        [TestCase("{\"contents\":[{\"media\":{\"files\":[0]}}]}")]
+        [TestCase("{\"contents\":[{\"media\":{\"files\":[{\"size\":\"1\"}]}}]}")]
+        [TestCase("{\"contents\":[{\"media\":{\"files\":[{\"size\":9223372036854775808}]}}]}")]
         public void RejectsMalformedOrUnsupportedDocuments(string json)
         {
             File.WriteAllText(AddonHelper.GetManifestPath(_root), json);
@@ -32,7 +40,7 @@ namespace Vellocet.Sdk.Tests
         }
 
         [Test]
-        public void AcceptsCurrentFieldsAndLegacyModeMetadata()
+        public void AcceptsCurrentManifestFields()
         {
             File.WriteAllText(AddonHelper.GetManifestPath(_root),
                 "{\"contents\":[{\"kind\":\"map\",\"map\":{\"defaultModeId\":\"skirmish\",\"musicSet\":\"none\",\"platforms\":[{\"name\":\"windows\",\"files\":[{\"path\":\"a.bundle\",\"size\":1,\"sha256\":\"hash\"}]}]}}]}");

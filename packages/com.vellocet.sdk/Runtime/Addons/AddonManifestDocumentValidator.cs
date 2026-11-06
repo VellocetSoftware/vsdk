@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,14 +12,13 @@ namespace Vellocet.Sdk.Addons
         internal const long MaximumManifestBytes = AddonFilePolicy.MaximumManifestBytes;
 
         private static readonly ISet<string> RootProperties = Properties(
-            "schemaVersion", "gameId", "audioRuntime", "id", "title", "author", "addonThumbnail", "version",
+            "schemaVersion", "gameId", "id", "title", "author", "addonThumbnail", "version",
             "distributionProfile", "distributionPolicy", "buildId", "createdUtc", "sdkVersion",
-            "unityVersion", "requires", "contents");
+            "unityVersion", "requires", "contents", "audioRuntime");
 
         private static readonly ISet<string> ContentProperties = Properties(
             "kind", "id", "title", "map", "mod", "audio", "media");
 
-        // Accept legacy mode metadata when reading existing packages; the map prefix owns the mode.
         private static readonly ISet<string> MapProperties = Properties(
             "scene", "defaultModeId", "musicSet", "thumbnail", "compiledReceipt", "platforms");
 
@@ -128,10 +128,17 @@ namespace Vellocet.Sdk.Addons
             }
 
             for (var index = 0; index < values.Count; index++)
-                if (values[index] is not JObject value ||
-                    !ValidateObject(value, PlatformProperties, $"{path}[{index}]", out error) ||
+            {
+                if (values[index] is not JObject value)
+                {
+                    error = $"{path}[{index}] must be an object.";
+                    return false;
+                }
+
+                if (!ValidateObject(value, PlatformProperties, $"{path}[{index}]", out error) ||
                     !ValidateFileArray(value["files"], $"{path}[{index}].files", out error))
                     return false;
+            }
 
             return true;
         }
@@ -148,9 +155,17 @@ namespace Vellocet.Sdk.Addons
             }
 
             for (var index = 0; index < values.Count; index++)
-                if (values[index] is not JObject value ||
-                    !ValidateObject(value, FileProperties, $"{path}[{index}]", out error))
+            {
+                if (values[index] is not JObject value)
+                {
+                    error = $"{path}[{index}] must be an object.";
                     return false;
+                }
+
+                if (!ValidateObject(value, FileProperties, $"{path}[{index}]", out error))
+                    return false;
+            }
+
             return true;
         }
 
@@ -171,13 +186,64 @@ namespace Vellocet.Sdk.Addons
         {
             foreach (var property in value.Properties())
             {
-                if (allowed.Contains(property.Name))
-                    continue;
-                error = $"{path} contains unsupported property '{property.Name}'.";
-                return false;
+                if (!allowed.Contains(property.Name))
+                {
+                    error = $"{path} contains unsupported property '{property.Name}'.";
+                    return false;
+                }
+
+                if (!ValidatePropertyType(property, path, out error))
+                    return false;
             }
 
             error = null;
+            return true;
+        }
+
+        private static bool ValidatePropertyType(JProperty property, string path, out string error)
+        {
+            error = null;
+            var token = property.Value;
+            var expected = JTokenType.String;
+            switch (property.Name)
+            {
+                case "schemaVersion":
+                case "size":
+                    if (token.Type == JTokenType.Integer &&
+                        long.TryParse(token.ToString(Formatting.None), NumberStyles.None,
+                            CultureInfo.InvariantCulture, out var number) &&
+                        (property.Name == "size" || number <= int.MaxValue))
+                        return true;
+                    error = $"{path}.{property.Name} must be a nonnegative integer within range.";
+                    return false;
+                case "requires":
+                case "contents":
+                case "platforms":
+                case "files":
+                    expected = JTokenType.Array;
+                    break;
+                case "map":
+                case "mod":
+                case "audio":
+                case "media":
+                    expected = JTokenType.Object;
+                    break;
+            }
+
+            if (token.Type != expected && token.Type != JTokenType.Null)
+            {
+                error = $"{path}.{property.Name} must be a JSON {expected}.";
+                return false;
+            }
+
+            if (property.Name == "requires" && token is JArray dependencies)
+                for (var index = 0; index < dependencies.Count; index++)
+                    if (dependencies[index].Type != JTokenType.String)
+                    {
+                        error = $"{path}.requires[{index}] must be a string.";
+                        return false;
+                    }
+
             return true;
         }
 
