@@ -50,6 +50,9 @@ namespace Vellocet.Sdk.Editor.Tests
         {
             while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
             var source = _folder + "/Source.unity";
+            var geometry = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            geometry.isStatic = true;
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene(), source);
             var original = File.ReadAllBytes(source);
             var map = ScriptableObject.CreateInstance<MapDefinition>();
             map.id = ModeCatalog.All[0].MapIdPrefix + "_compile_test";
@@ -82,6 +85,7 @@ namespace Vellocet.Sdk.Editor.Tests
                 Log = TestContext.WriteLine
             };
 
+            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
             Assert.Throws<OperationCanceledException>(() =>
                 BaseMapCompile.Compile(settings, map, source, options, keepsSource: true));
 
@@ -111,6 +115,7 @@ namespace Vellocet.Sdk.Editor.Tests
                 }
             };
 
+            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
             Assert.Throws<InvalidDataException>(() => BaseMapCompile.Compile(settings, map, _folder + "/Source.unity",
                 new MapCompiler.CompileOptions(), keepsSource: true));
 
