@@ -100,8 +100,8 @@ namespace Vellocet.Sdk.Editor.Tests
             var map = Create("MapDefinition.asset");
             var definitionPath = AssetDatabase.GetAssetPath(map);
             var texturePath = sdkOwned
-                ? AssetDatabase.FindAssets("t:Texture2D", new[] { Constants.PackageAssetsPath })
-                    .Select(AssetDatabase.GUIDToAssetPath).First()
+                ? AssetDatabase.FindAssets("t:Texture2D", Constants.SdkSourceAssetRoots.Where(AssetDatabase.IsValidFolder).ToArray())
+                    .Select(AssetDatabase.GUIDToAssetPath).First(path => !string.IsNullOrEmpty(SharedAssetAddressUtility.CreateAddress(path)))
                 : _root + "/SharedIcon.asset";
             if (!sdkOwned) AssetDatabase.CreateAsset(new Texture2D(1, 1), texturePath);
             var guid = AssetDatabase.AssetPathToGUID(texturePath);
