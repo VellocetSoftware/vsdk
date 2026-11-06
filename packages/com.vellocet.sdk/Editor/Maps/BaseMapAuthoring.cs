@@ -98,6 +98,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 AssetDatabase.GUIDToAssetPath(map.sceneReference.AssetGUID) != map.compiledScenePath)
             { error = "Compiled scene is missing or its reference is stale. Compile the map."; return false; }
             if (!MapCompilationReceiptUtility.TryLoad(map.compilationReceiptPath, out var receipt) ||
+                !MapCompilationReceipt.IsSupportedSchemaVersion(receipt.schemaVersion) ||
                 !MapCompilationReceiptUtility.HasValidSeal(receipt) || receipt.mapId != map.id ||
                 receipt.seal != map.compilationSeal || receipt.compiledScenePath != map.compiledScenePath ||
                 receipt.contentKind != MapCompilationReceipt.BaseContentKind ||
@@ -105,9 +106,17 @@ namespace Vellocet.Sdk.Editor.Maps
             { error = "Compilation receipt is missing or stale. Compile the map."; return false; }
             if (!string.IsNullOrEmpty(map.authoringScenePath) && !AssetDatabase.LoadAssetAtPath<SceneAsset>(map.authoringScenePath))
             { error = "The authoring scene is missing."; return false; }
+            if (!HasCurrentHash(map.compiledScenePath, receipt.compiledSceneHash) ||
+                !string.IsNullOrEmpty(map.authoringScenePath) &&
+                (map.authoringScenePath != receipt.sourceScenePath || !HasCurrentHash(map.authoringScenePath, receipt.sourceSceneHash)))
+            { error = "Scene content changed since compilation. Compile the map."; return false; }
             error = null;
             return true;
         }
+
+        private static bool HasCurrentHash(string path, string expected) =>
+            Utilities.SdkFileHashUtility.TryComputeSha256(path, out var actual) &&
+            string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
 
         public static IReadOnlyList<string> ValidateAll()
         {

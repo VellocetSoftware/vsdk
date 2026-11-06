@@ -65,6 +65,11 @@ namespace Vellocet.Sdk.Editor.Tests
                     Assert.That(compiled.IsDraft, Is.False);
                     Assert.That(BaseMapAuthoring.TryValidateCompiled(compiled, out var error), Is.True, error);
                     Assert.That(File.ReadAllBytes(source), Is.EqualTo(original));
+                    var compiledBytes = File.ReadAllBytes(compiled.compiledScenePath);
+                    File.AppendAllText(compiled.compiledScenePath, "\n");
+                    Assert.That(BaseMapAuthoring.TryValidateCompiled(compiled, out error), Is.False);
+                    Assert.That(error, Does.Contain("changed since compilation"));
+                    File.WriteAllBytes(compiled.compiledScenePath, compiledBytes);
                     published = true;
                     // Exercise successful compilation without leaving project Addressables changes behind.
                     throw new OperationCanceledException("Restore the test publication.");
