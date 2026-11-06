@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Maps;
@@ -43,9 +45,10 @@ namespace Vellocet.Sdk.Editor.Tests
                 EditorSceneManager.RestoreSceneManagerSetup(_setup);
         }
 
-        [Test]
-        public void SuccessfulCompilationActivatesDraftBeforePublicationAndPreservesSource()
+        [UnityTest]
+        public IEnumerator SuccessfulCompilationActivatesDraftBeforePublicationAndPreservesSource()
         {
+            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
             var source = _folder + "/Source.unity";
             var original = File.ReadAllBytes(source);
             var map = ScriptableObject.CreateInstance<MapDefinition>();
@@ -84,9 +87,10 @@ namespace Vellocet.Sdk.Editor.Tests
             Assert.That(File.ReadAllText(_folder + "/Compiled/previous.txt"), Is.EqualTo("previous output"));
         }
 
-        [Test]
-        public void PreparationSeesPreviousOutputAndFailureLeavesItIntact()
+        [UnityTest]
+        public IEnumerator PreparationSeesPreviousOutputAndFailureLeavesItIntact()
         {
+            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
             var map = ScriptableObject.CreateInstance<MapDefinition>();
             map.id = ModeCatalog.All[0].MapIdPrefix + "_rollback_test";
             map.compiledScenePath = _folder + "/Compiled/previous.unity";

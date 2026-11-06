@@ -66,8 +66,11 @@ namespace Vellocet.Sdk.Editor.Tools
             if (!string.IsNullOrEmpty(tools)) actions.BuildDistribution(output, tools);
         }
 
-        public static void CreateMapDefinition() => ProjectWindowUtil.CreateAsset(
-            ScriptableObject.CreateInstance<MapDefinition>(), "MapDefinition.asset");
+        public static void CreateMapDefinition()
+        {
+            EditorCommandState.RequireEdit();
+            ProjectWindowUtil.CreateAsset(ScriptableObject.CreateInstance<MapDefinition>(), "MapDefinition.asset");
+        }
 
         [MenuItem(CompilePath, priority = 250)]
         private static void CompileSelected() => BaseMapAuthoring.Compile(Selection.activeObject as MapDefinition);

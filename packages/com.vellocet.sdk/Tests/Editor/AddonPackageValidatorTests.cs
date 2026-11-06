@@ -432,7 +432,7 @@ namespace Vellocet.Sdk.Tests
 
         private string WriteReleasePackage(bool skipSpatialOctreeBake = false)
         {
-            const string mapId = "dm_release_policy_test";
+            var mapId = ModeCatalog.ResolveMapIdPrefix(ModeCatalog.DefaultModeId) + "_release_policy_test";
             var sdkVersion = AddonManifestBuildUtility.ResolveSdkVersion();
             var buildId = Guid.NewGuid().ToString("N");
             var names = new[]

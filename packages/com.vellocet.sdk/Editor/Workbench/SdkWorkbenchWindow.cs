@@ -59,7 +59,10 @@ namespace Vellocet.Sdk.Editor.Workbench
                     EditorGUILayout.LabelField("Make maps in Vertex", EditorStyles.boldLabel);
                     EditorGUILayout.HelpBox("Open or create a map, then choose Build → Export add-on. Game developers can use Save to Unity to add it to the base game.", MessageType.Info);
                     if (Tools.SdkHost.Actions?.DeveloperConnection != null)
-                    { if (GUILayout.Button("Open Vertex", GUILayout.Height(34))) Tools.SdkEditorCommands.OpenVertex(); }
+                    {
+                        using (new EditorGUI.DisabledScope(!Vellocet.Foundation.Editor.EditorCommandState.CanEdit))
+                            if (GUILayout.Button("Open Vertex", GUILayout.Height(34))) Tools.SdkEditorCommands.OpenVertex();
+                    }
                     else EditorGUILayout.LabelField("Launch Vertex from your game's SDK.", EditorStyles.wordWrappedLabel);
                     if (GUILayout.Button("SDK documentation")) SdkDocumentation.OpenHome();
                     break;

@@ -17,7 +17,7 @@ namespace Vellocet.Sdk.Editor.Maps
             var map = (MapDefinition)target;
             var previousEnabled = map.Enabled;
             var previousEditorOnly = map.EditorOnly;
-            using (new EditorGUI.DisabledScope(map.IsAddon))
+            using (new EditorGUI.DisabledScope(map.IsAddon || !EditorCommandState.CanEdit))
             {
                 using (new EditorGUI.DisabledScope(map.IsDraft))
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("<Enabled>k__BackingField"));
