@@ -29,9 +29,10 @@ namespace Vellocet.Sdk.Editor.Tests
                 Assert.Ignore("Save open scenes before running scene tests.");
             _setup = EditorSceneManager.GetSceneManagerSetup();
             _folder = "Assets/BaseMapCompileTest_" + Guid.NewGuid().ToString("N");
-            Directory.CreateDirectory(_folder + "/Compiled");
+            AssetDatabase.CreateFolder("Assets", Path.GetFileName(_folder));
+            AssetDatabase.CreateFolder(_folder, "Compiled");
             File.WriteAllText(_folder + "/Compiled/previous.txt", "previous output");
-            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(_folder + "/Compiled/previous.txt", ImportAssetOptions.ForceSynchronousImport);
             EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single), _folder + "/Source.unity");
         }
 
@@ -48,9 +49,10 @@ namespace Vellocet.Sdk.Editor.Tests
         [UnityTest]
         public IEnumerator SuccessfulCompilationActivatesDraftBeforePublicationAndPreservesSource()
         {
-            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
+            yield return null;
             var source = _folder + "/Source.unity";
             var geometry = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            geometry.transform.localScale = new Vector3(10, 1, 10);
             geometry.isStatic = true;
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene(), source);
             var original = File.ReadAllBytes(source);
@@ -85,7 +87,7 @@ namespace Vellocet.Sdk.Editor.Tests
                 Log = TestContext.WriteLine
             };
 
-            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
+            yield return null;
             Assert.Throws<OperationCanceledException>(() =>
                 BaseMapCompile.Compile(settings, map, source, options, keepsSource: true));
 
@@ -99,7 +101,7 @@ namespace Vellocet.Sdk.Editor.Tests
         [UnityTest]
         public IEnumerator PreparationSeesPreviousOutputAndFailureLeavesItIntact()
         {
-            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
+            yield return null;
             var map = ScriptableObject.CreateInstance<MapDefinition>();
             map.id = ModeCatalog.All[0].MapIdPrefix + "_rollback_test";
             map.compiledScenePath = _folder + "/Compiled/previous.unity";
@@ -115,7 +117,7 @@ namespace Vellocet.Sdk.Editor.Tests
                 }
             };
 
-            while (EditorApplication.isCompiling || EditorApplication.isUpdating) yield return null;
+            yield return null;
             Assert.Throws<InvalidDataException>(() => BaseMapCompile.Compile(settings, map, _folder + "/Source.unity",
                 new MapCompiler.CompileOptions(), keepsSource: true));
 
