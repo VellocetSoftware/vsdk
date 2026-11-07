@@ -27,6 +27,11 @@ namespace Vellocet.Sdk.Tests.Editor
         [SetUp]
         public void SetUp()
         {
+            _folder = null;
+            // A batch runner's single untitled scene is disposable; interactive and saved scenes stay protected.
+            if (Application.isBatchMode && SceneManager.sceneCount == 1 &&
+                string.IsNullOrEmpty(SceneManager.GetSceneAt(0).path))
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             for (var i = 0; i < SceneManager.sceneCount; i++)
                 if (SceneManager.GetSceneAt(i).isDirty) Assert.Ignore("Save open scenes before running scene build tests.");
             _setup = EditorSceneManager.GetSceneManagerSetup();
