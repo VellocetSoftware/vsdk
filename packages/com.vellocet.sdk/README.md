@@ -41,7 +41,7 @@ Unity adapter checks live in `Tests/Editor/VSigSdkIntegrationTests.cs`.
 
 ## Unity editor workflows
 
-Both games use the shared [Unity editor workflows](Documentation~/UnityEditorWorkflows.md), including normal Map Definition asset creation and Unity scene compilation. Shared commands live under **Tools > Vellocet**.
+Both games use the shared [Unity editor workflows in the developer wiki](https://developer.vellocetsoftware.com/wiki/Vellocet_SDK), including normal Map Definition asset creation and Unity scene compilation. Shared commands live under **Tools > Vellocet**.
 
 `Runtime/Addons/AddonManifestDocumentValidator` owns strict manifest document
 validation. `Runtime/Maps/MapCompilationReceiptValidator` owns base/add-on runtime

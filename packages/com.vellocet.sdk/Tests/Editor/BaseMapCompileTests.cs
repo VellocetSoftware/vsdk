@@ -11,6 +11,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
+using Vellocet.Foundation.Editor;
 using Vellocet.Sdk.Editor.Maps;
 using Vellocet.Sdk.Maps;
 
@@ -119,6 +120,7 @@ namespace Vellocet.Sdk.Editor.Tests
             if (isolateSource)
                 EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single),
                     _folder + "/Other.unity");
+            yield return WaitForMapCompilation();
             Assert.Throws<OperationCanceledException>(() =>
                 BaseMapCompile.Compile(settings, map, source, options, keepsSource: true, scenePath, receiptPath));
 
@@ -133,6 +135,17 @@ namespace Vellocet.Sdk.Editor.Tests
             map = AssetDatabase.LoadAssetAtPath<MapDefinition>(_folder + "/MapDefinition.asset");
             Assert.That(map.IsDraft, Is.True, "A failed publication must restore the draft definition.");
             Assert.That(File.ReadAllText(_folder + "/Compiled/previous.txt"), Is.EqualTo("previous output"));
+        }
+
+        private static IEnumerator WaitForMapCompilation()
+        {
+            var deadline = EditorApplication.timeSinceStartup + 30;
+            while (!EditorCommandState.CanCompileMap)
+            {
+                Assert.That(EditorApplication.timeSinceStartup, Is.LessThan(deadline),
+                    "Fixture imports and pending Editor work must finish before map compilation.");
+                yield return null;
+            }
         }
 
         [UnityTest]
@@ -155,6 +168,7 @@ namespace Vellocet.Sdk.Editor.Tests
             };
 
             yield return null;
+            yield return WaitForMapCompilation();
             Assert.Throws<InvalidDataException>(() => BaseMapCompile.Compile(settings, map, _folder + "/Source.unity",
                 new MapCompiler.CompileOptions(), keepsSource: true));
 
