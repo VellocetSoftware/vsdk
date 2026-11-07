@@ -52,7 +52,10 @@ namespace Vellocet.Sdk.Editor.Tests
         [UnityTest]
         public IEnumerator ExistingOutputPathsUseTheSamePublicationAndRollback() => CompileAndRollback(true);
 
-        private IEnumerator CompileAndRollback(bool existingLayout)
+        [UnityTest]
+        public IEnumerator CompilationFromAnotherSceneRetainsTheDefinition() => CompileAndRollback(false, true);
+
+        private IEnumerator CompileAndRollback(bool existingLayout, bool isolateSource = false)
         {
             yield return null;
             var source = _folder + "/Source.unity";
@@ -113,6 +116,9 @@ namespace Vellocet.Sdk.Editor.Tests
             };
 
             yield return null;
+            if (isolateSource)
+                EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single),
+                    _folder + "/Other.unity");
             Assert.Throws<OperationCanceledException>(() =>
                 BaseMapCompile.Compile(settings, map, source, options, keepsSource: true, scenePath, receiptPath));
 
