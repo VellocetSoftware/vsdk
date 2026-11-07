@@ -27,8 +27,13 @@ namespace Vellocet.Sdk.Tests.Editor
         [SetUp]
         public void SetUp()
         {
+            _folder = null;
+            // Batch suites own their untitled startup scene; interactive unsaved work must stay untouched.
+            var batchStartup = Application.isBatchMode && SceneManager.sceneCount == 1 &&
+                string.IsNullOrEmpty(SceneManager.GetActiveScene().path);
             for (var i = 0; i < SceneManager.sceneCount; i++)
-                if (SceneManager.GetSceneAt(i).isDirty) Assert.Ignore("Save open scenes before running scene build tests.");
+                if (SceneManager.GetSceneAt(i).isDirty && !batchStartup)
+                    Assert.Ignore("Save open scenes before running scene build tests.");
             _setup = EditorSceneManager.GetSceneManagerSetup();
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             _folder = "Assets/VertexSceneCheck_" + Guid.NewGuid().ToString("N");
