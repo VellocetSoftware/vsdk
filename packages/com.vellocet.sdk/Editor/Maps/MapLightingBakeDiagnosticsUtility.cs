@@ -205,14 +205,14 @@ namespace Vellocet.Sdk.Editor.Maps
 
         internal sealed class LightmapperLogScope : IDisposable
         {
-            private readonly List<string> _nonFiniteMessages = new();
+            private readonly List<string> _failureMessages = new();
 
             internal LightmapperLogScope()
             {
                 Application.logMessageReceived += OnLogMessageReceived;
             }
 
-            internal bool HasNonFiniteOutput => _nonFiniteMessages.Count > 0;
+            internal bool HasFailure => _failureMessages.Count > 0;
 
             public void Dispose()
             {
@@ -221,17 +221,17 @@ namespace Vellocet.Sdk.Editor.Maps
 
             internal string BuildFailureMessage()
             {
-                var uniqueMessages = _nonFiniteMessages
+                var uniqueMessages = _failureMessages
                     .Where(message => !string.IsNullOrWhiteSpace(message))
                     .Distinct(StringComparer.Ordinal)
                     .Take(MaxReportedIssues)
                     .ToArray();
 
                 var message =
-                    $"Lighting bake produced {_nonFiniteMessages.Count} non-finite lightmapper output warning(s): " +
+                    $"Lighting bake produced {_failureMessages.Count} non-finite output or GPU failure message(s): " +
                     string.Join("; ", uniqueMessages);
-                if (_nonFiniteMessages.Count > uniqueMessages.Length)
-                    message += $"; and {_nonFiniteMessages.Count - uniqueMessages.Length} more.";
+                if (_failureMessages.Count > uniqueMessages.Length)
+                    message += $"; and {_failureMessages.Count - uniqueMessages.Length} more.";
 
                 return message + " Treating the bake as failed; inspect emissive materials, baked lights, geometry, " +
                        "and Adaptive Probe Volume inputs before committing generated bake artifacts.";
@@ -242,11 +242,17 @@ namespace Vellocet.Sdk.Editor.Maps
                 if (string.IsNullOrWhiteSpace(condition))
                     return;
 
-                if (condition.IndexOf("Non finite value", StringComparison.OrdinalIgnoreCase) < 0 &&
-                    condition.IndexOf("non-finite", StringComparison.OrdinalIgnoreCase) < 0)
+                var nonFinite = condition.IndexOf("Non finite value", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                condition.IndexOf("non-finite", StringComparison.OrdinalIgnoreCase) >= 0;
+                var deviceFailure = condition.IndexOf("0x887A0005", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                    condition.IndexOf("0x887A0006", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                    condition.IndexOf("0x887A0007", StringComparison.OrdinalIgnoreCase) >= 0;
+                var readbackFailure = type == LogType.Exception &&
+                    condition.IndexOf("Cannot access the data as it is not available", StringComparison.Ordinal) >= 0;
+                if (!nonFinite && !deviceFailure && !readbackFailure)
                     return;
 
-                _nonFiniteMessages.Add(condition.Trim());
+                _failureMessages.Add(condition.Trim());
             }
         }
     }

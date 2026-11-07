@@ -274,7 +274,11 @@ namespace Vellocet.Sdk.Editor.Maps
                 var shouldReopenAuthoringScene = skippedLighting != null;
                 try
                 {
-                    EditorSceneManager.RestoreSceneManagerSetup(sceneSetup);
+                    if (Array.Exists(sceneSetup, scene => scene.isLoaded && scene.isActive) &&
+                        Array.TrueForAll(sceneSetup, scene => !string.IsNullOrEmpty(scene.path) && File.Exists(scene.path)))
+                        EditorSceneManager.RestoreSceneManagerSetup(sceneSetup);
+                    else
+                        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 }
                 catch (Exception ex)
                 {

@@ -411,7 +411,7 @@ namespace Vellocet.Sdk.Editor.Maps
             using (var logScope = new MapLightingBakeDiagnosticsUtility.LightmapperLogScope())
             {
                 started = Lightmapping.Bake();
-                if (logScope.HasNonFiniteOutput)
+                if (logScope.HasFailure)
                 {
                     message = logScope.BuildFailureMessage();
                     return false;
