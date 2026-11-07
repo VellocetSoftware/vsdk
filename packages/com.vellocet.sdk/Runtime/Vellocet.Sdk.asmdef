@@ -15,7 +15,8 @@
     "Vellocet.Stereoform",
     "Vellocet.Spatial",
     "Vellocet.Audio.Core",
-    "Vellocet.Content.Core"
+    "Vellocet.Content.Core",
+    "Vellocet.Localization.UI"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

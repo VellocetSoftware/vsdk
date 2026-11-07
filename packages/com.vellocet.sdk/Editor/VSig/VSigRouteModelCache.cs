@@ -15,7 +15,7 @@ namespace Vellocet.Sdk.Editor.VSig
     [InitializeOnLoad]
     public static class VSigRouteModelCache
     {
-        private static readonly Dictionary<(int Scene, bool IncludeInactive), VSigRouteModel> Models = new();
+        private static readonly Dictionary<(SceneHandle Scene, bool IncludeInactive), VSigRouteModel> Models = new();
         private static readonly HashSet<string> MissingSources = new();
         private static readonly ProfilerMarker BuildMarker = new("VSig.Editor.BuildRouteModel");
 
@@ -63,11 +63,7 @@ namespace Vellocet.Sdk.Editor.VSig
             {
                 if (changes.GetEventType(i) != ObjectChangeKind.ChangeGameObjectOrComponentProperties) continue;
                 changes.GetChangeGameObjectOrComponentPropertiesEvent(i, out var change);
-#if UNITY_6000_3_OR_NEWER
-                var target = EditorUtility.EntityIdToObject(change.instanceId);
-#else
-                var target = EditorUtility.InstanceIDToObject(change.instanceId);
-#endif
+                var target = EditorUtility.EntityIdToObject(change.entityId);
                 // Moving geometry only changes wire endpoints, which are read directly when drawn.
                 if (target is EntityMarker marker) Invalidate(marker.gameObject.scene);
                 else if (target is GameObject gameObject) Invalidate(gameObject.scene);

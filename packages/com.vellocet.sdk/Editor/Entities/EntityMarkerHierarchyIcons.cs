@@ -25,11 +25,11 @@ namespace Vellocet.Sdk.Editor.Entities
         static EntityMarkerHierarchyIcons()
         {
             FallbackIcon = (Texture2D)EditorGUIUtility.IconContent("Prefab Icon").image;
-            EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyGUI;
+            EditorApplication.hierarchyWindowItemByEntityIdOnGUI += OnHierarchyGUI;
             EditorApplication.projectChanged += IconCache.Clear;
         }
 
-        private static void OnHierarchyGUI(int instanceId, Rect selectionRect)
+        private static void OnHierarchyGUI(EntityId instanceId, Rect selectionRect)
         {
             if (Event.current.type != EventType.Repaint) return;
 #if UNITY_6000_3_OR_NEWER
@@ -71,7 +71,7 @@ namespace Vellocet.Sdk.Editor.Entities
             if (!scene.IsValid() || !scene.isLoaded || string.IsNullOrWhiteSpace(scene.path))
                 return false;
 
-            return VSigRouteModelCache.Get(scene).MarkerIdsByModuleRootId.ContainsKey(gameObject.transform.GetInstanceID());
+            return VSigRouteModelCache.Get(scene).MarkerIdsByModuleRootId.ContainsKey(gameObject.transform.GetEntityId());
         }
 
         private static Texture2D GetIcon(string iconPath)

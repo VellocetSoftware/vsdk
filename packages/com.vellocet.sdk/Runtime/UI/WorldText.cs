@@ -1,4 +1,8 @@
+using System;
 using UnityEngine;
+#if !UNITY_SERVER
+using Vellocet.Localization.UI;
+#endif
 using UnityEngine.UIElements;
 
 namespace Vellocet.Sdk.UI
@@ -23,7 +27,10 @@ namespace Vellocet.Sdk.UI
         [SerializeField] private bool autoSize;
         [SerializeField] private float minimumPointSize = 18;
         [SerializeField] private float maximumPointSize = 72;
-        private UIDocument _document;
+        private PanelRenderer _document;
+        private VisualElement _root;
+        private int _uiVersion;
+        private IDisposable _localization;
         private Label _label;
         private PanelSettings _settings;
         private static PanelSettings SharedSettings;
@@ -87,25 +94,36 @@ namespace Vellocet.Sdk.UI
                 }
                 _settings = SharedSettings; SharedUsers++;
             }
-            _document = GetComponent<UIDocument>();
-            if (!_document) _document = gameObject.AddComponent<UIDocument>();
+            _document = GetComponent<PanelRenderer>();
+            if (!_document) _document = gameObject.AddComponent<PanelRenderer>();
             _document.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
-            _document.panelSettings = _settings; _document.enabled = true;
-            if (TryGetComponent<UIRenderer>(out var renderer)) renderer.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
-            var root = _document.rootVisualElement; root.Clear(); root.pickingMode = PickingMode.Ignore;
-            _label = new Label { pickingMode = PickingMode.Ignore }; root.Add(_label);
-            _label.style.flexShrink = 0;
-            Apply();
+            _document.panelSettings = _settings;
+            _localization = LocalizationPanels.Register(_settings);
+            _document.enabled = true;
+            _document.RegisterUIReloadCallback(OnUIReload);
 #endif
         }
+        private void OnUIReload(PanelRenderer renderer, VisualElement root, int version)
+        {
+            if (_uiVersion == version && ReferenceEquals(_root, root)) return;
+            _label?.RemoveFromHierarchy();
+            _uiVersion = version;
+            _root = root;
+            root.pickingMode = PickingMode.Ignore;
+            _label = new Label { pickingMode = PickingMode.Ignore };
+            _label.style.flexShrink = 0;
+            root.Add(_label);
+            Apply();
+        }
+
         private void Apply()
         {
             if (_label == null) return;
             var bounded = size.x > 0 && size.y > 0;
-            _document.worldSpaceSizeMode = bounded ? UIDocument.WorldSpaceSizeMode.Fixed : UIDocument.WorldSpaceSizeMode.Dynamic;
+            _document.worldSpaceSizeMode = bounded ? WorldSpaceSizeMode.Fixed : WorldSpaceSizeMode.Dynamic;
             if (bounded) _document.worldSpaceSize = size * PixelsPerUnit;
             _document.pivot = DocumentPivot;
-            var root = _document.rootVisualElement;
+            var root = _root;
             root.style.paddingLeft = margins.x * PixelsPerUnit; root.style.paddingTop = margins.y * PixelsPerUnit;
             root.style.paddingRight = margins.z * PixelsPerUnit; root.style.paddingBottom = margins.w * PixelsPerUnit;
             _label.style.width = bounded ? Length.Percent(100) : StyleKeyword.Auto;
@@ -140,7 +158,20 @@ namespace Vellocet.Sdk.UI
             UnityEditor.Handles.Label(transform.position, content, style);
         }
 #endif
-        private void OnDisable() { if (_document) _document.enabled = false; _label = null; }
+        private void OnDisable()
+        {
+            if (_document)
+            {
+                _document.UnregisterUIReloadCallback(OnUIReload);
+                _document.enabled = false;
+            }
+            _localization?.Dispose();
+            _localization = null;
+            _label?.RemoveFromHierarchy();
+            _label = null;
+            _root = null;
+            _uiVersion = 0;
+        }
         private void OnDestroy()
         {
             if (_document)

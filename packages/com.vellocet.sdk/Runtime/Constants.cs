@@ -12,7 +12,7 @@ namespace Vellocet.Sdk
         public const string OfficialDocumentationUrl =
             "https://developer.vellocetsoftware.com/wiki/Vellocet_SDK";
 
-        public const string RequiredUnityVersion = "6000.3.17f1";
+        public const string RequiredUnityVersion = "6000.6.8f1";
         public const string RootPath = "Packages/" + PackageId;
         public const string PackageAssetsPath = RootPath + "/Assets";
         public const string IconsPath = RootPath + "/Editor/Icons";

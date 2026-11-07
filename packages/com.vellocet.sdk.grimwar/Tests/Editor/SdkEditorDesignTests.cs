@@ -112,11 +112,11 @@ namespace Vellocet.Sdk.Tests
         }
 
         [Test]
-        public void Documentation_UsesTheDeveloperWikiWithoutPackagedGuides()
+        public void Documentation_LinksTheDeveloperWikiAndSharedEditorWorkflows()
         {
             var package = PackageInfo.FindForAssembly(typeof(SdkDocumentation).Assembly);
             Assert.That(package?.resolvedPath, Is.Not.Null.And.Not.Empty);
-            Assert.That(Directory.Exists(Path.Combine(package.resolvedPath, "Documentation~")), Is.False);
+            Assert.That(File.Exists(Path.Combine(package.resolvedPath, "Documentation~", "UnityEditorWorkflows.md")), Is.True);
 
             var readme = File.ReadAllText(Path.Combine(package.resolvedPath, "README.md"));
             var manifest = File.ReadAllText(Path.Combine(package.resolvedPath, "package.json"));

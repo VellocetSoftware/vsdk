@@ -18,8 +18,7 @@ namespace Vellocet.Sdk.Editor.Entities
 
         internal static List<MarkerInfo> ScanMarkers()
         {
-            return AppDomain.CurrentDomain
-                .GetAssemblies()
+            return UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
                 .Where(assembly => assembly != null && !assembly.IsDynamic)
                 .SelectMany(GetTypesSafely)
                 .Where(type => type != null && typeof(EntityMarker).IsAssignableFrom(type) && !type.IsAbstract &&

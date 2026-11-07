@@ -21,7 +21,7 @@ namespace Vellocet.Sdk.Entities
             _marker = GetComponent<LightMarker>();
             _effect = _marker ? _marker.Effect : effect;
             _intensity = _light.intensity;
-            _phase = (uint)GetInstanceID() % 997 * .173f;
+            _phase = (uint)GetEntityId().GetHashCode() % 997 * .173f;
         }
 
         private void OnEnable()

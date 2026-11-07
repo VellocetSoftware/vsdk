@@ -100,7 +100,7 @@ namespace Vellocet.Sdk.Addons
             try
             {
                 // v3 omits the runtime-specific corelib name; resolve generic arguments without loading assemblies.
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                var assemblies = UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies();
 
                 Assembly ResolveAssembly(AssemblyName name)
                 {

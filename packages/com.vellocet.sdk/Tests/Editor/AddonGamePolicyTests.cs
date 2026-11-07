@@ -22,6 +22,12 @@ namespace Vellocet.Sdk.Tests.Editor
         }
 
         [Test]
+        public void NavigationHeight_DefaultsToTwoMetersForOtherGames()
+        {
+            Assert.That(new MapOnlyGame().NavigationAgentHeight, Is.EqualTo(2f));
+        }
+
+        [Test]
         public void GameIdentityAndMapOnlyPolicyAreCheckedBeforeMounting()
         {
             var game = new MapOnlyGame();

@@ -1014,7 +1014,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 return _navMeshSurfaceType;
 
             _navMeshSurfaceType = Type.GetType($"{NavMeshSurfaceTypeName}, Unity.AI.Navigation") ??
-                                  AppDomain.CurrentDomain.GetAssemblies()
+                                  UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
                                       .Where(assembly => assembly != null && !assembly.IsDynamic)
                                       .Select(assembly => assembly.GetType(NavMeshSurfaceTypeName, false))
                                       .FirstOrDefault(type => type != null);

@@ -79,8 +79,8 @@ namespace Vellocet.Sdk.Editor.VSig
 
         private static SelectionContext GetSelectedMarkers(VSigRouteModel model)
         {
-            var expanded = new HashSet<int>();
-            var direct = new HashSet<int>();
+            var expanded = new HashSet<EntityId>();
+            var direct = new HashSet<EntityId>();
             var gameObjects = Selection.gameObjects;
             for (var i = 0; i < gameObjects.Length; i++)
             {
@@ -91,14 +91,14 @@ namespace Vellocet.Sdk.Editor.VSig
                 var marker = gameObject.GetComponentInParent<EntityMarker>();
                 if (marker)
                 {
-                    var markerId = marker.GetInstanceID();
+                    var markerId = marker.GetEntityId();
                     direct.Add(markerId);
                     expanded.Add(markerId);
                     continue;
                 }
 
                 for (var transform = gameObject.transform; transform; transform = transform.parent)
-                    if (model.MarkerIdsByModuleRootId.TryGetValue(transform.GetInstanceID(), out var ids))
+                    if (model.MarkerIdsByModuleRootId.TryGetValue(transform.GetEntityId(), out var ids))
                         for (var idIndex = 0; idIndex < ids.Length; idIndex++)
                             expanded.Add(ids[idIndex]);
             }
@@ -119,8 +119,8 @@ namespace Vellocet.Sdk.Editor.VSig
                 if (!source || !target)
                     continue;
 
-                var sourceId = source.GetInstanceID();
-                var targetId = target.GetInstanceID();
+                var sourceId = source.GetEntityId();
+                var targetId = target.GetEntityId();
                 var sourceSelected = selection.Expanded.Contains(sourceId);
                 var targetSelected = selection.Expanded.Contains(targetId);
                 if (!sourceSelected && !targetSelected)
@@ -296,14 +296,14 @@ namespace Vellocet.Sdk.Editor.VSig
 
         private readonly struct SelectionContext
         {
-            public SelectionContext(HashSet<int> expanded, HashSet<int> direct)
+            public SelectionContext(HashSet<EntityId> expanded, HashSet<EntityId> direct)
             {
-                Expanded = expanded ?? new HashSet<int>();
-                Direct = direct ?? new HashSet<int>();
+                Expanded = expanded ?? new HashSet<EntityId>();
+                Direct = direct ?? new HashSet<EntityId>();
             }
 
-            public HashSet<int> Expanded { get; }
-            public HashSet<int> Direct { get; }
+            public HashSet<EntityId> Expanded { get; }
+            public HashSet<EntityId> Direct { get; }
         }
 
         private readonly struct RouteGeometry
@@ -326,9 +326,9 @@ namespace Vellocet.Sdk.Editor.VSig
         {
             public RoutePairKey(EntityMarker a, EntityMarker b)
             {
-                var aId = a ? a.GetInstanceID() : 0;
-                var bId = b ? b.GetInstanceID() : 0;
-                if (aId <= bId)
+                var aId = a ? a.GetEntityId() : default;
+                var bId = b ? b.GetEntityId() : default;
+                if (aId.CompareTo(bId) <= 0)
                 {
                     First = aId;
                     Second = bId;
@@ -340,8 +340,8 @@ namespace Vellocet.Sdk.Editor.VSig
                 }
             }
 
-            private int First { get; }
-            private int Second { get; }
+            private EntityId First { get; }
+            private EntityId Second { get; }
 
             public bool Equals(RoutePairKey other)
             {
@@ -357,7 +357,7 @@ namespace Vellocet.Sdk.Editor.VSig
             {
                 unchecked
                 {
-                    return (First * 397) ^ Second;
+                    return (First.GetHashCode() * 397) ^ Second.GetHashCode();
                 }
             }
         }

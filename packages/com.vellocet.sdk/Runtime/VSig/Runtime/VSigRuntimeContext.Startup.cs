@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Entities.Base;
 using Vellocet.Sdk.Entities.Signals;
 using Vertex.VSig;
@@ -13,7 +14,7 @@ namespace Vellocet.Sdk.VSig.Runtime
     public sealed partial class VSigRuntimeContext
     {
         /// <summary>Optional host policy, captured at construction. Standalone SDK contexts start immediately.</summary>
-        public static Func<int, bool> DeferExecution { get; set; }
+        public static Func<SceneHandle, bool> DeferExecution { get; set; }
         public const int MaximumDeferredSignals = 4096;
         public const int MaximumDeferredPayloadBytes = 2 * 1024 * 1024;
         public bool IsDeferred => !_disposed && _deferred;

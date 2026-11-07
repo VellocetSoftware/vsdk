@@ -1,12 +1,12 @@
 {
   "name": "com.vellocet.sdk.aneurism-iv",
   "displayName": "ANEURISM IV SDK",
-  "version": "4.2.0",
-  "unity": "6000.3",
-  "unityRelease": "17f1",
+  "version": "4.3.0",
+  "unity": "6000.6",
+  "unityRelease": "8f1",
   "description": "ANEURISM IV map authoring contracts for Vellocet SDK and Vertex.",
   "dependencies": {
-    "com.vellocet.sdk": "4.2.0",
+    "com.vellocet.sdk": "4.3.0",
     "com.unity.addressables": "4.1.1",
     "com.vellocet.stereoform": "0.2.0"
   }

@@ -49,14 +49,16 @@ namespace Vellocet.Sdk.Editor.Maps
             Vellocet.Foundation.Editor.EditorCommandState.RequireMapCompilation();
             if (!BaseMapAuthoring.TryValidateSource(map, out var sourceError, sourceScenePath))
                 throw new InvalidOperationException(sourceError);
+            var definitionPath = AssetDatabase.GetAssetPath(map);
             if (!MapEntityIntegrityValidator.TryCaptureInIsolation(sourceScenePath, out var authored, out var integrityError))
                 throw new InvalidDataException(integrityError);
+            map = AssetDatabase.LoadAssetAtPath<MapDefinition>(definitionPath) ??
+                  throw new InvalidOperationException("The map definition was removed during source validation.");
             options ??= new MapCompiler.CompileOptions();
             if (Lightmapping.isRunning || StaticOcclusionCulling.isRunning || EditorApplication.isCompiling)
                 throw new InvalidOperationException("Wait for the Editor and any active bake to finish.");
             if (Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))
                 throw new InvalidOperationException("Save the open scenes before compiling a map.");
-            var definitionPath = AssetDatabase.GetAssetPath(map);
             var layout = BaseMapArtifactLayout.FromDefinitionPath(definitionPath, map.id);
             var folder = layout.CompiledRoot;
             if (sourceScenePath.StartsWith(folder + "/", StringComparison.Ordinal))

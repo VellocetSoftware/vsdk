@@ -744,7 +744,7 @@ namespace Vellocet.Sdk.Editor.Maps
         private static Type FindType(string fullName)
         {
             return Type.GetType($"{fullName}, Unity.RenderPipelines.Core.Runtime") ??
-                   AppDomain.CurrentDomain.GetAssemblies()
+                   UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
                        .Where(assembly => assembly != null && !assembly.IsDynamic)
                        .Select(assembly => assembly.GetType(fullName, false))
                        .FirstOrDefault(type => type != null);

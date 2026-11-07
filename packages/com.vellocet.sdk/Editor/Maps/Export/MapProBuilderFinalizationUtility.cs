@@ -219,7 +219,7 @@ namespace Vellocet.Sdk.Editor.Maps
             if (!mesh || !IsEmbeddedProBuilderMesh(mesh))
                 return false;
 
-            var sourceKey = new SourceMeshKey(mesh.GetInstanceID(), usage);
+            var sourceKey = new SourceMeshKey(mesh.GetEntityId(), usage);
             if (remappedBySourceMesh != null &&
                 remappedBySourceMesh.TryGetValue(sourceKey, out externalMesh) &&
                 externalMesh)
@@ -585,13 +585,13 @@ namespace Vellocet.Sdk.Editor.Maps
 
         private readonly struct SourceMeshKey : IEquatable<SourceMeshKey>
         {
-            internal SourceMeshKey(int sourceInstanceId, MeshUsage usage)
+            internal SourceMeshKey(EntityId sourceInstanceId, MeshUsage usage)
             {
                 SourceInstanceId = sourceInstanceId;
                 Usage = usage;
             }
 
-            private int SourceInstanceId { get; }
+            private EntityId SourceInstanceId { get; }
             private MeshUsage Usage { get; }
 
             public bool Equals(SourceMeshKey other)
@@ -608,7 +608,7 @@ namespace Vellocet.Sdk.Editor.Maps
             {
                 unchecked
                 {
-                    return (SourceInstanceId * 397) ^ (int)Usage;
+                    return (SourceInstanceId.GetHashCode() * 397) ^ (int)Usage;
                 }
             }
         }

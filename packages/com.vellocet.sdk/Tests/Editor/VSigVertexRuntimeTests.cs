@@ -67,7 +67,7 @@ namespace Vellocet.Sdk.Editor.Tests
                     "Stripping a compiled instance must preserve the imported authoring prefab.");
                 using (var serialized = new SerializedObject(runtime))
                     Assert.That(serialized.FindProperty("nodeIds").arraySize, Is.EqualTo(3), "Unreferenced scenery needs no runtime identity.");
-                foreach (var transform in root.GetComponentsInChildren<Transform>()) transform.name = "Runtime " + transform.GetInstanceID();
+                foreach (var transform in root.GetComponentsInChildren<Transform>()) transform.name = "Runtime " + transform.GetEntityId();
                 AssertBindings();
                 VSigRuntimeRegistry.UnregisterContext(runtime.Context);
                 var scenePath = folder + "/Compiled.unity";
@@ -129,11 +129,11 @@ namespace Vellocet.Sdk.Editor.Tests
             try
             {
                 VSigRuntimeContext.ResolveGlobalAuthority = side => side == "server" && server;
-                VSigRuntimeContext.SubmitServerCommand = (int scene, int line, string command, out string error) =>
+                VSigRuntimeContext.SubmitServerCommand = (SceneHandle scene, int line, string command, out string error) =>
                 { first++; error = null; return true; };
                 var program = Compile("on map.ready:\n    wait 1s\n    server_command(\"echo ready\")\n").ToProgram();
                 using var a = new VSigRuntimeContext(program, null, null);
-                VSigRuntimeContext.SubmitServerCommand = (int scene, int line, string command, out string error) =>
+                VSigRuntimeContext.SubmitServerCommand = (SceneHandle scene, int line, string command, out string error) =>
                 { second++; error = null; return true; };
                 using var b = new VSigRuntimeContext(program, null, null);
                 a.HandleGlobalEmit("map", "ready"); b.HandleGlobalEmit("map", "ready");

@@ -1,3 +1,4 @@
+using UnityEngine.SceneManagement;
 // Copyright (c) 2026 Vellocet Corporation. All rights reserved.
 // SPDX-License-Identifier: LicenseRef-Vellocet-Proprietary
 
@@ -184,7 +185,7 @@ once on map.ready:
             var previousAuthorityResolver = VSigRuntimeContext.ResolveGlobalAuthority;
             var previousCommandResolver = VSigRuntimeContext.SubmitServerCommand;
             var invocations = 0;
-            var observedSceneHandle = -1;
+            SceneHandle observedSceneHandle = default;
             var observedLine = -1;
             string observedCommand = null;
 
@@ -192,7 +193,7 @@ once on map.ready:
             {
                 VSigRuntimeContext.ResolveGlobalAuthority = _ => true;
                 VSigRuntimeContext.SubmitServerCommand =
-                    (int sceneHandle, int sourceLine, string command, out string error) =>
+                    (SceneHandle sceneHandle, int sourceLine, string command, out string error) =>
                     {
                         invocations++;
                         observedSceneHandle = sceneHandle;
@@ -206,7 +207,7 @@ once on map.ready:
                 runtime.HandleGlobalEmit("map", "ready");
 
                 Assert.That(invocations, Is.EqualTo(1));
-                Assert.That(observedSceneHandle, Is.Zero);
+                Assert.That(observedSceneHandle, Is.EqualTo(default(SceneHandle)));
                 Assert.That(observedLine, Is.GreaterThan(0));
                 Assert.That(observedCommand, Is.EqualTo("sv_gravity -6"));
                 Assert.That(runtime.Diagnostics, Is.Empty);

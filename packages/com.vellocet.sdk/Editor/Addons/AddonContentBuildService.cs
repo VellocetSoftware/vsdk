@@ -74,7 +74,7 @@ namespace Vellocet.Sdk.Editor.Addons
 
             var context = new AddonContentExportContext(request.Project, string.Empty,
                 request.Profile == AddonMapBuildProfile.Release);
-            var sourceIds = new HashSet<int>();
+            var sourceIds = new HashSet<EntityId>();
             for (var index = 0; index < sources.Length; index++)
             {
                 var source = sources[index];
@@ -84,7 +84,7 @@ namespace Vellocet.Sdk.Editor.Addons
                     return false;
                 }
 
-                if (!sourceIds.Add(source.GetInstanceID()))
+                if (!sourceIds.Add(source.GetEntityId()))
                 {
                     error = $"Content source '{source.name}' is listed more than once.";
                     return false;

@@ -408,14 +408,14 @@ namespace Vellocet.Sdk.Editor.Entities
                 return;
 
             var gameObjects = new List<GameObject>(markers.Count);
-            var seen = new HashSet<int>();
+            var seen = new HashSet<EntityId>();
             foreach (var marker in markers)
             {
                 if (!marker || !marker.gameObject)
                     continue;
 
                 var go = marker.gameObject;
-                if (seen.Add(go.GetInstanceID()))
+                if (seen.Add(go.GetEntityId()))
                     gameObjects.Add(go);
             }
 
@@ -923,7 +923,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 {
                     EditorGUILayout.Space(4f);
                     SdkEditorGui.DrawInfoRow("Type", marker.GetType().FullName);
-                    SdkEditorGui.DrawInfoRow("Instance ID", marker.GetInstanceID().ToString());
+                    SdkEditorGui.DrawInfoRow("Entity ID", marker.GetEntityId().ToString());
                     var script = MonoScript.FromMonoBehaviour(marker);
                     using (new EditorGUI.DisabledScope(true))
                     {
@@ -1189,13 +1189,13 @@ namespace Vellocet.Sdk.Editor.Entities
         private List<EntityMarker> CollectSelectedMarkers()
         {
             var markers = new List<EntityMarker>();
-            var seen = new HashSet<int>();
+            var seen = new HashSet<EntityId>();
             foreach (var targetObject in targets)
             {
                 if (targetObject is not EntityMarker marker || !marker)
                     continue;
 
-                if (seen.Add(marker.GetInstanceID()))
+                if (seen.Add(marker.GetEntityId()))
                     markers.Add(marker);
             }
 

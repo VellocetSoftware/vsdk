@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Entities.Base;
 using Vellocet.Sdk.Entities.Signals;
 
@@ -25,7 +26,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         }
 
         internal static void PublishSignal(string sourceAlias, string outputName,
-            IReadOnlyList<VSigValue> values, int sceneHandle)
+            IReadOnlyList<VSigValue> values, SceneHandle sceneHandle)
         {
             var payload = new object[values?.Count ?? 0];
             for (var i = 0; i < payload.Length; i++)
@@ -108,7 +109,7 @@ namespace Vellocet.Sdk.VSig.Runtime
             Contexts.Clear();
         }
 
-        public static void EmitGlobal(string sourceAlias, string outputName, int sceneHandle = 0,
+        public static void EmitGlobal(string sourceAlias, string outputName, SceneHandle sceneHandle = default,
             params object[] values)
         {
             if (string.IsNullOrWhiteSpace(sourceAlias) || string.IsNullOrWhiteSpace(outputName)) return;
@@ -120,7 +121,7 @@ namespace Vellocet.Sdk.VSig.Runtime
             for (var i = 0; i < Contexts.Count; i++)
             {
                 var context = Contexts[i];
-                if (context == null || (sceneHandle != 0 && context.SceneHandle != sceneHandle))
+                if (context == null || (sceneHandle != default && context.SceneHandle != sceneHandle))
                     continue;
                 dispatched = true;
                 context.HandleGlobalEmit(sourceAlias, outputName, payload);
@@ -175,7 +176,7 @@ namespace Vellocet.Sdk.VSig.Runtime
 
     public readonly struct VSigSignalEvent
     {
-        public VSigSignalEvent(string sourceAlias, string outputName, object[] values, int sceneHandle)
+        public VSigSignalEvent(string sourceAlias, string outputName, object[] values, SceneHandle sceneHandle)
         {
             SourceAlias = sourceAlias ?? string.Empty;
             OutputName = outputName ?? string.Empty;
@@ -186,6 +187,6 @@ namespace Vellocet.Sdk.VSig.Runtime
         public string SourceAlias { get; }
         public string OutputName { get; }
         public object[] Values { get; }
-        public int SceneHandle { get; }
+        public SceneHandle SceneHandle { get; }
     }
 }

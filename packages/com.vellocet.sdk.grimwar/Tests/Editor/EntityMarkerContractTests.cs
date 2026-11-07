@@ -19,6 +19,12 @@ namespace Vellocet.Sdk.Tests
     public sealed class EntityMarkerContractTests
     {
         [Test]
+        public void NavigationHeight_MatchesTheGrimwarPlayer()
+        {
+            Assert.That(new Vellocet.Sdk.Grimwar.GrimwarSdk().NavigationAgentHeight, Is.EqualTo(1.75f));
+        }
+
+        [Test]
         public void EveryAuthorableMarker_UsesCanonicalIdAndMatchingIcon()
         {
             var markers = TypeCache.GetTypesDerivedFrom<EntityMarker>()

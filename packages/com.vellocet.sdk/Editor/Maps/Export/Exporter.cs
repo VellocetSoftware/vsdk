@@ -688,7 +688,7 @@ namespace Vellocet.Sdk.Editor.Maps
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
             try
             {
-                var registryType = AppDomain.CurrentDomain.GetAssemblies()
+                var registryType = UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
                     .Select(assembly =>
                         assembly?.GetType("Vellocet.Framework.Runtime.Entities.SDK.Base.EntityRegistry", false))
                     .FirstOrDefault(type => type != null);

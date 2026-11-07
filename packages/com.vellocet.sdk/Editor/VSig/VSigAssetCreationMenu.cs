@@ -19,15 +19,14 @@ namespace Vellocet.Sdk.Editor.VSig
         internal static void CreateVSigScript()
         {
             var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{Constants.IconsPath}/vsig.svg");
-            ProjectWindowUtil.CreateAssetWithContent(DefaultVSigFileName, VSigMapSourceUtility.DefaultSourceContent,
-                icon);
+            ProjectWindowUtil.CreateAssetWithTextContent(DefaultVSigFileName, VSigMapSourceUtility.DefaultSourceContent, icon);
         }
 
         [MenuItem(VSigLibraryMenuPath, false, 1201)]
         internal static void CreateVSigLibraryScript()
         {
             var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{Constants.IconsPath}/vsiglib.svg");
-            ProjectWindowUtil.CreateAssetWithContent(DefaultVSigLibraryFileName, DefaultVSigLibraryContent, icon);
+            ProjectWindowUtil.CreateAssetWithTextContent(DefaultVSigLibraryFileName, DefaultVSigLibraryContent, icon);
         }
     }
 }

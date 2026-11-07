@@ -158,10 +158,10 @@ namespace Vellocet.Sdk.Editor.VSig
             }
         }
 
-        private static Dictionary<int, int[]> BuildModuleRootMarkerMap(Scene scene, VSigProgram program,
+        private static Dictionary<EntityId, EntityId[]> BuildModuleRootMarkerMap(Scene scene, VSigProgram program,
             IReadOnlyDictionary<string, List<EntityMarker>> refs, IReadOnlyList<EntityMarker> markers)
         {
-            var result = new Dictionary<int, int[]>();
+            var result = new Dictionary<EntityId, EntityId[]>();
             if (program == null || program.Uses.Count == 0)
                 return result;
 
@@ -190,17 +190,17 @@ namespace Vellocet.Sdk.Editor.VSig
                 if (markerIds.Length == 0)
                     continue;
 
-                result[root.GetInstanceID()] = markerIds;
+                result[root.GetEntityId()] = markerIds;
             }
 
             return result;
         }
 
-        private static int[] CollectMarkerIdsForInstanceAlias(string instanceAlias,
+        private static EntityId[] CollectMarkerIdsForInstanceAlias(string instanceAlias,
             IReadOnlyDictionary<string, List<EntityMarker>> refs)
         {
-            var ids = new List<int>();
-            var seen = new HashSet<int>();
+            var ids = new List<EntityId>();
+            var seen = new HashSet<EntityId>();
             if (string.IsNullOrWhiteSpace(instanceAlias))
                 return ids.ToArray();
 
@@ -218,7 +218,7 @@ namespace Vellocet.Sdk.Editor.VSig
                     if (!marker)
                         continue;
 
-                    var id = marker.GetInstanceID();
+                    var id = marker.GetEntityId();
                     if (seen.Add(id))
                         ids.Add(id);
                 }
@@ -291,14 +291,14 @@ namespace Vellocet.Sdk.Editor.VSig
     public sealed class VSigRouteModel
     {
         public VSigRouteModel(Scene scene, TextAsset source, VSigProgram program, List<VSigDiagnostic> diagnostics,
-            List<Route> routes, Dictionary<int, int[]> markerIdsByModuleRootId)
+            List<Route> routes, Dictionary<EntityId, EntityId[]> markerIdsByModuleRootId)
         {
             Scene = scene;
             Source = source;
             Program = program;
             Diagnostics = diagnostics ?? new List<VSigDiagnostic>();
             Routes = routes ?? new List<Route>();
-            MarkerIdsByModuleRootId = markerIdsByModuleRootId ?? new Dictionary<int, int[]>();
+            MarkerIdsByModuleRootId = markerIdsByModuleRootId ?? new Dictionary<EntityId, EntityId[]>();
         }
 
         public Scene Scene { get; }
@@ -306,7 +306,7 @@ namespace Vellocet.Sdk.Editor.VSig
         public VSigProgram Program { get; }
         public IReadOnlyList<VSigDiagnostic> Diagnostics { get; }
         public IReadOnlyList<Route> Routes { get; }
-        public IReadOnlyDictionary<int, int[]> MarkerIdsByModuleRootId { get; }
+        public IReadOnlyDictionary<EntityId, EntityId[]> MarkerIdsByModuleRootId { get; }
 
         public bool HasSource => Source;
 
@@ -325,7 +325,7 @@ namespace Vellocet.Sdk.Editor.VSig
         public static VSigRouteModel Empty(Scene scene, List<VSigDiagnostic> diagnostics)
         {
             return new VSigRouteModel(scene, null, null, diagnostics ?? new List<VSigDiagnostic>(), new List<Route>(),
-                new Dictionary<int, int[]>());
+                new Dictionary<EntityId, EntityId[]>());
         }
 
         public readonly struct Route

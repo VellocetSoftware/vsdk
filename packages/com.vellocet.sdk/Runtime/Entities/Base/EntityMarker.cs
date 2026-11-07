@@ -156,7 +156,7 @@ namespace Vellocet.Sdk.Entities.Base
         // Compiled scenes keep their authored GUID after VertexObjectIdentity is stripped.
         [SerializeField, HideInInspector] private bool vertexAuthoredGuid;
         private static readonly Dictionary<string, EntityMarker> EditorOwners = new();
-        private static readonly HashSet<int> PendingNavMeshSync = new();
+        private static readonly HashSet<EntityId> PendingNavMeshSync = new();
 
         internal void PreserveAuthoredGuid()
         {
@@ -219,7 +219,7 @@ namespace Vellocet.Sdk.Entities.Base
 
         private void QueueNavMeshModifierSync()
         {
-            var instanceId = GetInstanceID();
+            var instanceId = GetEntityId();
             if (!PendingNavMeshSync.Add(instanceId))
                 return;
 

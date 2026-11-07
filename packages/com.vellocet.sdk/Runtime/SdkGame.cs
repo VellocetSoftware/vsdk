@@ -30,6 +30,7 @@ namespace Vellocet.Sdk
             Array.Empty<Vertex.Contracts.GlobalSignalDefinition>();
         public abstract int ResolveLayers(SdkLayerSet layers);
         public abstract int NavigationMask { get; }
+        public virtual float NavigationAgentHeight => 2f;
 #if UNITY_5_3_OR_NEWER
         // Installed game policy owns resolution and limits; map authors cannot raise them.
         public virtual Vellocet.Framework.Runtime.Spatial.SpatialOctreeBakeSettings SpatialBakeSettings =>

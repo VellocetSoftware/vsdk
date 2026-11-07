@@ -54,7 +54,7 @@ namespace Vellocet.Sdk.Editor.Maps
         private static bool NormalizeMovingBrushHierarchies(Scene scene, ref Summary summary)
         {
             var changed = false;
-            var normalizedRoots = new HashSet<int>();
+            var normalizedRoots = new HashSet<EntityId>();
             var sceneRoots = scene.GetRootGameObjects();
             for (var rootIndex = 0; rootIndex < sceneRoots.Length; rootIndex++)
             {
@@ -70,7 +70,7 @@ namespace Vellocet.Sdk.Editor.Maps
                         continue;
 
                     var brushRoot = movingBrush.BrushTransform;
-                    if (!normalizedRoots.Add(brushRoot.GetInstanceID()))
+                    if (!normalizedRoots.Add(brushRoot.GetEntityId()))
                         continue;
 
                     var transforms = brushRoot.GetComponentsInChildren<Transform>(true);

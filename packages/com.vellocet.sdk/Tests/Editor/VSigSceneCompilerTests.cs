@@ -180,8 +180,8 @@ namespace Vellocet.Sdk.Tests.Editor
                 Set(right, nameof(LogicScriptMarker.Alias), "right");
                 var routes = VSigRouteModelBuilder.Build(left.gameObject.scene, source, markers);
                 Assert.That(routes.HasErrors, Is.False, string.Join("\n", routes.Diagnostics));
-                Assert.That(routes.MarkerIdsByModuleRootId[left.transform.GetInstanceID()], Is.EqualTo(new[] { leftDoor.GetInstanceID() }));
-                Assert.That(routes.MarkerIdsByModuleRootId[right.transform.GetInstanceID()], Is.EqualTo(new[] { rightDoor.GetInstanceID() }));
+                Assert.That(routes.MarkerIdsByModuleRootId[left.transform.GetEntityId()], Is.EqualTo(new[] { leftDoor.GetEntityId() }));
+                Assert.That(routes.MarkerIdsByModuleRootId[right.transform.GetEntityId()], Is.EqualTo(new[] { rightDoor.GetEntityId() }));
                 typeof(EntityMarker).GetField("guid", BindingFlags.NonPublic | BindingFlags.Instance)
                     .SetValue(right, left.Guid.ToString());
                 diagnostics.Clear();

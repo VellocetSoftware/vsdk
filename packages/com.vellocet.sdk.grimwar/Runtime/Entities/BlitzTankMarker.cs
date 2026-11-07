@@ -125,7 +125,7 @@ namespace Vellocet.Sdk.Entities
         private const int SplineGizmoSegments = 96;
         private const float SplineGizmoWidth = 6f;
         private static readonly Color SplineGizmoColor = new(0.16f, 0.92f, 0.28f, 0.95f);
-        private static readonly HashSet<int> PendingAuthoringSync = new();
+        private static readonly HashSet<EntityId> PendingAuthoringSync = new();
 
         protected override void OnValidate()
         {
@@ -138,7 +138,7 @@ namespace Vellocet.Sdk.Entities
 
         private void QueueAuthoringSync()
         {
-            var instanceId = GetInstanceID();
+            var instanceId = GetEntityId();
             if (!PendingAuthoringSync.Add(instanceId))
                 return;
 

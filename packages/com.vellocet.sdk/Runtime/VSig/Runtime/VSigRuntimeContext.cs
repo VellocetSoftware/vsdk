@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Vellocet.Sdk.Entities.Base;
 using Vellocet.Sdk.Entities.Signals;
 using Vellocet.Sdk.Logging;
@@ -30,7 +31,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         public delegate bool ConsoleVariableResolver(string name, out string value, out string error);
         public delegate bool GlobalAuthorityResolver(string authority);
         public delegate bool RuntimeAvailabilityResolver(EntityMarker marker, string authority);
-        public delegate bool ServerCommandResolver(int sceneHandle, int sourceLine, string command, out string error);
+        public delegate bool ServerCommandResolver(SceneHandle sceneHandle, int sourceLine, string command, out string error);
 
         // Registration defaults are captured by each map; replacing a bridge never changes an active map.
         public static ConsoleVariableResolver ResolveConsoleVariable { get; set; }
@@ -38,7 +39,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         public static AuthorityResolver ResolveAuthority { get; set; }
         public static GlobalAuthorityResolver ResolveGlobalAuthority { get; set; }
         public static RuntimeAvailabilityResolver IsRuntimeExpectedForAuthority { get; set; }
-        public static Action<int, string, IReadOnlyList<PortableRuntime.VSigValue>> SendPresentation { get; set; }
+        public static Action<SceneHandle, string, IReadOnlyList<PortableRuntime.VSigValue>> SendPresentation { get; set; }
 
         private readonly GlobalAuthorityResolver _globalAuthority;
         private readonly List<VSigDiagnostic> _diagnostics = new();
@@ -50,7 +51,7 @@ namespace Vellocet.Sdk.VSig.Runtime
         public string TracePath => _trace?.FilePath;
         public VSigProgram Program { get; }
         public PortableRuntime.VSigRuntimeContext PortableContext { get; private set; }
-        public int SceneHandle { get; }
+        public SceneHandle SceneHandle { get; }
         public Guid MapId => _scene?.MapId ?? Guid.Empty;
 
         public VSigRuntimeContext(VSigProgram program, IEnumerable<EntityMarker> sceneMarkers, MonoBehaviour host)
@@ -63,7 +64,7 @@ namespace Vellocet.Sdk.VSig.Runtime
             IEnumerable<EntityMarker> sceneMarkers, MonoBehaviour host)
         {
             Program = program ?? new VSigProgram();
-            SceneHandle = host ? host.gameObject.scene.handle : 0;
+            SceneHandle = host ? host.gameObject.scene.handle : default;
             var authority = ResolveAuthority;
             _globalAuthority = ResolveGlobalAuthority;
             var availability = IsRuntimeExpectedForAuthority;
