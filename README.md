@@ -21,6 +21,22 @@ folder. `--sdk` accepts a manifest, the `Vertex/` folder, or the repository root
 select a manifest explicitly when several exist. Developer connections use a local
 editor selected with `--vertex`.
 
+## Required Unity Editor
+
+Grimwar and ANEURISM IV require **Unity 6000.6.8f1 exactly** for game development,
+map compilation and Unity SDK content exports. Install that Editor through Unity
+Hub with build support for the target platforms.
+
+The [SDK version pin](packages/com.vellocet.sdk/Runtime/Constants.cs), all three
+Unity package manifests and both games use this version. SDK compilation and
+build commands check the exact Editor version; SDK export also validates that
+package metadata agrees with the version pin and the running Editor.
+
+VSDK setup displays the engine version from the exported game profile. After an
+Editor requirement changes, refresh the game's Vertex developer connection and
+rebuild its SDK distribution so setup and the isolated compiler receive the new
+profile and `ProjectVersion.txt`.
+
 ## Shared desktop UI
 
 The launcher pins `Vellocet.UI.Avalonia` 0.3.0 from `vendor/nuget`, matching
