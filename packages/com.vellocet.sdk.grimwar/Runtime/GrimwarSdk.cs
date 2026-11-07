@@ -25,6 +25,7 @@ namespace Vellocet.Sdk.Grimwar
         public override string Id => "com.vellocet.grimwar";
         public override string DisplayName => "Grimwar";
         public override string DefaultModeId => ModeCatalog.KothId;
+        public override float NavigationAgentHeight => 1.75f;
         public override string FallbackModeId => ModeCatalog.SandboxId;
         public override Maps.MapMusicSet DefaultMusicSet => Maps.MapMusicSet.Ordainment;
         public override string DocumentationSection => "Grimwar";

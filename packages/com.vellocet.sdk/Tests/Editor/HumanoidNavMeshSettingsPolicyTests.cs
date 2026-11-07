@@ -76,7 +76,7 @@ namespace Vellocet.Sdk.Tests.Editor
         public void PlayerContract_UsesExpectedPhysicalDimensionsAndDropHeight()
         {
             Assert.That(HumanoidNavMeshSettingsPolicy.AgentRadius, Is.EqualTo(0.5f));
-            Assert.That(HumanoidNavMeshSettingsPolicy.AgentHeight, Is.EqualTo(1.75f));
+            Assert.That(HumanoidNavMeshSettingsPolicy.AgentHeight, Is.EqualTo(SdkGame.Current.NavigationAgentHeight));
             Assert.That(HumanoidNavMeshSettingsPolicy.AgentSlope, Is.EqualTo(45f));
             Assert.That(HumanoidNavMeshSettingsPolicy.AgentClimb, Is.EqualTo(0.35f));
             Assert.That(HumanoidNavMeshSettingsPolicy.LedgeDropHeight, Is.EqualTo(8f));
