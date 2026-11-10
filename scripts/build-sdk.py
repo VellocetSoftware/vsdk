@@ -35,6 +35,40 @@ def validate_vertex(root):
     return metadata
 
 
+def publish_launcher(root, destination, runtime):
+    windows = runtime == "win-x64"
+    application = destination / "VSDK.app"
+    publish = destination if windows else application / "Contents/MacOS"
+    subprocess.run([
+        "dotnet", "publish", "src/VSDK/VSDK.csproj", "-c", "Release", "-r", runtime,
+        "--self-contained", "true", "-p:DebugType=None", "-p:PublishSingleFile=true", "-o", str(publish)
+    ], cwd=root, check=True)
+    for symbol in publish.rglob("*.pdb"):
+        symbol.unlink()
+    executable = publish / ("VSDK.exe" if windows else "VSDK")
+    assert executable.is_file() and executable.stat().st_size > 1_000_000, "Expected a bundled VSDK application."
+    if windows:
+        assert {path.name for path in publish.iterdir()} == {"VSDK.exe"}, "Loose launcher dependencies remain."
+        return
+    assert not list(publish.rglob("*.dll")), "Managed launcher assemblies must be embedded in the executable."
+    for name in ("libAvaloniaNative.dylib", "libSkiaSharp.dylib", "libHarfBuzzSharp.dylib"):
+        assert (publish / name).is_file() and (publish / name).stat().st_size, f"Missing {name}"
+    executable.chmod(0o755)
+    resources = application / "Contents/Resources"
+    resources.mkdir()
+    shutil.copy2(root / "src/VSDK/Assets/vellocet-logo.icns", resources / "VSDK.icns")
+    with (application / "Contents/Info.plist").open("wb") as output:
+        plistlib.dump({
+            "CFBundleIdentifier": "com.vellocet.vsdk", "CFBundleName": "VSDK",
+            "CFBundleDisplayName": "VSDK", "CFBundleExecutable": "VSDK",
+            "CFBundlePackageType": "APPL", "CFBundleIconFile": "VSDK.icns",
+            "CFBundleShortVersionString": "1.0.0", "CFBundleVersion": "1.0.0",
+            "NSHighResolutionCapable": True, "NSPrincipalClass": "NSApplication"
+        }, output)
+    subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(application)], check=True)
+    subprocess.run(["codesign", "--verify", "--deep", "--strict", str(application)], check=True)
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
@@ -48,18 +82,9 @@ def main():
         shutil.copytree(args.vertex / "Editor", stage / "Editor")
         shutil.copytree(args.vertex / "Libraries", stage / "Libraries")
         for runtime in RUNTIMES:
-            subprocess.run([
-                "dotnet", "publish", "src/VSDK/VSDK.csproj", "-c", "Release", "-r", runtime,
-                "--self-contained", "true", "-p:DebugType=None", "-o", str(stage / "Launcher" / runtime)
-            ], cwd=root, check=True)
-            launcher = stage / "Launcher" / runtime / ("VSDK.exe" if runtime == "win-x64" else "VSDK")
-            if not launcher.is_file() or not launcher.stat().st_size:
-                raise ValueError(f"Missing launcher: {launcher}")
+            publish_launcher(root, stage / "Launcher" / runtime, runtime)
             if runtime.startswith("osx-"):
-                launcher.chmod(0o755)
                 (stage / "Editor" / runtime / "Vertex.app/Contents/MacOS/Vertex").chmod(0o755)
-        for symbol in stage.rglob("*.pdb"):
-            symbol.unlink()
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
         (stage / "toolchain.json").write_text(json.dumps({
             "vsdk": revision, "vertex": vertex["revision"], "runtimes": RUNTIMES,
