@@ -80,13 +80,19 @@ Compiler/VertexTools/<runtime-id>/    game-owned resource tools and public API
 Authoring/
 Editor/win-x64/Vertex.exe
 Editor/osx-<architecture>/Vertex.app/
-Launcher/<runtime-id>/VSDK[.exe]
+Launcher/win-x64/VSDK.exe
+Launcher/osx-<architecture>/VSDK.app/
 toolchain.json
 LICENSE.txt
 ```
 
-The runtimes are `win-x64`, `osx-arm64`, and `osx-x64`. Steam's launch paths remain
-`Launcher/win-x64/VSDK.exe`, `Launcher/osx-arm64/VSDK`, and `Launcher/osx-x64/VSDK`.
+The runtimes are `win-x64`, `osx-arm64`, and `osx-x64`. Both desktop tools ship as
+one bundled Windows executable or a signed macOS application with an icon.
+Build the toolkit on macOS, which supplies `codesign`.
+Configure Steam's launch paths as `Launcher/win-x64/VSDK.exe`,
+`Launcher/osx-arm64/VSDK.app`, and `Launcher/osx-x64/VSDK.app`.
+Update the macOS launch entries together with the toolkit release; earlier
+toolkits use loose `VSDK` executables.
 The launcher opens the complete macOS app bundle; setup and resource commands use
 its `Contents/MacOS/Vertex` executable without opening a window.
 `toolchain.json` records the Vertex, VSDK and game source revisions. Release the

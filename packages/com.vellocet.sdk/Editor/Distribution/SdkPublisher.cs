@@ -205,7 +205,7 @@ namespace Vellocet.Sdk.Editor.Distribution
             foreach (var tool in new[]
                      {
                          "Editor/" + runtime + (runtime == "win-x64" ? "/Vertex.exe" : "/Vertex.app/Contents/MacOS/Vertex"),
-                         "Launcher/" + runtime + "/VSDK" + (runtime == "win-x64" ? ".exe" : "")
+                         "Launcher/" + runtime + (runtime == "win-x64" ? "/VSDK.exe" : "/VSDK.app/Contents/MacOS/VSDK")
                      })
             {
                 var path = Path.Combine(toolsRoot, tool);
