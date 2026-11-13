@@ -6,12 +6,16 @@ using Vellocet.Sdk.Entities.Signals;
 namespace Vellocet.Sdk.Aneurism.Entities
 {
     [EntityClass("func_rat_racer")]
-    [EntityAuthoring("Recreation / Racing", EntityPlacementKind.Point, "Rat Racing")]
+    [EntityAuthoring("Recreation / Racing", EntityPlacementKind.Point, "Rat Table")]
     public sealed class RatRacerMarker : ContactOperationMarker
     {
+        [SerializeField] private RatRaceTrackMarker track;
+        [SerializeField] private RatClaimMarker claim;
         [SerializeField] private RatTrackMarker[] raceTracks = Array.Empty<RatTrackMarker>();
         [SerializeField] private ContainerMarker holdingContainer;
         [SerializeField] private bool automaticCountdown = true;
+        public RatRaceTrackMarker Track => track;
+        public RatClaimMarker Claim => claim;
         public RatTrackMarker[] RaceTracks => raceTracks;
         public ContainerMarker HoldingContainer => holdingContainer;
         public bool AutomaticCountdown => automaticCountdown;

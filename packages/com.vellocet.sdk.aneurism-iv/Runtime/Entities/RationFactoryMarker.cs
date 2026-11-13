@@ -10,11 +10,15 @@ namespace Vellocet.Sdk.Aneurism.Entities
     [EntityAuthoring("Food / Rations", EntityPlacementKind.Point, "Ration Factory")]
     public sealed class RationFactoryMarker : ContactOperationMarker
     {
+        public enum Kind { Standard, SoupKitchen }
+        [SerializeField] private Kind kind;
+        public Kind Variant => kind;
         [SerializeField] private string tier1Resource = GameItem.Fish;
         [SerializeField] private string tier2Resource = GameItem.SuspiciousMeat;
         public string Tier1Resource => tier1Resource;
         public string Tier2Resource => tier2Resource;
-        public override string ArchetypeId => "aniv.ration-factory";
+        public override string ArchetypeId => kind == Kind.SoupKitchen
+            ? "aniv.ration-factory.soup-kitchen" : "aniv.ration-factory";
         public override void ConfigureSignalContract(EntitySignalContractBuilder builder)
         {
             builder.AddOutput("supply_added", EntitySignalValueType.None);

@@ -17,6 +17,14 @@ namespace Entities.Shared
         Bullet = 1 << 8,
         Repair = 1 << 9,
         Fire = 1 << 10,
-        Build = 1 << 11
+        Build = 1 << 11,
+        Septic = 1 << 12,
+
+        /// <summary>
+        /// Short bleed instead of the normal 30-second weapon bleed (sv_dot_short_bleed_*). Takes priority over the
+        /// bleed from Sharp/Bullet. It doesn't count as Sharp elsewhere (e.g. cutting corpses), so add Sharp too
+        /// for a blade that should still cut.
+        /// </summary>
+        ShortBleed = 1 << 13
     }
 }

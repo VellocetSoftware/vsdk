@@ -7,7 +7,7 @@ using Vellocet.Sdk.Entities.Signals;
 namespace Vellocet.Sdk.Aneurism.Entities
 {
     [EntityClass("info_rat_track")]
-    [EntityAuthoring("Recreation / Racing", EntityPlacementKind.Logic, "Rat Track")]
+    [EntityAuthoring("Recreation / Racing", EntityPlacementKind.Logic, "Rat Race Path", HiddenFromPlacement = true)]
     public sealed class RatTrackMarker : EntityMarker, ISplineEntityMarker
     {
         [field: SerializeField] public SplineContainer SplineContainer { get; private set; }

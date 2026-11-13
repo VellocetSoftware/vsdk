@@ -12,6 +12,9 @@ namespace Vellocet.Sdk.Aneurism.Entities
     [EntityAuthoring("Industry", EntityPlacementKind.Point, "Wartime Factory")]
     public sealed class WartimeFactoryMarker : PrefabEntityMarker
     {
+        public enum Kind { Standard, Misery }
+        [SerializeField] private Kind kind;
+        public Kind Variant => kind;
         [SerializeField] private WarheadMarker[] stations = Array.Empty<WarheadMarker>();
         [SerializeField] private CacheMarker[] caches = Array.Empty<CacheMarker>();
         [SerializeField] private bool useBuiltInParts = true;
@@ -28,7 +31,8 @@ namespace Vellocet.Sdk.Aneurism.Entities
         public string ClosedText => closedText;
         public AudioEventReference CompletionSound => completionSound;
         public AudioEventReference EventSound => eventSound;
-        public override string ArchetypeId => "aniv.wartime-factory";
+        public override string ArchetypeId => kind == Kind.Misery
+            ? "aniv.wartime-factory.misery" : "aniv.wartime-factory";
         public override string[] Inputs => new[] { "Open", "Close" };
         public override string[] Outputs => new[] { "OnOpen", "OnClose", "OnComplete" };
 
