@@ -22,8 +22,9 @@ namespace Vellocet.Sdk.Tests.Editor
         }
 
         [Test]
-        public void NavigationHeight_DefaultsToTwoMetersForOtherGames()
+        public void NavigationDimensions_KeepDefaultCapsuleForOtherGames()
         {
+            Assert.That(new MapOnlyGame().NavigationAgentRadius, Is.EqualTo(0.5f));
             Assert.That(new MapOnlyGame().NavigationAgentHeight, Is.EqualTo(2f));
         }
 

@@ -39,6 +39,8 @@ namespace Vellocet.Sdk.Maps
 
         [HideInInspector] public AddonMountData addon;
         public AssetReference thumbnailReference;
+        [Tooltip("Optional 1024 × 256 map logo for loading screens.")]
+        public AssetReference logoReference;
         [HideInInspector] public string contentKind;
         [HideInInspector] public string authoringScenePath;
         [HideInInspector] public string compiledScenePath;
@@ -75,6 +77,7 @@ namespace Vellocet.Sdk.Maps
             public string platformDirectory;
             public string catalogPath;
             public string thumbnailPath;
+            public string logoPath;
         }
     }
 }

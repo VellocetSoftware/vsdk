@@ -86,6 +86,27 @@ namespace Vellocet.Sdk.Tests
             }
         }
 
+        [TestCase(1024, 256, true)]
+        [TestCase(256, 1024, false)]
+        [TestCase(1920, 1080, false)]
+        public void MapLogo_RequiresTheOptional1024By256SourceImage(int width, int height, bool valid)
+        {
+            Assert.That(AddonThumbnailBuildUtility.TryValidateLogoFile(null, out _), Is.True);
+            var path = Path.Combine(Path.GetTempPath(), "map_logo_" + Guid.NewGuid().ToString("N") + ".png");
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            try
+            {
+                File.WriteAllBytes(path, texture.EncodeToPNG());
+                Assert.That(AddonThumbnailBuildUtility.TryValidateLogoFile(path, out var error), Is.EqualTo(valid), error);
+                if (!valid) Assert.That(error, Does.Contain("1024 × 256"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(texture);
+                File.Delete(path);
+            }
+        }
+
         [Test]
         public void ExporterRegistry_ResolvesCollectionsButNotIndividualCues()
         {

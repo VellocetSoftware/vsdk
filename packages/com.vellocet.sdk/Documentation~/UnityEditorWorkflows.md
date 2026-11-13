@@ -7,7 +7,7 @@ in Framework, the SDK, and Vertex; games register their content and build polici
 
 1. Save the authoring scene in its own map folder under `Assets`.
 2. In that folder, choose **Assets > Create > Vellocet > Maps > Map Definition**.
-3. Set the ID, display name, author, version, and optional thumbnail. Assign the
+3. Set the ID, display name, author, version, and optional thumbnail and 1024 × 256 loading-screen logo (`logoReference`). Assign the
    saved scene to **Authoring Scene** in the normal Inspector.
 4. Give the ID a registered mode prefix and a name, for example `sb_example`
    in Grimwar or `nm_example` in ANEURISM IV. The Inspector shows the resolved mode.

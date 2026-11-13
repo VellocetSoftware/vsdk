@@ -25,6 +25,17 @@ namespace Vellocet.Sdk.Editor.Addons
         internal static bool TryValidateFile(string path, bool required, bool requireWorkshopDimensions,
             out string error)
         {
+            return TryValidateImageFile(path, required, requireWorkshopDimensions ? WorkshopWidth : 0,
+                requireWorkshopDimensions ? WorkshopHeight : 0, out error);
+        }
+
+        internal static bool TryValidateLogoFile(string path, out string error)
+        {
+            return TryValidateImageFile(path, false, 1024, 256, out error);
+        }
+
+        private static bool TryValidateImageFile(string path, bool required, int width, int height, out string error)
+        {
             error = null;
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -51,11 +62,10 @@ namespace Vellocet.Sdk.Editor.Addons
                     return false;
                 }
 
-                if (requireWorkshopDimensions &&
-                    (decoded.width != WorkshopWidth || decoded.height != WorkshopHeight))
+                if (width > 0 && (decoded.width != width || decoded.height != height))
                 {
-                    error = $"Add-on artwork is {decoded.width} × {decoded.height}. Release artwork must be " +
-                            $"{WorkshopWidth} × {WorkshopHeight}.";
+                    error = $"Add-on artwork is {decoded.width} × {decoded.height}. Expected artwork dimensions: " +
+                            $"{width} × {height}.";
                     return false;
                 }
 

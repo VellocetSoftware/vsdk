@@ -20,7 +20,7 @@ namespace Vellocet.Sdk.Addons
             "kind", "id", "title", "map", "mod", "audio", "media");
 
         private static readonly ISet<string> MapProperties = Properties(
-            "scene", "defaultModeId", "musicSet", "thumbnail", "compiledReceipt", "platforms");
+            "scene", "defaultModeId", "musicSet", "thumbnail", "logo", "compiledReceipt", "platforms");
 
         private static readonly ISet<string> ModProperties = Properties("manifest");
         private static readonly ISet<string> AudioProperties = Properties("catalog", "files");

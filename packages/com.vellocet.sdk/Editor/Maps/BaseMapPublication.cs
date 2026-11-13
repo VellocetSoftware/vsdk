@@ -70,6 +70,26 @@ namespace Vellocet.Sdk.Editor.Maps
                 }
                 Entry(thumbnail, existing?.address ?? thumbnailAddress, thumbnailGroup);
             }
+            var logo = map.logoReference?.AssetGUID;
+            if (!string.IsNullOrEmpty(logo))
+            {
+                var existing = settings.FindAssetEntry(logo);
+                var sharedAddress = SharedAssetAddressUtility.CreateAddress(AssetDatabase.GUIDToAssetPath(logo));
+                AddressableAssetGroup logoGroup;
+                if (existing != null && !string.IsNullOrEmpty(sharedAddress) && existing.address == sharedAddress)
+                    logoGroup = SharedAssetAddressableEditorUtility.EnsureSharedGroup(settings);
+                else if (existing != null && existing.parentGroup.Name != playerGroup &&
+                         existing.parentGroup.Name != EditorOnlyGroupName && existing.parentGroup.Name != DisabledGroupName)
+                    logoGroup = existing.parentGroup;
+                else
+                {
+                    var users = BaseMapAuthoring.Definitions().Where(other => other.Enabled && !other.IsDraft &&
+                        other.logoReference?.AssetGUID == logo).ToArray();
+                    logoGroup = users.Any(other => !other.EditorOnly) ? AddressablesContentUtility.GetOrCreateGroup(settings, playerGroup, true) :
+                        users.Length > 0 ? AddressablesContentUtility.GetOrCreateGroup(settings, EditorOnlyGroupName, false) : destination;
+                }
+                Entry(logo, existing?.address ?? map.id + "/logo", logoGroup);
+            }
             if (!string.IsNullOrEmpty(map.authoringScenePath) && map.authoringScenePath != map.compiledScenePath)
             {
                 var source = settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(map.authoringScenePath));

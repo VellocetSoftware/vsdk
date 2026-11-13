@@ -67,6 +67,9 @@ namespace Vellocet.Sdk.Addons
             /// <summary>Image for this map in the in-game map selection and loading UI.</summary>
             public string thumbnail;
 
+            /// <summary>Optional 1024 × 256 loading-screen logo, relative to the add-on root.</summary>
+            public string logo;
+
             public string compiledReceipt;
             public PlatformCatalog[] platforms;
         }

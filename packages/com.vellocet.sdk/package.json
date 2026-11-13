@@ -1,7 +1,7 @@
 {
   "name": "com.vellocet.sdk",
   "displayName": "Vellocet SDK",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "unity": "6000.6",
   "unityRelease": "8f1",
   "vellocetSdkContentSchemaVersion": 3,
@@ -22,7 +22,7 @@
     "name": "Vellocet Software"
   },
   "dependencies": {
-    "com.vellocet.vertex": "4.0.1",
+    "com.vellocet.vertex": "4.0.2",
     "com.unity.addressables": "2.8.1",
     "com.unity.ai.navigation": "2.0.12",
     "com.unity.burst": "1.8.29",
@@ -33,6 +33,6 @@
     "com.unity.splines": "2.8.2",
     "com.unity.ugui": "2.6.0",
     "com.unity.visualeffectgraph": "17.6.0",
-    "com.vellocet.framework": "0.1.7-dev.32"
+    "com.vellocet.framework": "0.1.7-dev.39"
   }
 }

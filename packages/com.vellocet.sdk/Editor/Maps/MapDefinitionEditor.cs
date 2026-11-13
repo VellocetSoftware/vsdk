@@ -22,7 +22,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 using (new EditorGUI.DisabledScope(map.IsDraft))
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("<Enabled>k__BackingField"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("<EditorOnly>k__BackingField"));
-                foreach (var name in new[] { "id", "displayName", "author", "version", "thumbnailReference" })
+                foreach (var name in new[] { "id", "displayName", "author", "version", "thumbnailReference", "logoReference" })
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(name));
                 if (ModeCatalog.TryResolveMapMode(map.id, out var mode))
                     EditorGUILayout.LabelField("Mode (from ID)", ModeCatalog.ResolveDisplayName(mode));

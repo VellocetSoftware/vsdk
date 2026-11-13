@@ -17,7 +17,7 @@ namespace Vellocet.Sdk.Editor.Maps
     {
         internal const string AgentName = "Humanoid";
         internal const int AgentTypeId = 0;
-        internal const float AgentRadius = 0.5f;
+        internal static float AgentRadius => SdkGame.Current.NavigationAgentRadius;
         internal static float AgentHeight => SdkGame.Current.NavigationAgentHeight;
         internal const float AgentSlope = 45f;
         internal const float AgentClimb = 0.35f;
@@ -25,7 +25,7 @@ namespace Vellocet.Sdk.Editor.Maps
         internal const float MaxJumpAcrossDistance = 1f;
         internal const float MinRegionArea = 2f;
         internal const bool ManualCellSize = false;
-        internal const float CellSize = AgentRadius / 3f;
+        internal static float CellSize => AgentRadius / 3f;
         internal const bool ManualTileSize = false;
         internal const int TileSize = 256;
         internal const bool BuildHeightMesh = false;

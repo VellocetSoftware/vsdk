@@ -75,7 +75,7 @@ namespace Vellocet.Sdk.Tests.Editor
         [Test]
         public void PlayerContract_UsesExpectedPhysicalDimensionsAndDropHeight()
         {
-            Assert.That(HumanoidNavMeshSettingsPolicy.AgentRadius, Is.EqualTo(0.5f));
+            Assert.That(HumanoidNavMeshSettingsPolicy.AgentRadius, Is.EqualTo(SdkGame.Current.NavigationAgentRadius));
             Assert.That(HumanoidNavMeshSettingsPolicy.AgentHeight, Is.EqualTo(SdkGame.Current.NavigationAgentHeight));
             Assert.That(HumanoidNavMeshSettingsPolicy.AgentSlope, Is.EqualTo(45f));
             Assert.That(HumanoidNavMeshSettingsPolicy.AgentClimb, Is.EqualTo(0.35f));
@@ -83,7 +83,7 @@ namespace Vellocet.Sdk.Tests.Editor
             Assert.That(HumanoidNavMeshSettingsPolicy.MaxJumpAcrossDistance, Is.EqualTo(1f));
             Assert.That(HumanoidNavMeshSettingsPolicy.MinRegionArea, Is.EqualTo(2f));
             Assert.That(HumanoidNavMeshSettingsPolicy.ManualCellSize, Is.False);
-            Assert.That(HumanoidNavMeshSettingsPolicy.CellSize, Is.EqualTo(1f / 6f));
+            Assert.That(HumanoidNavMeshSettingsPolicy.CellSize, Is.EqualTo(SdkGame.Current.NavigationAgentRadius / 3f));
             Assert.That(HumanoidNavMeshSettingsPolicy.ManualTileSize, Is.False);
             Assert.That(HumanoidNavMeshSettingsPolicy.TileSize, Is.EqualTo(256));
             Assert.That(HumanoidNavMeshSettingsPolicy.BuildHeightMesh, Is.False);
@@ -151,7 +151,7 @@ namespace Vellocet.Sdk.Tests.Editor
                 Assert.That(serialized.FindProperty("m_LayerMask").intValue, Is.EqualTo(SdkGame.Current.NavigationMask));
                 Assert.That(serialized.FindProperty("m_UseGeometry").intValue, Is.EqualTo(1));
                 Assert.That(serialized.FindProperty("m_TileSize").intValue, Is.EqualTo(256));
-                Assert.That(serialized.FindProperty("m_VoxelSize").floatValue, Is.EqualTo(1f / 6f));
+                Assert.That(serialized.FindProperty("m_VoxelSize").floatValue, Is.EqualTo(SdkGame.Current.NavigationAgentRadius / 3f));
             }
             finally
             {

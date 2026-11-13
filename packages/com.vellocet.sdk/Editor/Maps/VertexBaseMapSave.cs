@@ -75,6 +75,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 var map = EnsureDefinition(settings, folder, id, job.MapTitle ?? id);
                 var previousSource = map.authoringScenePath;
                 if (job.Thumbnail != null) AdoptThumbnail(map, job.Thumbnail, folder);
+                map.logoReference = job.Logo == null ? null : AdoptLogo(job.Logo, folder);
+                EditorUtility.SetDirty(map);
                 var lightmaps = VertexBakePolicy.Lightmaps(parsed, job.Game.Baking);
                 map = BaseMapCompile.Compile(settings, map, sourcePath, new MapCompiler.CompileOptions
                 {
@@ -155,6 +157,15 @@ namespace Vellocet.Sdk.Editor.Maps
             VertexMapCompiler.LoadThumbnail(target);
             map.thumbnailReference = new AssetReference(AssetDatabase.AssetPathToGUID(target));
             EditorUtility.SetDirty(map);
+        }
+
+        private static AssetReference AdoptLogo(string input, string folder)
+        {
+            var target = folder + "/map_logo_01" + Path.GetExtension(input).ToLowerInvariant();
+            WriteIfChanged(target, File.ReadAllBytes(input));
+            AssetDatabase.ImportAsset(target, ImportAssetOptions.ForceSynchronousImport);
+            VertexMapCompiler.LoadThumbnail(target);
+            return new AssetReference(AssetDatabase.AssetPathToGUID(target));
         }
 
         private static void PrepareExternalContent(BuildJob job, UnityEngine.SceneManagement.Scene scene)

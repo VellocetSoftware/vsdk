@@ -32,6 +32,7 @@ namespace Vellocet.Sdk.Editor.Maps
         public string AddonAuthor { get; set; }
         public string AddonVersion { get; set; }
         public Texture2D MapImage { get; set; }
+        public Texture2D MapLogo { get; set; }
         public Texture2D AddonThumbnail { get; set; }
         public IReadOnlyList<string> RequiredAddonIds { get; set; } = Array.Empty<string>();
         public bool CleanOutput { get; set; } = true;
@@ -81,6 +82,10 @@ namespace Vellocet.Sdk.Editor.Maps
             if (!AddonThumbnailBuildUtility.TryValidateProjectAsset(request.AddonThumbnail,
                     releaseArtwork && request.Compiled == null, releaseArtwork, out var thumbnailError))
                 return new AddonMapBuildResult { Error = thumbnailError, Profile = request.Profile };
+
+            if (!AddonThumbnailBuildUtility.TryValidateLogoFile(
+                    request.MapLogo ? AssetDatabase.GetAssetPath(request.MapLogo) : null, out var logoError))
+                return new AddonMapBuildResult { Error = "Map logo: " + logoError, Profile = request.Profile };
 
             if (!AddonMapBuildPolicy.TryNormalizeTargets(request.Targets, out var requestedTargets,
                     out var targetError))
@@ -309,6 +314,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 request.AddonThumbnail, layout.AddonRoot, layout.AddonRoot);
             var mapImageRelativePath = CopyThumbnailIntoPackage(
                 request.MapImage, layout.MapRoot, layout.AddonRoot);
+            var logoRelativePath = CopyThumbnailIntoPackage(
+                request.MapLogo, layout.MapRoot, layout.AddonRoot, "map_logo_01");
             if (!TryBuildPlatformArtifacts(layout.AddonRoot, successfulExports, out var platformArtifacts,
                     out var artifactsError))
                 return Fail(artifactsError);
@@ -323,7 +330,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 return Fail(receiptError);
 
             if (!TryWriteAddonManifest(request, layout, platformArtifacts, audioContent, addonThumbnailRelativePath,
-                    audioDependencies, mapImageRelativePath, receiptRelativePath, buildId, successfulExports,
+                    audioDependencies, mapImageRelativePath, logoRelativePath, receiptRelativePath, buildId, successfulExports,
                     MapMusicSets.Name(sharedCompileResult.MusicSet), out var manifestError))
                 return Fail(manifestError);
             WriteExportReport(request, layout.MapRoot, successfulExports);
@@ -717,7 +724,7 @@ namespace Vellocet.Sdk.Editor.Maps
         private static bool TryWriteAddonManifest(AddonMapBuildRequest request, AddonMapArtifactLayout layout,
             IReadOnlyList<PlatformArtifactData> platformArtifacts, AddonManifest.ContentEntry audioContent,
             string addonThumbnailRelativePath,
-            IReadOnlyList<string> audioDependencies, string mapImageRelativePath, string receiptRelativePath,
+            IReadOnlyList<string> audioDependencies, string mapImageRelativePath, string logoRelativePath, string receiptRelativePath,
             string buildId, IReadOnlyList<Exporter.Result> exports, string musicSet, out string error)
         {
             error = null;
@@ -744,6 +751,7 @@ namespace Vellocet.Sdk.Editor.Maps
                     defaultModeId = MapBuildArtifactPlanner.NormalizeDefaultModeId(request.DefaultModeId),
                     musicSet = musicSet,
                     thumbnail = mapImageRelativePath,
+                    logo = logoRelativePath,
                     compiledReceipt = receiptRelativePath,
                     platforms = platformEntries
                 }
@@ -987,7 +995,7 @@ namespace Vellocet.Sdk.Editor.Maps
             }
         }
 
-        private static string CopyThumbnailIntoPackage(Texture2D thumbnail, string destinationRoot, string addonRoot)
+        private static string CopyThumbnailIntoPackage(Texture2D thumbnail, string destinationRoot, string addonRoot, string name = "thumbnail")
         {
             if (!thumbnail)
                 return null;
@@ -998,7 +1006,7 @@ namespace Vellocet.Sdk.Editor.Maps
 
             TryCreateDirectory(destinationRoot);
             var extension = Path.GetExtension(sourcePath);
-            var destinationPath = Path.Combine(destinationRoot, $"thumbnail{extension}");
+            var destinationPath = Path.Combine(destinationRoot, $"{name}{extension}");
             File.Copy(sourcePath, destinationPath, true);
             return MapBuildArtifactPlanner.MakeRelativePath(addonRoot, destinationPath);
         }

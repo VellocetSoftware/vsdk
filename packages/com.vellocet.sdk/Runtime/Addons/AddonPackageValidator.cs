@@ -436,6 +436,9 @@ namespace Vellocet.Sdk.Addons
             if (!TryValidateOptionalFile(addonRoot, map.thumbnail, $"Map '{content.id}' thumbnail", out error))
                 return false;
 
+            if (!TryValidateOptionalFile(addonRoot, map.logo, $"Map '{content.id}' logo", out error))
+                return false;
+
             var platforms = map.platforms ?? Array.Empty<AddonManifest.PlatformCatalog>();
             if (platforms.Length == 0)
             {

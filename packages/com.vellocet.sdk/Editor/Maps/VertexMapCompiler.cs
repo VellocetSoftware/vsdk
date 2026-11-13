@@ -56,6 +56,8 @@ namespace Vellocet.Sdk.Editor.Maps
             if (!AddonThumbnailBuildUtility.TryValidateFile(job.Thumbnail == null ? null : pathFor(job.Thumbnail),
                     false, releaseArtwork, out var thumbnailError))
                 throw new InvalidDataException(thumbnailError);
+            if (!AddonThumbnailBuildUtility.TryValidateLogoFile(job.Logo == null ? null : pathFor(job.Logo), out var logoError))
+                throw new InvalidDataException("Map logo: " + logoError);
             return profiles;
         }
 

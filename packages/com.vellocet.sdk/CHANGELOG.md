@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.3.2
+
+- Publish the shared map-logo pipeline and game-owned navigation radius already used by Grimwar.
+- Preserve disposable batch-scene isolation and SDK launcher packaging for both games.
+- Consume framework 0.1.7-dev.39 and Vertex 4.0.2 from their canonical repositories.
+
 ## Unreleased
 
 - World text uses native Best Fit. Auto-sized labels require Advanced Text Generator in UI Toolkit project settings.

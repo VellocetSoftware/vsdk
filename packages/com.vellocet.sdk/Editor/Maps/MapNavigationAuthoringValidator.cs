@@ -128,6 +128,19 @@ namespace Vellocet.Sdk.Editor.Maps
                         $"('{BuildHierarchyPath(surface.transform)}').";
                     return false;
                 }
+
+                var bakedSettings = new SerializedObject(navMeshData.objectReferenceValue)
+                    .FindProperty("m_NavMeshBuildSettings");
+                var bakedRadius = bakedSettings?.FindPropertyRelative("agentRadius");
+                var bakedHeight = bakedSettings?.FindPropertyRelative("agentHeight");
+                if (bakedRadius == null || bakedHeight == null ||
+                    !Mathf.Approximately(bakedRadius.floatValue, HumanoidNavMeshSettingsPolicy.AgentRadius) ||
+                    !Mathf.Approximately(bakedHeight.floatValue, HumanoidNavMeshSettingsPolicy.AgentHeight))
+                {
+                    error = $"Compiled navigation was baked for a different player capsule: {scenePath}. " +
+                            "Rebuild navigation with the current game dimensions.";
+                    return false;
+                }
             }
 
             if (humanoidSurfaceCount == 0)
