@@ -19,8 +19,9 @@ namespace Vellocet.Sdk.Tests
     public sealed class EntityMarkerContractTests
     {
         [Test]
-        public void NavigationHeight_MatchesTheGrimwarPlayer()
+        public void NavigationDimensions_MatchTheGrimwarPlayer()
         {
+            Assert.That(new Vellocet.Sdk.Grimwar.GrimwarSdk().NavigationAgentRadius, Is.EqualTo(0.4375f));
             Assert.That(new Vellocet.Sdk.Grimwar.GrimwarSdk().NavigationAgentHeight, Is.EqualTo(1.75f));
         }
 
