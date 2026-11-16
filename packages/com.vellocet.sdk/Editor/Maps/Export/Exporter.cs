@@ -11,6 +11,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Build;
+using UnityEditor.AddressableAssets.Build.DataBuilders;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEditor.SceneManagement;
@@ -282,9 +283,24 @@ namespace Vellocet.Sdk.Editor.Maps
                 }
 
                 AddressablesPlayerBuildResult buildResult;
-                packageAssets?.BeginBuild();
-                try { AddressableAssetSettings.BuildPlayerContent(out buildResult); }
-                finally { packageAssets?.EndBuild(); }
+                // Add-on catalogs use bundles only; the host's schema-driven builder also
+                // registers native-content providers, which the runtime correctly rejects.
+                var originalBuilderIndex = settings.ActivePlayerDataBuilderIndex;
+                var bundleBuilder = ScriptableObject.CreateInstance<BuildScriptPackedMode>();
+                settings.AddDataBuilder(bundleBuilder, false);
+                try
+                {
+                    settings.ActivePlayerDataBuilderIndex = settings.DataBuilders.IndexOf(bundleBuilder);
+                    packageAssets?.BeginBuild();
+                    try { AddressableAssetSettings.BuildPlayerContent(out buildResult); }
+                    finally { packageAssets?.EndBuild(); }
+                }
+                finally
+                {
+                    settings.ActivePlayerDataBuilderIndex = originalBuilderIndex;
+                    settings.RemoveDataBuilder(settings.DataBuilders.IndexOf(bundleBuilder), false);
+                    UnityEngine.Object.DestroyImmediate(bundleBuilder);
+                }
                 if (buildResult == null || !string.IsNullOrEmpty(buildResult.Error))
                 {
                     var error = $"Addressables build failed: {buildResult?.Error}";
