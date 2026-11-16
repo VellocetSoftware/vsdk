@@ -88,6 +88,38 @@ namespace Vellocet.Sdk.Tests.Editor
         }
 
         [Test]
+        public void ExplicitValuesDoNotHidePropertyTypeChanges()
+        {
+            var authored = Catalog();
+            var installed = Catalog();
+            installed.Entities[0].Properties[0].DefaultValue = 2;
+            installed.Entities[0].Properties[0].Type = "integer";
+            var map = Map("test_entity");
+            map.Containers[0].Entity.Properties = new[] { new EntityPropertyValue { Id = "speed", Value = 3 } };
+            Assert.That(VertexMapCompiler.EntityContractDifference(authored, installed, map),
+                Does.Contain("speed").And.Contain("type"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PlacementDefaultsMayDifferOnlyWhenEveryInstanceProvidesTheValue(bool everyInstance)
+        {
+            var authored = Catalog();
+            var installed = Catalog();
+            installed.Entities[0].Properties[0].DefaultValue = 2;
+            var map = Map("test_entity", "test_entity");
+            foreach (var node in map.Containers.Take(everyInstance ? 2 : 1))
+                node.Entity.Properties = new[] { new EntityPropertyValue { Id = "speed", Value = 3 } };
+            var before = authored.Serialize();
+            var after = installed.Serialize();
+            var mismatch = VertexMapCompiler.EntityContractDifference(authored, installed, map);
+            if (everyInstance) Assert.That(mismatch, Is.Null);
+            else Assert.That(mismatch, Does.Contain("speed").And.Contain("default"));
+            Assert.That(authored.Serialize(), Is.EqualTo(before));
+            Assert.That(installed.Serialize(), Is.EqualTo(after));
+        }
+
+        [Test]
         public void CatalogIdentityGlobalsAndMalformedMetadataRemainValidated()
         {
             var authored = Catalog();

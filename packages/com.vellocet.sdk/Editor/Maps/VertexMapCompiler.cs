@@ -83,13 +83,26 @@ namespace Vellocet.Sdk.Editor.Maps
             var expectedTypes = Index(expected["entities"], item => (string)item["id"]);
             var actualTypes = Index(actual["entities"], item => (string)item["id"]);
             // Unused types may differ between a published SDK and a game checkout. Imported types must retain their contract.
-            foreach (var id in map.Containers.Where(node => node.Entity?.SdkId == installed.SdkId)
-                         .Select(node => node.Entity.TypeId).Distinct().OrderBy(id => id, StringComparer.Ordinal))
+            foreach (var placed in map.Containers.Where(node => node.Entity?.SdkId == installed.SdkId)
+                         .GroupBy(node => node.Entity.TypeId).OrderBy(group => group.Key, StringComparer.Ordinal))
             {
+                var id = placed.Key;
                 if (!expectedTypes.TryGetValue(id, out var before)) return "Entity '" + id + "' is missing from the authoring catalog";
                 if (!actualTypes.TryGetValue(id, out var after)) return "Entity '" + id + "' is missing from the installed SDK";
                 foreach (var members in new[] { "properties", "signals" })
                 {
+                    if (members == "properties")
+                        foreach (var property in before[members].OfType<JObject>())
+                        {
+                            var propertyId = (string)property["id"];
+                            if (placed.Any(node => !node.Entity.Properties.Any(value => value.Id == propertyId))) continue;
+                            var installedProperty = after[members].OfType<JObject>()
+                                .SingleOrDefault(value => (string)value["id"] == propertyId);
+                            if (installedProperty == null) continue;
+                            // Placement defaults cannot affect explicit values. Omitted values still require matching defaults.
+                            property.Remove("default");
+                            installedProperty.Remove("default");
+                        }
                     var mismatch = Members(before[members], after[members],
                         item => members == "properties" ? (string)item["id"] : item["kind"] + "." + item["name"],
                         "Entity '" + id + "' " + members);
