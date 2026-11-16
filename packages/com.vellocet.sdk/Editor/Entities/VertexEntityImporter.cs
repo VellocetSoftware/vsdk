@@ -22,7 +22,7 @@ namespace Vellocet.Sdk.Editor.Entities
             if (typeof(IBoundedEntityMarker).IsAssignableFrom(type) || typeof(ICenteredBoundsEntityMarker).IsAssignableFrom(type)) return "bounds";
             return "none";
         }
-        public const int ImportRevision = 1;
+        public const int ImportRevision = 2;
         static VertexEntityImporter() => VertexSdkRegistry.Register("com.vellocet.sdk", ImportRevision, Import);
 
         private static bool CanOwnEntity(Type owner, Type child) =>
@@ -60,9 +60,14 @@ namespace Vellocet.Sdk.Editor.Entities
                     {
                         marker = (EntityMarker)go.AddComponent(binding);
                         // AddComponent/Reset can change a marker's transform. The map owns the authored pose.
-                        go.transform.localScale = Vector3.one;
+                        var parent = go.transform.parent;
+                        go.transform.SetParent(context.Root.transform, true);
+                        go.transform.localScale = marker is IMapModelMarker && GeometryRole(binding) == "none"
+                            ? new Vector3((float)source.Entity.Size.X, (float)source.Entity.Size.Y, (float)source.Entity.Size.Z)
+                            : Vector3.one;
                         go.transform.SetPositionAndRotation(VertexMapBuilder.Position(source.Entity.Position, context.Map.MetersPerUnit),
                             VertexMapBuilder.Rotation(source.Entity.Rotation));
+                        go.transform.SetParent(parent, true);
                         marker.ValidateVertexImport();
                     }
                     finally { foreach (var child in children) child.SetParent(go.transform, true); }
