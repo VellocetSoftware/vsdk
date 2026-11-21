@@ -19,12 +19,12 @@ namespace Vellocet.Sdk.Entities
         [field: SerializeField, Min(1)]
         public int RequiredTerminals { get; private set; } = 1;
 
-        protected override Vector3 InitialAuthoringSize => new(3f, 2.5f, 3f);
+        protected override Vector3 InitialAuthoringSize => new(4f, 2.5f, 4f);
 
         protected override void Reset()
         {
             base.Reset();
-            CaptureSeconds = 20f;
+            CaptureSeconds = 5f;
             DecaySeconds = 10f;
         }
 

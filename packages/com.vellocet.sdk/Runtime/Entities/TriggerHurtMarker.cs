@@ -6,6 +6,8 @@ using Vellocet.Sdk.Entities.Base;
 
 namespace Vellocet.Sdk.Entities
 {
+    public sealed class DamageTypeIdAttribute : PropertyAttribute { }
+
     /// <summary>
     ///     Marker for a trigger volume that periodically damages or heals touching entities.
     /// </summary>
@@ -74,6 +76,10 @@ namespace Vellocet.Sdk.Entities
         [field: Tooltip("Damage dealt each tick. Negative values heal instead of damaging.")]
         [field: SerializeField]
         public float Damage { get; private set; } = 10f;
+
+        [field: Tooltip("Damage type ID from the game catalog. Empty uses ordinary damage.")]
+        [field: SerializeField, DamageTypeId]
+        public string DamageTypeId { get; private set; } = string.Empty;
 
         [field: Tooltip("Seconds between damage/heal ticks while touching.")]
         [field: SerializeField]

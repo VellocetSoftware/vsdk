@@ -8,6 +8,8 @@
 
 ## Unreleased
 
+- Preserve the game-owned damage type ID and inspector attribute on TriggerHurtMarker already adopted by Grimwar.
+
 - Add Vertex probe adjustment volumes, authored light shadow and indirect controls, ambient HDR scaling, and per-map lightmap compression overrides.
 
 - World text uses native Best Fit. Auto-sized labels require Advanced Text Generator in UI Toolkit project settings.
