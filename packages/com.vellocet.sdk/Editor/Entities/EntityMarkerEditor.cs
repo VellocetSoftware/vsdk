@@ -487,7 +487,7 @@ namespace Vellocet.Sdk.Editor.Entities
             EditorGUI.showMixedValue = shadows.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
             var cast = EditorGUILayout.Toggle("Cast shadows", shadows.intValue != (int)LightShadows.None);
-            if (EditorGUI.EndChangeCheck()) shadows.intValue = (int)(cast ? LightShadows.Soft : LightShadows.None);
+            if (EditorGUI.EndChangeCheck()) shadows.intValue = (int)(cast ? LightShadows.Hard : LightShadows.None);
             EditorGUI.showMixedValue = false;
             if (properties.ApplyModifiedProperties())
                 foreach (var value in targets) ((LightMarker)value).ApplyLighting();

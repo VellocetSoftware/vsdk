@@ -26,7 +26,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 yield return Field("custom_shadow_layers", "Custom shadow layers", "bool", false, group: "Light");
                 yield return Field("urp_rendering_layers", "Light rendering layers", "integer", 1, group: "Light");
                 yield return Field("shadow_rendering_layers", "Shadow rendering layers", "integer", 1, group: "Light");
-                yield return new EntityPropertyDefinition { Id = "shadow_mode", Name = "Shadow mode", Type = "enum", DefaultValue = -1, Group = "Light",
+                yield return new EntityPropertyDefinition { Id = "shadow_mode", Name = "Shadow mode", Type = "enum", DefaultValue = 1, Group = "Light",
                     Choices = new[] { new EntityPropertyChoice { Id = "default", Name = "Use cast shadows", Value = -1 },
                         new EntityPropertyChoice { Id = "none", Name = "None", Value = 0 }, new EntityPropertyChoice { Id = "hard", Name = "Hard", Value = 1 },
                         new EntityPropertyChoice { Id = "soft", Name = "Soft", Value = 2 } } };
@@ -119,8 +119,7 @@ namespace Vellocet.Sdk.Editor.Entities
                 if (source.Entity.Properties.FirstOrDefault(p => p.Id == "shadow_mode")?.Value is { } shadow && Convert.ToInt32(shadow) >= 0)
                 {
                     var castsShadows = source.Entity.Properties.FirstOrDefault(p => p.Id == "shadows")?.Value as bool?;
-                    light.shadows = castsShadows == false ? LightShadows.None :
-                        castsShadows == true && Convert.ToInt32(shadow) == 0 ? LightShadows.Soft : (LightShadows)Convert.ToInt32(shadow);
+                    light.shadows = castsShadows == false ? LightShadows.None : (LightShadows)Convert.ToInt32(shadow);
                 }
                 if (source.Entity.Properties.FirstOrDefault(p => p.Id == "inner_spot_angle")?.Value is { } inner)
                     light.innerSpotAngle = Convert.ToSingle(inner);

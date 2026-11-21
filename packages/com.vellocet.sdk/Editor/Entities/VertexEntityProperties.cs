@@ -69,7 +69,8 @@ namespace Vellocet.Sdk.Editor.Entities
             foreach (var field in CapturedProperties(marker))
             {
                 // Keep imported renderer settings for round-tripping, out of the authoring UI.
-                if (marker is ILightEntityMarker && field.Group == "Light") field.Hidden = true;
+                if (marker is ILightEntityMarker && field.Group == "Light" &&
+                    field.Id is not ("shadow_mode" or "bounce_intensity" or "shadow_strength")) field.Hidden = true;
                 yield return field;
             }
             if(marker is DoorMarker)
@@ -147,7 +148,7 @@ namespace Vellocet.Sdk.Editor.Entities
                     case "intensity": light.intensity = Number(); return true;
                     case "range": light.range = Number(); return true;
                     case "spot_angle": light.spotAngle = Number(); return true;
-                    case "shadows": light.shadows = (bool)value ? LightShadows.Soft : LightShadows.None; return true;
+                    case "shadows": light.shadows = (bool)value ? LightShadows.Hard : LightShadows.None; return true;
                     case "enabled": light.enabled = (bool)value; return true;
                     case "cookie": light.cookie = (Texture)ResolveAsset(typeof(Texture), value, context); return true;
                 }

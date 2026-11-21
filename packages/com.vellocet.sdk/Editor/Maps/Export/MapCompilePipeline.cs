@@ -247,6 +247,19 @@ namespace Vellocet.Sdk.Editor.Maps
                             out var message))
                         return MapCompilePassResult.Fail(message);
 
+                    if (ctx.Options?.CompressLightmaps is bool compress)
+                    {
+                        // Clone the shared quality preset into this map's generated output.
+                        var local = UnityEngine.Object.Instantiate(Lightmapping.lightingSettings);
+                        local.lightmapCompression = compress ? LightmapCompression.NormalQuality : LightmapCompression.None;
+                        var path = System.IO.Path.ChangeExtension(ctx.Scene.path, null) + "_LightingSettings.asset";
+                        var existing = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
+                        if (existing) { EditorUtility.CopySerialized(local, existing); UnityEngine.Object.DestroyImmediate(local); local = existing; }
+                        else AssetDatabase.CreateAsset(local, path);
+                        AssetDatabase.SaveAssetIfDirty(local);
+                        Lightmapping.lightingSettings = local;
+                        settingsPath = path;
+                    }
                     ctx.Receipt.lightingSettingsPath = settingsPath ?? string.Empty;
                     EditorSceneManager.MarkSceneDirty(ctx.Scene);
                     return MapCompilePassResult.Pass(message);

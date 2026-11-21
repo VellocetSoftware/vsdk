@@ -8,6 +8,8 @@
 
 ## Unreleased
 
+- Add Vertex probe adjustment volumes, authored light shadow and indirect controls, ambient HDR scaling, and per-map lightmap compression overrides.
+
 - World text uses native Best Fit. Auto-sized labels require Advanced Text Generator in UI Toolkit project settings.
 
 - Cache absent VSig map sources across hierarchy edits, invalidate on project/import/Undo changes, and cover missing-source recovery.

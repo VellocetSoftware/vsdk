@@ -76,6 +76,47 @@ namespace Vellocet.Sdk.Editor.Tests
             Assert.That(light.gameObject.activeSelf, Is.False);
         }
 
+        [TestCase(LightShadows.None)]
+        [TestCase(LightShadows.Hard)]
+        [TestCase(LightShadows.Soft)]
+        public void AuthoredLightControlsReachUnity(LightShadows shadows)
+        {
+            var catalog = VertexEntityCatalogExporter.Create();
+            var definition = catalog.Entities.Single(e => e.Id == "env_light");
+            Assert.That(Convert.ToInt32(definition.Properties.Single(p => p.Id == "shadow_mode").DefaultValue), Is.EqualTo(1));
+            foreach (var id in new[] { "shadow_mode", "bounce_intensity", "shadow_strength" })
+                Assert.That(definition.Properties.Single(p => p.Id == id).Hidden, Is.False);
+            var map = new MapAsset { MapId = Guid.NewGuid(), MetersPerUnit = 1, Containers = new[]
+            {
+                new MapContainer { Id = Guid.NewGuid(), Name = "Light", Entity = new MapEntity
+                { SdkId = catalog.SdkId, TypeId = "env_light", Properties = new[]
+                { Value("shadows", true), Value("shadow_mode", (int)shadows), Value("bounce_intensity", 2d), Value("shadow_strength", .35d) } } }
+            } };
+            using var result = VertexMapBuilder.Build(map, (_, _) => null);
+            var light = result.Root.GetComponentInChildren<Light>(true);
+            Assert.That(light.shadows, Is.EqualTo(shadows));
+            Assert.That(light.bounceIntensity, Is.EqualTo(2));
+            Assert.That(light.shadowStrength, Is.EqualTo(.35f));
+        }
+
+        [Test]
+        public void ProbeExclusionVolumesUseMetresAndSurviveSceneCapture()
+        {
+            var catalog = VertexEntityCatalogExporter.Create();
+            Assert.That(catalog.Entities.Any(e => e.Id == "env_probe_adjustment"), Is.True);
+            var map = new MapAsset { MapId = Guid.NewGuid(), MetersPerUnit = .0254, Containers = new[]
+            {
+                new MapContainer { Id = Guid.NewGuid(), Name = "Excluded probes", Entity = new MapEntity
+                { SdkId = catalog.SdkId, TypeId = "env_probe_adjustment", Size = new Vector3Data(100, 50, 25) } }
+            } };
+            using var result = VertexMapBuilder.Build(map, (_, _) => null);
+            var marker = result.Root.GetComponentInChildren<ProbeAdjustmentMarker>(true);
+            var volume = marker.GetComponent<UnityEngine.Rendering.ProbeAdjustmentVolume>();
+            Assert.That(volume.mode, Is.EqualTo(UnityEngine.Rendering.ProbeAdjustmentVolume.Mode.InvalidateProbes));
+            Assert.That(Vector3.Distance(volume.size, new Vector3(2.54f, 1.27f, .635f)), Is.LessThan(.0001f));
+            Assert.That(Vector3.Distance(marker.BoundsSize, volume.size), Is.LessThan(.0001f));
+        }
+
         private static EntityPropertyValue Value(string id, object value) => new() { Id = id, Value = value };
 
         [Test]

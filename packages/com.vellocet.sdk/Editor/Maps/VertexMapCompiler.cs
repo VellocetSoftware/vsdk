@@ -215,7 +215,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 MapCompilationReceipt.VertexContentKind, outputPath, new MapCompiler.CompileOptions
                 {
                     LightmapQuality = VertexBakePolicy.Quality(lightmaps), BakePolicy = context.Job.Game.Baking,
-                    RequireNonDevelopmentBuild = true,
+                    RequireNonDevelopmentBuild = true, CompressLightmaps = map.Environment?.CompressLightmaps,
                     SkipLightingBake = lightmaps == "None", SkipSpatialOctreeBake = false,
                     SyncBakedArtifactsToAuthoring = false, FinalizeLegacyGeometry = false,
                     ScriptSource = AssetDatabase.LoadAssetAtPath<TextAsset>(context.Job.Script),

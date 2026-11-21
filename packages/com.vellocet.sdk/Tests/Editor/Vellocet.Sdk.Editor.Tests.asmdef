@@ -17,6 +17,7 @@
     "Unity.ResourceManager",
     "Vellocet.Spatial",
     "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.RenderPipelines.Core.Runtime",
     "Vellocet.Foundation.Editor"
   ],
   "optionalUnityReferences": [

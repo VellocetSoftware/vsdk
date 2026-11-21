@@ -742,7 +742,7 @@ namespace Vellocet.Sdk.Editor.Maps
                     : lightObject.AddComponent<Light>();
                 directionalLight.type = LightType.Directional;
                 directionalLight.intensity = 1f;
-                directionalLight.shadows = LightShadows.Soft;
+                directionalLight.shadows = LightShadows.Hard;
                 lightObject.transform.rotation = DefaultDirectionalLightRotation;
                 touched?.Add($"Created {DirectionalLightName}");
                 return directionalLight;

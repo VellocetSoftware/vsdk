@@ -565,6 +565,7 @@ namespace Vellocet.Sdk.Editor.Maps
             public MapLightmapQuality LightmapQuality { get; set; } = MapLightmapQuality.Medium;
             public bool RequireNonDevelopmentBuild { get; set; }
             public bool SkipLightingBake { get; set; }
+            public bool? CompressLightmaps { get; set; }
             public bool SkipSpatialOctreeBake { get; set; }
             public bool ConfigureToolVisuals { get; set; } = true;
             public bool PruneGeneratedMeshes { get; set; } = true;

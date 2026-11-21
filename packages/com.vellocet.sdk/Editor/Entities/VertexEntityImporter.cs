@@ -129,6 +129,12 @@ namespace Vellocet.Sdk.Editor.Entities
                         (light.RequiresRuntimeEntity || light.Effect != LightMarker.LightEffect.None))
                         throw new InvalidDataException("Area lights are baked-only and cannot use scripting or effects. Choose Point or Spot.");
                     if (marker is LabelMarker label) label.CaptureVertexLabel();
+                    if (marker is ProbeAdjustmentMarker)
+                    {
+                        var volume = marker.gameObject.AddComponent<UnityEngine.Rendering.ProbeAdjustmentVolume>();
+                        volume.mode = UnityEngine.Rendering.ProbeAdjustmentVolume.Mode.InvalidateProbes;
+                        volume.size = ((ProbeAdjustmentMarker)marker).BoundsSize;
+                    }
                     if (marker is DecalMarker decal)
                     {
                         if (!decal.Material || !float.IsFinite(decal.Opacity) || decal.Opacity is < 0 or > 1 ||

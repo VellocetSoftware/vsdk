@@ -59,6 +59,7 @@ namespace Vellocet.Sdk.Editor.Maps
             ["Unity.AI.Navigation.NavMeshModifierVolume"] = "Unity.AI.Navigation",
             ["Unity.AI.Navigation.NavMeshLink"] = "Unity.AI.Navigation",
             ["UnityEngine.Rendering.Volume"] = "Unity.RenderPipelines.Core.Runtime",
+            ["UnityEngine.Rendering.ProbeAdjustmentVolume"] = "Unity.RenderPipelines.Core.Runtime",
             ["UnityEngine.Rendering.ProbeVolume"] = "Unity.RenderPipelines.Core.Runtime",
             ["UnityEngine.Rendering.ProbeVolumePerSceneData"] = "Unity.RenderPipelines.Core.Runtime",
             ["UnityEngine.Rendering.Universal.DecalProjector"] = "Unity.RenderPipelines.Universal.Runtime",

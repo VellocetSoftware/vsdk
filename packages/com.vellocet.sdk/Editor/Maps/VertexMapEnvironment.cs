@@ -34,7 +34,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 sun.color = Color(settings.SunColor);
                 // Keep the scene's required sun present; zero intensity authors an unlit/night sky.
                 sun.intensity = (float)settings.SunIntensity;
-                sun.shadows = settings.SunShadows ? LightShadows.Soft : LightShadows.None;
+                sun.shadows = settings.SunShadows ? LightShadows.Hard : LightShadows.None;
                 if (settings.SunUsePipelineBias.HasValue) sun.GetUniversalAdditionalLightData().usePipelineSettings = settings.SunUsePipelineBias.Value;
                 sun.lightmapBakeType = settings.SunLighting == "Baked" ? LightmapBakeType.Baked :
                     settings.SunLighting == "Mixed" ? LightmapBakeType.Mixed : LightmapBakeType.Realtime;
@@ -43,11 +43,11 @@ namespace Vellocet.Sdk.Editor.Maps
                 RenderSettings.skybox = sky;
                 RenderSettings.ambientMode = settings.AmbientMode == "Gradient" ? AmbientMode.Trilight :
                     settings.AmbientMode == "Skybox" ? AmbientMode.Skybox : AmbientMode.Flat;
-                RenderSettings.ambientSkyColor = Color(settings.AmbientSkyColor);
-                RenderSettings.ambientEquatorColor = Color(settings.AmbientEquatorColor);
-                RenderSettings.ambientGroundColor = Color(settings.AmbientGroundColor);
+                RenderSettings.ambientSkyColor = Color(settings.AmbientSkyColor) * (float)settings.AmbientIntensity;
+                RenderSettings.ambientEquatorColor = Color(settings.AmbientEquatorColor) * (float)settings.AmbientIntensity;
+                RenderSettings.ambientGroundColor = Color(settings.AmbientGroundColor) * (float)settings.AmbientIntensity;
                 RenderSettings.ambientIntensity = (float)settings.AmbientIntensity;
-                if (settings.AmbientMode == "Flat") RenderSettings.ambientLight = Color(settings.AmbientColor);
+                if (settings.AmbientMode == "Flat") RenderSettings.ambientLight = Color(settings.AmbientColor) * (float)settings.AmbientIntensity;
                 RenderSettings.fog = settings.FogMode != "Off";
                 RenderSettings.fogMode = settings.FogMode == "Linear" ? FogMode.Linear :
                     settings.FogMode == "Exponential" ? FogMode.Exponential : FogMode.ExponentialSquared;

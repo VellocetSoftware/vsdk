@@ -62,14 +62,14 @@ namespace Vellocet.Sdk.Editor.Tests
                          "soft_shadow_quality", "custom_shadow_layers", "urp_rendering_layers", "shadow_rendering_layers",
                          "shadow_bias", "shadow_normal_bias", "shadow_near_plane", "culling_mask", "rendering_layer_mask" })
                 Assert.That(fields.Single(field => field.Id == id).Hidden, Is.True, id);
-            foreach (var id in new[] { "light_type", "color", "intensity", "range", "spot_angle", "shadows" })
+            foreach (var id in new[] { "light_type", "color", "intensity", "range", "spot_angle", "shadows", "shadow_mode", "bounce_intensity", "shadow_strength" })
                 Assert.That(fields.Single(field => field.Id == id).Hidden, Is.False, id);
             foreach (var enabled in new[] { false, true })
             {
                 map.Containers[0].Entity.Properties = new[] { Value("shadow_mode", enabled ? 0 : 2), Value("shadows", enabled) };
                 using var toggled = VertexMapBuilder.Build(map, (_, _) => null);
                 Assert.That(toggled.Root.GetComponentInChildren<Light>(true).shadows,
-                    Is.EqualTo(enabled ? LightShadows.Soft : LightShadows.None), "Cast shadows overrides the imported mode.");
+                    Is.EqualTo(LightShadows.None), "Either disabled shadow control turns off shadows.");
             }
         }
 

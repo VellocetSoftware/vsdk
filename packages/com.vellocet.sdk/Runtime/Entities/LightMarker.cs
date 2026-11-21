@@ -49,7 +49,7 @@ namespace Vellocet.Sdk.Entities
         {
             var light = GetComponent<Light>();
             light.type = LightType.Point;
-            light.shadows = LightShadows.Soft;
+            light.shadows = LightShadows.Hard;
             ApplyLighting();
         }
 
