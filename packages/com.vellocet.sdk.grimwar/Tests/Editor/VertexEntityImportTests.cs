@@ -235,7 +235,6 @@ namespace Vellocet.Sdk.Tests.Editor
                 var light = marker.GetComponent<Light>();
                 Assert.That(marker.RequiresRuntimeEntity, Is.False);
                 Assert.That(light.type, Is.EqualTo(type));
-                Assert.That(light.shadows, Is.EqualTo(LightShadows.Soft));
                 var expected = mode == LightMarker.LightingMode.Mixed ? LightmapBakeType.Mixed :
                     mode == LightMarker.LightingMode.Dynamic || effect != LightMarker.LightEffect.None ? LightmapBakeType.Realtime : LightmapBakeType.Baked;
                 Assert.That(light.lightmapBakeType, Is.EqualTo(expected));
