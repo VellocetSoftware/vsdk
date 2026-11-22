@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Vellocet.Sdk.Entities;
 using Vellocet.Sdk.Entities.Base;
 using Object = UnityEngine.Object;
 
@@ -420,6 +421,13 @@ namespace Vellocet.Sdk.Editor.Maps
 
             if (started)
             {
+                var missingProbe = MapSceneTraversalUtility.GetComponents<ReflectionProbeMarker>(scene)
+                    .FirstOrDefault(marker => marker.isActiveAndEnabled && !marker.GetComponent<ReflectionProbe>().bakedTexture);
+                if (missingProbe)
+                {
+                    message = $"Reflection probe zone '{missingProbe.name}' produced no baked texture.";
+                    return false;
+                }
                 EditorSceneManager.MarkSceneDirty(scene);
                 message = "Lighting bake completed.";
                 return true;

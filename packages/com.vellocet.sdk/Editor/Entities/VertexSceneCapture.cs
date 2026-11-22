@@ -85,7 +85,8 @@ namespace Vellocet.Sdk.Editor.Entities
                         if (!marker.enabled) node.State = (node.State ?? new MapObjectState()) with { MarkerDisabled = true };
                         consumed.Add(marker);
                         foreach (var companion in go.GetComponents<Component>().Where(c => c &&
-                            (c is Light && marker is ILightEntityMarker || c is SplineContainer && marker is ISplineEntityMarker ||
+                            (c is Light && marker is ILightEntityMarker || c is ReflectionProbe && marker is ReflectionProbeMarker ||
+                             c is SplineContainer && marker is ISplineEntityMarker ||
                              c is Collider && marker is IBoundedEntityMarker || c.GetType().Name is "AnivDoorSettings" or "WorldText" or "SurfaceProvider")))
                             consumed.Add(companion);
                     }

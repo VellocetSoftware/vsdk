@@ -8,6 +8,8 @@
 
 ## Unreleased
 
+- Add Vertex Reflection Probe Zones with metre-correct bounds, editable capture settings, native baked cubemaps, and scene-capture round trips.
+
 - Supply the probe adjustment entity icon and keep lighting lifecycle tests independent of the authoring shadow default.
 
 - Preserve the game-owned damage type ID and inspector attribute on TriggerHurtMarker already adopted by Grimwar.
