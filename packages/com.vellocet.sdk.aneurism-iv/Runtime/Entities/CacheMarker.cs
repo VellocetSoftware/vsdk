@@ -10,7 +10,7 @@ namespace Vellocet.Sdk.Aneurism.Entities
     [EntityAuthoring("Shipping", EntityPlacementKind.Point, "Supply Cache")]
     public sealed class CacheMarker : OperationEntityMarker
     {
-        public enum Kind { Cache, Supplier }
+        public enum Kind { Cache, Supplier, Core, Detonator, Receiver, Casing }
         public enum WorldEvent { None, Wartime, LimitationOrder, Rotting, Lost, Darkness }
         public enum SupplyType { Instance, Inventory }
 
