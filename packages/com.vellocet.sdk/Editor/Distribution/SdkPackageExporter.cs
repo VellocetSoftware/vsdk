@@ -342,7 +342,7 @@ namespace Vellocet.Sdk.Editor.Distribution
 
         private static IEnumerable<string> EnumeratePackageFiles(string packageRootAbsolute)
         {
-            var rootWithSeparator = EnsureTrailingSeparator(Path.GetFullPath(packageRootAbsolute));
+            var rootWithSeparator = SdkArtifactPathUtility.EnsureTrailingSeparator(Path.GetFullPath(packageRootAbsolute));
             foreach (var file in Directory.EnumerateFiles(packageRootAbsolute, "*", SearchOption.AllDirectories))
             {
                 var relative = file[rootWithSeparator.Length..];
@@ -411,20 +411,8 @@ namespace Vellocet.Sdk.Editor.Distribution
 
         private static string ToRelativePath(string rootAbsolute, string fileAbsolute)
         {
-            var root = EnsureTrailingSeparator(Path.GetFullPath(rootAbsolute));
+            var root = SdkArtifactPathUtility.EnsureTrailingSeparator(Path.GetFullPath(rootAbsolute));
             return Path.GetFullPath(fileAbsolute)[root.Length..].Replace('\\', '/');
-        }
-
-        private static string EnsureTrailingSeparator(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-                return string.Empty;
-
-            if (path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal) ||
-                path.EndsWith(Path.AltDirectorySeparatorChar.ToString(), StringComparison.Ordinal))
-                return path;
-
-            return path + Path.DirectorySeparatorChar;
         }
 
         [Serializable]

@@ -133,7 +133,7 @@ is the public documentation. The [license](LICENSE.txt) permits commercial and
 noncommercial use with Vellocet credit. Modification is prohibited. Redistribution is
 limited to unmodified runtime components in compiled form inside finished projects,
 as set out in the license.
-The Monda font license is in `src/VSDK/Assets/Fonts/OFL.txt`.
+The Unity editor package includes the [Monda font license](packages/com.vellocet.sdk/Editor/Fonts/OFL.txt).
 
 `src/VSDK` contains the launcher and setup UI; `scripts` contains toolkit packaging.
 Generated builds live in ignored `artifacts/`. TeamCity configuration lives in the

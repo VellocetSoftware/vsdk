@@ -20,7 +20,7 @@ namespace Vellocet.Sdk.Editor.VSig
         public static EntityMarker[] GetSceneMarkers(Scene scene, bool includeInactive)
         {
             var mode = includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude;
-            var all = Object.FindObjectsByType<EntityMarker>(mode, FindObjectsSortMode.None);
+            var all = Object.FindObjectsByType<EntityMarker>(mode);
             var result = new List<(EntityMarker Marker, string Path)>(all.Length);
             for (var i = 0; i < all.Length; i++)
             {

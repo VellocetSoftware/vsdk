@@ -85,7 +85,7 @@ namespace Vellocet.Sdk.Editor.VSig
 
         private static EntityMarker[] CollectMarkers(Scene scene)
         {
-            var markers = Object.FindObjectsByType<EntityMarker>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var markers = Object.FindObjectsByType<EntityMarker>(FindObjectsInactive.Include);
             return Array.FindAll(markers,
                 marker => marker && marker.gameObject.scene.handle == scene.handle);
         }

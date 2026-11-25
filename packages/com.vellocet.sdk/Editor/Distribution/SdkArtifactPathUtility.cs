@@ -1,19 +1,13 @@
 using System;
 using System.IO;
 using UnityEngine;
+using Vellocet.Sdk.Utilities;
 
 namespace Vellocet.Sdk.Editor.Distribution
 {
     public static class SdkArtifactPathUtility
     {
-        public static string NormalizeRepositoryRelative(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                return string.Empty;
-
-            var normalized = value.Replace('\\', '/').Trim().TrimStart('/');
-            return normalized.Contains("..", StringComparison.Ordinal) ? string.Empty : normalized;
-        }
+        public static string NormalizeRepositoryRelative(string value) => SdkContentPathUtility.NormalizeProjectRelative(value);
 
         public static string GetRepositoryRoot()
         {
@@ -49,7 +43,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 throw new InvalidOperationException($"Path is outside repository root: {absolutePath}");
         }
 
-        private static string EnsureTrailingSeparator(string path)
+        internal static string EnsureTrailingSeparator(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return string.Empty;

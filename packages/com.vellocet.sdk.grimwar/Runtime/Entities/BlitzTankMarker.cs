@@ -363,7 +363,7 @@ namespace Vellocet.Sdk.Entities
                 seen.Add(checkpoints[i]);
 
             var all = FindObjectsByType<BlitzCheckpointMarker>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None);
+                FindObjectsInactive.Include);
             for (var i = 0; i < all.Length; i++)
             {
                 var checkpoint = all[i];

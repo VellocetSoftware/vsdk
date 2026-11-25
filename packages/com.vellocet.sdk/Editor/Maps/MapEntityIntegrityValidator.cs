@@ -132,7 +132,7 @@ namespace Vellocet.Sdk.Editor.Maps
                             GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(transform.gameObject);
                         if (missingCount > 0)
                             AddProblem(problems,
-                                $"'{BuildHierarchyPath(transform)}' has {missingCount} missing script component(s)");
+                                $"'{MapSceneUtility.BuildHierarchyPath(transform)}' has {missingCount} missing script component(s)");
                     }
 
                     foreach (var marker in root.GetComponentsInChildren<EntityMarker>(true))
@@ -145,14 +145,14 @@ namespace Vellocet.Sdk.Editor.Maps
                         if (guid == Guid.Empty)
                         {
                             AddProblem(problems,
-                                $"entity marker '{BuildHierarchyPath(marker.transform)}' has no valid GUID");
+                                $"entity marker '{MapSceneUtility.BuildHierarchyPath(marker.transform)}' has no valid GUID");
                             continue;
                         }
 
                         if (entityClassByGuid.TryGetValue(guid, out var previousClass))
                         {
                             AddProblem(problems,
-                                $"entity marker '{BuildHierarchyPath(marker.transform)}' duplicates GUID {guid:N} " +
+                                $"entity marker '{MapSceneUtility.BuildHierarchyPath(marker.transform)}' duplicates GUID {guid:N} " +
                                 $"(previous class '{previousClass}')");
                             continue;
                         }
@@ -245,17 +245,6 @@ namespace Vellocet.Sdk.Editor.Maps
 
             error = "Map scene path is empty.";
             return false;
-        }
-
-        private static string BuildHierarchyPath(Transform transform)
-        {
-            if (!transform)
-                return "<missing>";
-
-            var names = new Stack<string>();
-            for (var current = transform; current; current = current.parent)
-                names.Push(current.name);
-            return string.Join("/", names);
         }
     }
 }

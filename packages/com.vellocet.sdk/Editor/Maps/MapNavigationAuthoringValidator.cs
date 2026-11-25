@@ -95,7 +95,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 {
                     error =
                         $"NavMeshSurface agent type could not be read in '{scenePath}' at " +
-                        $"'{BuildHierarchyPath(surface.transform)}'.";
+                        $"'{MapSceneUtility.BuildHierarchyPath(surface.transform)}'.";
                     return false;
                 }
 
@@ -111,7 +111,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 {
                     error =
                         $"Humanoid NavMeshSurface cannot satisfy the SDK contract: {scenePath} " +
-                        $"('{BuildHierarchyPath(surface.transform)}'): {mismatch}";
+                        $"('{MapSceneUtility.BuildHierarchyPath(surface.transform)}'): {mismatch}";
                     return false;
                 }
 
@@ -125,7 +125,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 {
                     error =
                         $"Compiled Humanoid NavMeshSurface has no baked NavMeshData: {scenePath} " +
-                        $"('{BuildHierarchyPath(surface.transform)}').";
+                        $"('{MapSceneUtility.BuildHierarchyPath(surface.transform)}').";
                     return false;
                 }
 
@@ -182,7 +182,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 if (agentType == null || agentType.propertyType != SerializedPropertyType.Integer)
                 {
                     error =
-                        $"NavMeshSurface at '{BuildHierarchyPath(surface.transform)}' does not expose an " +
+                        $"NavMeshSurface at '{MapSceneUtility.BuildHierarchyPath(surface.transform)}' does not expose an " +
                         "agent-type setting in this AI Navigation package version.";
                     return false;
                 }
@@ -238,17 +238,6 @@ namespace Vellocet.Sdk.Editor.Maps
             }
 
             return surfaces;
-        }
-
-        private static string BuildHierarchyPath(Transform transform)
-        {
-            if (!transform)
-                return "<missing>";
-
-            var names = new Stack<string>();
-            for (var current = transform; current; current = current.parent)
-                names.Push(current.name);
-            return string.Join("/", names);
         }
     }
 }

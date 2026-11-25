@@ -654,7 +654,7 @@ namespace Vellocet.Sdk.Editor.Maps
                         RegisterAddressClaim(
                             claims,
                             entry.key.Trim(),
-                            $"MapBinding:{GetHierarchyPath(binding.transform)}");
+                            $"MapBinding:{MapSceneUtility.BuildHierarchyPath(binding.transform)}");
                     }
                 }
             }
@@ -849,22 +849,6 @@ namespace Vellocet.Sdk.Editor.Maps
 
             lines.Add("Ensure these keys exist in Addressables or as valid asset paths.");
             return string.Join("\n", lines);
-        }
-
-        private static string GetHierarchyPath(Transform transform)
-        {
-            if (!transform)
-                return "<missing>";
-
-            var parts = new Stack<string>();
-            var current = transform;
-            while (current != null)
-            {
-                parts.Push(current.name);
-                current = current.parent;
-            }
-
-            return string.Join("/", parts);
         }
 
         private sealed class RuntimeDependencyResolution

@@ -1005,7 +1005,7 @@ namespace Vellocet.Sdk.Editor.Maps
             return false;
         }
 
-        private static string BuildHierarchyPath(Transform transform)
+        internal static string BuildHierarchyPath(Transform transform)
         {
             if (!transform)
                 return "<missing>";
