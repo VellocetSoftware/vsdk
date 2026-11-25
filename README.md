@@ -40,7 +40,10 @@ profile and `ProjectVersion.txt`.
 
 ## Shared desktop UI
 
-Vellocet Central pins `Vellocet.UI.Avalonia` 0.4.1 from `vendor/nuget`, matching
+For desktop UI changes, use `development-plugin-for-avalonia` alongside `ui-ux-pro-max`
+and follow the Avalonia version pinned in the project.
+
+Vellocet Central pins `Vellocet.UI.Avalonia` 0.7.0 from `vendor/nuget`, matching
 Vertex and Stereoform. `App.axaml` selects the Neutral accent preset for black-and-white controls. Black surfaces,
 control states, system typography and form spacing belong to `vellocet-ui`;
 SDK setup logic and field labels stay here. The setup window uses the shared
