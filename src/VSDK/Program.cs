@@ -9,8 +9,8 @@ internal static class Program
 {
     private static string? _sdk, _vertex;
     internal static string? Map { get; private set; }
-    internal static SetupStatus? InitialSetup { get; private set; }
-    internal static LauncherService Service() => new(new LauncherPaths(AppContext.BaseDirectory, _sdk, _vertex));
+    internal static bool ShowSetup { get; private set; }
+    internal static LauncherService Service(string? manifest = null) => new(new LauncherPaths(AppContext.BaseDirectory, manifest ?? _sdk, _vertex));
     [STAThread]
     public static void Main(string[] args)
     {
@@ -34,10 +34,10 @@ internal static class Program
             catch (Exception error) { Console.Error.WriteLine(error.Message); Environment.ExitCode = 1; }
             return;
         }
+        ShowSetup = args.Contains("--setup") || Map != null || _sdk != null;
         try
         {
-            InitialSetup = Service().SetupStatusAsync().GetAwaiter().GetResult();
-            if (InitialSetup.Ready && Map != null && !args.Contains("--setup"))
+            if (Map != null && !args.Contains("--setup") && Service().SetupStatusAsync().GetAwaiter().GetResult().Ready)
             {
                 Service().OpenVertex(Map);
                 return;

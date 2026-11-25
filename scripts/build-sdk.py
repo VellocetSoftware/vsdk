@@ -59,8 +59,8 @@ def publish_launcher(root, destination, runtime):
     shutil.copy2(root / "src/VSDK/Assets/vellocet-logo.icns", resources / "VSDK.icns")
     with (application / "Contents/Info.plist").open("wb") as output:
         plistlib.dump({
-            "CFBundleIdentifier": "com.vellocet.vsdk", "CFBundleName": "VSDK",
-            "CFBundleDisplayName": "VSDK", "CFBundleExecutable": "VSDK",
+            "CFBundleIdentifier": "com.vellocet.vsdk", "CFBundleName": "Vellocet Central",
+            "CFBundleDisplayName": "Vellocet Central", "CFBundleExecutable": "VSDK",
             "CFBundlePackageType": "APPL", "CFBundleIconFile": "VSDK.icns",
             "CFBundleShortVersionString": "1.0.0", "CFBundleVersion": "1.0.0",
             "NSHighResolutionCapable": True, "NSPrincipalClass": "NSApplication"

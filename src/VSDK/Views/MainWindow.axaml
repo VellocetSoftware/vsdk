@@ -2,11 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="using:Avalonia.Data.Converters"
         x:Class="VSDK.Views.MainWindow" Width="700" Height="650" MinWidth="560" MinHeight="460"
-        Classes="comfortable" Title="SDK" Icon="/Assets/vellocet-logo.ico">
+        Classes="comfortable" Title="Vellocet Central" Icon="/Assets/vellocet-logo.ico">
   <Grid RowDefinitions="Auto,*,Auto">
     <Grid ColumnDefinitions="40,*" ColumnSpacing="16" Margin="24,24,24,16">
       <Image Source="/Assets/vellocet-logo.png" Width="40" Height="40" VerticalAlignment="Center"
-             AutomationProperties.Name="Vellocet SDK" />
+             AutomationProperties.Name="Vellocet Central" />
       <StackPanel Grid.Column="1" Classes="field">
         <TextBlock x:Name="Heading" Text="SDK setup" Classes="display" TextWrapping="Wrap" />
         <TextBlock x:Name="Workflow" Text="Connect your SDK to Vertex." Classes="muted" />

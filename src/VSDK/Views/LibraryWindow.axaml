@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:Vellocet.UI.Avalonia"
+        xmlns:views="using:VSDK.Views"
+        x:Class="VSDK.Views.LibraryWindow" Title="Vellocet Central"
+        Icon="/Assets/vellocet-logo.ico" Classes="comfortable"
+        Width="760" Height="530" MinWidth="470" MinHeight="360">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Classes="statusBar" Padding="{DynamicResource Vellocet.Layout.LibraryHeaderInset}">
+      <StackPanel Orientation="Horizontal" Spacing="{DynamicResource Vellocet.Layout.FormGap}">
+        <Image Source="/Assets/vellocet-logo.png" Width="30" Height="30" />
+        <TextBlock Text="Vellocet Central" Classes="sectionHeading" VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource Vellocet.Layout.LibraryBodyInset}" Classes="form">
+        <TextBlock Text="Your library" Classes="display" Margin="0,0,0,8" />
+        <HeaderedContentControl Classes="libraryEntry" ui:LibraryEntry.Icon="/Assets/vertex-library-icon.png">
+          <HeaderedContentControl.Header>
+            <StackPanel Classes="field">
+              <TextBlock Text="Vertex" Classes="sectionHeading" />
+              <TextBlock Text="Map editor" Classes="muted" />
+            </StackPanel>
+          </HeaderedContentControl.Header>
+          <Button x:Name="OpenEditor" Content="Open Vertex" Classes="primary"
+                  Click="OpenEditorClicked" />
+        </HeaderedContentControl>
+        <TextBlock Text="Game SDKs" Classes="sectionHeading" Margin="0,12,0,0" />
+        <ItemsControl x:Name="SdkList">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="views:LibrarySdk">
+              <HeaderedContentControl Classes="libraryEntry" ui:LibraryEntry.Icon="{Binding Icon}" Margin="0,0,0,8">
+                <HeaderedContentControl.Header>
+                  <StackPanel Classes="field">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="Authoring assets and compiler" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </HeaderedContentControl.Header>
+                <Button Content="Manage SDK"
+                        AutomationProperties.Name="{Binding ActionName}" Click="ManageClicked" />
+              </HeaderedContentControl>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock x:Name="EmptyLibrary" Text="Install a game SDK through Steam to add it to your library."
+                   Classes="muted" TextWrapping="Wrap" IsVisible="False" />
+      </StackPanel>
+    </ScrollViewer>
+    <TextBlock Grid.Row="2" x:Name="LibraryStatus" Margin="{DynamicResource Vellocet.Layout.LibraryStatusInset}" TextWrapping="Wrap" IsVisible="False" />
+  </Grid>
+</Window>

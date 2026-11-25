@@ -106,15 +106,22 @@ internal sealed class LauncherService(LauncherPaths paths)
     public void OpenVertex(string? map = null, string? game = null)
     {
         Inspect();
+        StartVertex(map, game, Paths.Manifest);
+    }
+
+    public void OpenEditor() => StartVertex(null, null, Paths.Manifests.Length == 1 ? Paths.Manifest : null);
+
+    private void StartVertex(string? map, string? game, string? manifest)
+    {
         var start = new ProcessStartInfo(Paths.VertexApplication == null ? Paths.VertexExecutable : "/usr/bin/open")
-            { UseShellExecute = false, WorkingDirectory = Paths.InstallRoot };
+            { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(manifest ?? Paths.VertexExecutable)! };
         if (Paths.VertexApplication is { } application)
         {
             start.RedirectStandardError = true;
             start.ArgumentList.Add("-n"); start.ArgumentList.Add("-a"); start.ArgumentList.Add(application);
             start.ArgumentList.Add("--args");
         }
-        start.ArgumentList.Add("--sdk"); start.ArgumentList.Add(Paths.Manifest);
+        if (manifest != null) { start.ArgumentList.Add("--sdk"); start.ArgumentList.Add(manifest); }
         if (!string.IsNullOrWhiteSpace(game)) { start.ArgumentList.Add("--game"); start.ArgumentList.Add(game); }
         if (map != null) { start.ArgumentList.Add("--map"); start.ArgumentList.Add(Path.GetFullPath(map)); }
         using var process = Process.Start(start) ?? throw new IOException("Vertex could not start.");

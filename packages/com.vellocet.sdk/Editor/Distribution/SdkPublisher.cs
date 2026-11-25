@@ -54,6 +54,8 @@ namespace Vellocet.Sdk.Editor.Distribution
         protected virtual IEnumerable<string> DeveloperCompilerInputs => Array.Empty<string>();
         protected virtual string DeveloperAuthoringCache => null;
 
+        private static string LibraryIconPath => SdkArtifactPathUtility.ToAbsolutePath("Vertex/library-icon.png");
+
         private string DeveloperFingerprint() => DeveloperSources().CurrentFingerprint(Hash);
 
         private CompilerSourceInputs DeveloperSources()
@@ -68,6 +70,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 .Concat(DeveloperCompilerInputs).Select(Path.GetFullPath).ToList();
             roots.AddRange(PackageInfo.GetAllRegisteredPackages().Where(package => package.source != PackageSource.BuiltIn)
                 .Select(package => Path.GetFullPath(package.resolvedPath)));
+            if (File.Exists(LibraryIconPath)) roots.Add(LibraryIconPath);
             roots.Add(Path.GetFullPath("Packages/manifest.json"));
             var inputs = new CompilerSourceInputs { Paths = roots.Distinct(StringComparer.Ordinal).ToArray(), ScriptRoot = Path.GetFullPath("Assets") };
             var prior = SdkArtifactPathUtility.ToAbsolutePath(DistributionRoot + "/DeveloperSDK/developer-source.json");
@@ -87,23 +90,30 @@ namespace Vellocet.Sdk.Editor.Distribution
             var toolchain = toolsRoot == null ? new JObject() : JObject.Parse(File.ReadAllText(Path.Combine(toolsRoot, "toolchain.json")));
             if (toolsRoot != null) ValidateTools(toolsRoot);
             toolchain[SdkGame.Current.Id] = SourceRevision();
-            var name = SdkGame.Current.DisplayName.Replace(' ', '_');
+            var displayName = SdkGame.Current.DisplayName;
+            if (string.IsNullOrWhiteSpace(displayName) || displayName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+                displayName.Contains('/') || displayName.Contains('\\'))
+                throw new InvalidDataException("The game display name must be a valid folder name.");
+            var name = displayName.Replace(' ', '_');
             progress?.Invoke("Preparing the game's SDK content…");
             var profile = EnsureAssetProfile();
             var sourceInputs = toolsRoot == null ? DeveloperSources() : null;
             if (sourceInputs != null) sourceInputs.Fingerprint = sourceInputs.CurrentFingerprint(Hash);
             var stage = output + ".staging-" + Guid.NewGuid().ToString("N");
+            var relativeSdk = toolsRoot == null ? "" : Path.Combine("Apps", displayName + " SDK");
+            var sdkRoot = Path.Combine(stage, relativeSdk);
             var previous = output + ".previous";
             try
             {
-                Directory.CreateDirectory(stage);
+                Directory.CreateDirectory(sdkRoot);
+                if (File.Exists(LibraryIconPath)) File.Copy(LibraryIconPath, Path.Combine(sdkRoot, "library-icon.png"));
                 // Reuse the developer connection's current previews before considering the previous SDK's cache.
                 var authoringCache = toolsRoot == null && DeveloperAuthoringCache != null
                     ? SdkArtifactPathUtility.ToAbsolutePath(DeveloperAuthoringCache) : null;
-                if (authoringCache == null || !Directory.Exists(authoringCache)) authoringCache = output + "/Authoring";
-                if (Directory.Exists(authoringCache)) CopyTree(authoringCache, stage + "/Authoring");
-                var content = stage + "/Content";
-                var compiler = stage + "/Compiler";
+                if (authoringCache == null || !Directory.Exists(authoringCache)) authoringCache = Path.Combine(output, relativeSdk, "Authoring");
+                if (Directory.Exists(authoringCache)) CopyTree(authoringCache, sdkRoot + "/Authoring");
+                var content = sdkRoot + "/Content";
+                var compiler = sdkRoot + "/Compiler";
                 var package = compiler + "/Packages/com.vellocet.sdk";
                 progress?.Invoke("Exporting SDK-owned content for the add-on compiler…");
                 var exported = SdkContentExporter.ExportToOutputRoot(SdkArtifactPathUtility.ToRepositoryRelativePath(content));
@@ -147,7 +157,7 @@ namespace Vellocet.Sdk.Editor.Distribution
 
                 Directory.CreateDirectory(compiler + "/Assets/CustomContent");
                 File.WriteAllText(compiler + "/Assets/CustomContent/.keep", "");
-                var gamePath = stage + "/Authoring/" + name + ".vertexgame";
+                var gamePath = sdkRoot + "/Authoring/" + name + ".vertexgame";
                 Directory.CreateDirectory(Path.GetDirectoryName(gamePath));
                 progress?.Invoke("Publishing compiler authoring catalogs…");
                 var game = ExportGameProfile(profile, gamePath);
@@ -162,7 +172,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 // Developer preparation needs the compiler, not copies of every desktop distribution.
                 if (toolsRoot != null)
                 {
-                    CopyTree(Path.Combine(toolsRoot, "Editor"), stage + "/Editor");
+                    CopyTree(Path.Combine(toolsRoot, "Editor"), stage + "/Apps/Vertex");
                     CopyTree(Path.Combine(toolsRoot, "Launcher"), stage + "/Launcher");
                 }
                 File.WriteAllText(stage + "/toolchain.json", toolchain.ToString());
@@ -172,8 +182,8 @@ namespace Vellocet.Sdk.Editor.Distribution
                     .Select(path => new BuildFile { Path = Path.GetRelativePath(compiler, path).Replace('\\', '/'),
                         Bytes = new FileInfo(path).Length, Sha256 = Hash(path) }).OrderBy(file => file.Path, StringComparer.Ordinal).ToArray() };
                 inventory.Validate();
-                File.WriteAllBytes(stage + "/Compiler.inputs.json", BuildProtocol.Serialize(inventory));
-                File.WriteAllBytes(stage + "/" + name + ".vertexsdk", new SdkInstallation
+                File.WriteAllBytes(sdkRoot + "/Compiler.inputs.json", BuildProtocol.Serialize(inventory));
+                File.WriteAllBytes(sdkRoot + "/" + name + ".vertexsdk", new SdkInstallation
                 {
                     Game = new ProfileReference { Id = game.Id, Version = game.Version, Path = "Authoring/" + name + ".vertexgame" },
                     CompilerProject = "Compiler", CompilerInputs = "Compiler.inputs.json",
@@ -182,7 +192,7 @@ namespace Vellocet.Sdk.Editor.Distribution
                 if (sourceInputs != null)
                 {
                     if (sourceInputs.CurrentFingerprint(Hash) != sourceInputs.Fingerprint) throw new CompilerInputsChangedException();
-                    File.WriteAllBytes(stage + "/developer-source.json", BuildProtocol.Serialize(sourceInputs));
+                    File.WriteAllBytes(sdkRoot + "/developer-source.json", BuildProtocol.Serialize(sourceInputs));
                 }
                 if (Directory.Exists(previous)) Directory.Delete(previous, true);
                 if (Directory.Exists(output)) Directory.Move(output, previous);

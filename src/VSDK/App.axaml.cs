@@ -53,7 +53,9 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(Program.Service());
+            var service = Program.Service();
+            desktop.MainWindow = Program.ShowSetup && service.Paths.Manifests.Length == 1
+                ? new MainWindow(service) : new LibraryWindow(service);
         }
 
         base.OnFrameworkInitializationCompleted();

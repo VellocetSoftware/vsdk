@@ -1,9 +1,9 @@
-# VSDK
+# Vellocet Central
 
-VSDK sets up a game's SDK and opens Vertex. The complete SDK supplies the editor,
-authoring content, engine packages and a standalone compiler. First launch detects
-the required engine version, accepts an optional installed game location, prepares
-the writable compiler cache and registers the game in Vertex. The launcher offers
+Vellocet Central opens Vertex and manages installed game SDKs. Choose **Open Vertex**
+to start the map editor, or **Manage SDK** beside a game to configure its engine
+and installed game location. Completing setup prepares the writable compiler
+cache and registers the game in Vertex. The launcher offers
 map authoring and the standalone resource types supplied by the game SDK. Modders
 do not create an engine project or copy package paths.
 
@@ -15,7 +15,8 @@ game checkout through Unity's **Tools → Vellocet → SDK → Open Vertex Map E
 **Save to Unity** and play in that editor.
 
 These choices come from the game's profile and SDK connection. Studios can expose
-an editor project publicly when their game permits it. VSDK discovers any single
+an editor project publicly when their game permits it. The library lists SDK manifests
+from each direct child of `Apps/`. For older distributions and development checkouts it also discovers a
 `.vertexsdk` beside or above the launcher, including a repository's `Vertex/`
 folder. `--sdk` accepts a manifest, the `Vertex/` folder, or the repository root;
 select a manifest explicitly when several exist. Developer connections use a local
@@ -39,8 +40,8 @@ profile and `ProjectVersion.txt`.
 
 ## Shared desktop UI
 
-The launcher pins `Vellocet.UI.Avalonia` 0.3.0 from `vendor/nuget`, matching
-Vertex and Stereoform. `App.axaml` selects the Red accent preset. Black surfaces,
+Vellocet Central pins `Vellocet.UI.Avalonia` 0.4.1 from `vendor/nuget`, matching
+Vertex and Stereoform. `App.axaml` selects the Neutral accent preset for black-and-white controls. Black surfaces,
 control states, system typography and form spacing belong to `vellocet-ui`;
 SDK setup logic and field labels stay here. The setup window uses the shared
 `comfortable` density. Update the immutable package and checksum together.
@@ -89,18 +90,24 @@ artifact and publishes `vsdk-tools.zip`. Grimwar consumes the toolkit and Unity
 package from the same chain, exports its approved content and atomically publishes:
 
 ```text
-Grimwar.vertexsdk
-Compiler.inputs.json
-Compiler/
-Compiler/VertexTools/<runtime-id>/    game-owned resource tools and public API
-Authoring/
-Editor/win-x64/Vertex.exe
-Editor/osx-<architecture>/Vertex.app/
+Apps/Grimwar SDK/Grimwar.vertexsdk
+Apps/Grimwar SDK/library-icon.png
+Apps/Grimwar SDK/Compiler.inputs.json
+Apps/Grimwar SDK/Compiler/
+Apps/Grimwar SDK/Compiler/VertexTools/<runtime-id>/
+Apps/Grimwar SDK/Authoring/
+Apps/Vertex/win-x64/Vertex.exe
+Apps/Vertex/osx-<architecture>/Vertex.app/
 Launcher/win-x64/VSDK.exe
 Launcher/osx-<architecture>/VSDK.app/
 toolchain.json
 LICENSE.txt
 ```
+
+The Grimwar SDK Steam depot includes Central, Vertex and the Grimwar SDK together. Steam installs and updates all three. Each game SDK owns its profile, authoring assets and compiler under its own directory in `Apps/`.
+Central displays the optional `library-icon.png` next to each SDK manifest. The exporter takes it from the game repository’s `Vertex/library-icon.png`.
+When upgrading a flat installation, maps pinned to its previous manifest can be
+reconnected in Vertex by locating `Apps/Grimwar SDK/Grimwar.vertexsdk` for the missing connection.
 
 The runtimes are `win-x64`, `osx-arm64`, and `osx-x64`. Both desktop tools ship as
 one bundled Windows executable or a signed macOS application with an icon.

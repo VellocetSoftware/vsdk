@@ -4,6 +4,6 @@
              x:Class="VSDK.App"
              RequestedThemeVariant="Dark">
     <Application.Styles>
-        <ui:VellocetTheme Accent="Red" />
+        <ui:VellocetTheme Accent="Neutral" />
     </Application.Styles>
 </Application>

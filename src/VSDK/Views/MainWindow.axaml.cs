@@ -40,9 +40,10 @@ public partial class MainWindow : Window
         {
             _status = recheck
                 ? await _service.SetupStatusAsync(engine: this.FindControl<TextBox>("EnginePath")!.Text)
-                : Program.InitialSetup ?? await _service.SetupStatusAsync();
-            Title = _status.Name + " SDK";
-            this.FindControl<TextBlock>("Heading")!.Text = Title;
+                : await _service.SetupStatusAsync();
+            var sdkName = _status.Name + " SDK";
+            Title = sdkName + " · Vellocet Central";
+            this.FindControl<TextBlock>("Heading")!.Text = sdkName;
             this.FindControl<TextBlock>("EngineRequirement")!.Text = $"{_status.Engine} {_status.Version} is required to compile maps.";
             this.FindControl<TextBox>("EnginePath")!.Text = _status.EngineExecutable;
             if (!recheck || string.IsNullOrWhiteSpace(this.FindControl<TextBox>("GamePath")!.Text))

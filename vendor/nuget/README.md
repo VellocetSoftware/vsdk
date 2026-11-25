@@ -9,7 +9,7 @@ nuget.org. Keep this archive in source control so a clean checkout is buildable.
 
 | Package | SHA-256 |
 | --- | --- |
-| `Vellocet.UI.Avalonia.0.3.0.nupkg` | `77e3f87c52a4328b649d476c599b5e139340090d2e653273611b53ddd7bbcd8f` |
+| `Vellocet.UI.Avalonia.0.4.1.nupkg` | `9aa6f8605ca34702068d6c2bd9a93d50411275964fdfc99c21e93cfeb4ccfda6` |
 
 Update the archive, exact package reference, lock files (where used) and checksum
 together. Published versions are immutable. The package includes the Vellocet
