@@ -33,10 +33,10 @@ Unity package manifests and both games use this version. SDK compilation and
 build commands check the exact Editor version; SDK export also validates that
 package metadata agrees with the version pin and the running Editor.
 
-VSDK setup displays the engine version from the exported game profile. After an
-Editor requirement changes, refresh the game's Vertex developer connection and
-rebuild its SDK distribution so setup and the isolated compiler receive the new
-profile and `ProjectVersion.txt`.
+Vellocet Central setup displays the engine version from the exported game
+profile. After an Editor requirement changes, refresh the game's Vertex
+developer connection and rebuild its SDK distribution so setup and the isolated
+compiler receive the new profile and `ProjectVersion.txt`.
 
 ## Shared desktop UI
 
@@ -54,8 +54,8 @@ SDK setup logic and field labels stay here. The setup window uses the shared
 Choose a resource type, then **Create** or **Open** its manifest. **Open folder**
 exposes the manifest and source files; **Edit source** opens the default editor.
 Save changes, then **Validate**, **Build**, or **Play in game**. These operations
-use the game SDK's resource tool and do not require engine setup. VSDK has no
-knowledge of VMods, programming languages, or game runtime behavior.
+use the game SDK's resource tool and do not require engine setup. Vellocet
+Central has no knowledge of VMods, programming languages, or game runtime behavior.
 
 Map-bound resources are attached in Vertex and included in the map build. They
 use the same source format and SDK validator as their standalone equivalents.
@@ -63,11 +63,11 @@ use the same source format and SDK validator as their standalone equivalents.
 ## Build and test
 
 ```sh
-dotnet build VSDK.slnx -c Release
+dotnet build Vellocet.Central.slnx -c Release
 python3 -m unittest discover -s scripts -p 'test_*.py'
-dotnet run --project src/VSDK -c Release -- --sdk /path/to/Game.vertexsdk
+dotnet run --project src/Vellocet.Central -c Release -- --sdk /path/to/Game.vertexsdk
 # Check distribution files without opening a window:
-dotnet run --project src/VSDK -c Release -- --check --sdk /path/to/Game.vertexsdk
+dotnet run --project src/Vellocet.Central -c Release -- --check --sdk /path/to/Game.vertexsdk
 ```
 
 `--vertex /path/to/Vertex` (or `/path/to/Vertex.app` on macOS) selects a local editor build. `--map /path/to/Map.vertex`
@@ -115,14 +115,15 @@ reconnected in Vertex by locating `Apps/Grimwar SDK/Grimwar.vertexsdk` for the m
 The runtimes are `win-x64`, `osx-arm64`, and `osx-x64`. Both desktop tools ship as
 one bundled Windows executable or a signed macOS application with an icon.
 Build the toolkit on macOS, which supplies `codesign`.
+The toolkit keeps the executable paths used by existing Steam app configurations.
 Configure Steam's launch paths as `Launcher/win-x64/VSDK.exe`,
 `Launcher/osx-arm64/VSDK.app`, and `Launcher/osx-x64/VSDK.app`.
 Update the macOS launch entries together with the toolkit release; earlier
 toolkits use loose `VSDK` executables.
 The launcher opens the complete macOS app bundle; setup and resource commands use
 its `Contents/MacOS/Vertex` executable without opening a window.
-`toolchain.json` records the Vertex, VSDK and game source revisions. Release the
-complete SDK together; never update just one executable or package inside it.
+`toolchain.json` records the Vertex, Vellocet Central and game source revisions.
+Release the complete SDK together; never update just one executable or package inside it.
 Toolkit `Libraries/` are build inputs for the game's resource worker and are not
 copied into the public game SDK.
 
@@ -138,6 +139,7 @@ limited to unmodified runtime components in compiled form inside finished projec
 as set out in the license.
 The Unity editor package includes the [Monda font license](packages/com.vellocet.sdk/Editor/Fonts/OFL.txt).
 
-`src/VSDK` contains the launcher and setup UI; `scripts` contains toolkit packaging.
+`src/Vellocet.Central` contains the launcher and setup UI. The toolkit packaging
+code lives in `scripts`.
 Generated builds live in ignored `artifacts/`. TeamCity configuration lives in the
 sibling `build-infra` repository.

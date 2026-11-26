@@ -3,7 +3,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace VSDK;
+namespace Vellocet.Central;
 
 internal sealed class LauncherPaths
 {

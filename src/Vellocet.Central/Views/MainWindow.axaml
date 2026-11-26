@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="using:Avalonia.Data.Converters"
-        x:Class="VSDK.Views.MainWindow" Width="700" Height="650" MinWidth="560" MinHeight="460"
+        x:Class="Vellocet.Central.Views.MainWindow" Width="700" Height="650" MinWidth="560" MinHeight="460"
         Classes="comfortable" Title="Vellocet Central" Icon="/Assets/vellocet-logo.ico">
   <Grid RowDefinitions="Auto,*,Auto">
     <Grid ColumnDefinitions="40,*" ColumnSpacing="16" Margin="24,24,24,16">

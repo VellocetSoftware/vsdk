@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:Vellocet.UI.Avalonia"
-        xmlns:views="using:VSDK.Views"
-        x:Class="VSDK.Views.LibraryWindow" Title="Vellocet Central"
+        xmlns:views="using:Vellocet.Central.Views"
+        x:Class="Vellocet.Central.Views.LibraryWindow" Title="Vellocet Central"
         Icon="/Assets/vellocet-logo.ico" Classes="comfortable"
         Width="760" Height="530" MinWidth="470" MinHeight="360">
   <Grid RowDefinitions="Auto,*,Auto">

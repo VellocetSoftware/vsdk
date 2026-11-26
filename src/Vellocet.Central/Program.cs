@@ -3,7 +3,7 @@
 
 using Avalonia;
 
-namespace VSDK;
+namespace Vellocet.Central;
 
 internal static class Program
 {

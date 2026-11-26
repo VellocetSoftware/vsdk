@@ -4,10 +4,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using VSDK.Views;
+using Vellocet.Central.Views;
 using System.Runtime.InteropServices;
 
-namespace VSDK;
+namespace Vellocet.Central;
 
 public partial class App : Application
 {

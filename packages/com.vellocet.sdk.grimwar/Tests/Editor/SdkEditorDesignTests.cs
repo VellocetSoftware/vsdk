@@ -20,7 +20,7 @@ namespace Vellocet.Sdk.Tests
     public sealed class SdkEditorDesignTests
     {
         [Test]
-        public void BrandPalette_MatchesVsdkTokens()
+        public void BrandPalette_MatchesCentralTokens()
         {
             Assert.That(ToHex(SdkEditorStyle.Black), Is.EqualTo("060606"));
             Assert.That(ToHex(SdkEditorStyle.NearBlack), Is.EqualTo("0B0B0B"));

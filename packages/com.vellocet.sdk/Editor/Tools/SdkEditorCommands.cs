@@ -62,7 +62,7 @@ namespace Vellocet.Sdk.Editor.Tools
             if (actions?.BuildDistribution == null) throw new InvalidOperationException("SDK distribution is not registered.");
             var output = EditorUtility.SaveFolderPanel("SDK distribution output", SdkArtifactPathUtility.ToAbsolutePath(actions.DistributionRoot), "");
             if (string.IsNullOrEmpty(output)) return;
-            var tools = EditorUtility.OpenFolderPanel("VSDK tools (contains toolchain.json)", actions.ToolsRoot, "");
+            var tools = EditorUtility.OpenFolderPanel("Vellocet Central toolkit (contains toolchain.json)", actions.ToolsRoot, "");
             if (!string.IsNullOrEmpty(tools)) actions.BuildDistribution(output, tools);
         }
 

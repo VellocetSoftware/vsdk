@@ -5,7 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 
-namespace VSDK.Views;
+namespace Vellocet.Central.Views;
 
 internal sealed record LibrarySdk(string Manifest)
 {

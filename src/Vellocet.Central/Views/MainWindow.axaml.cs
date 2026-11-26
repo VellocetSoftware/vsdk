@@ -6,7 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 
-namespace VSDK.Views;
+namespace Vellocet.Central.Views;
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable",
     Justification = "The setup operation disposes its cancellation source in finally; closing cancels that operation.")]

@@ -16,7 +16,7 @@ for setup, authoring and publishing.
 
 Release map packages require Windows Client, macOS Client and Linux Dedicated Server.
 Keep authored source and built add-ons outside the installed SDK.
-VSDK exposes standalone resources; Vertex attaches resources to maps.
+Vellocet Central exposes standalone resources; Vertex attaches resources to maps.
 
 `com.vellocet.vertex` supplies the shared contracts and VSig runtime. Integration
 documentation and compiler checks live in the Vertex repository's `docs/` folder.

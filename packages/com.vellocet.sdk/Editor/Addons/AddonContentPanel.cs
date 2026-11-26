@@ -192,7 +192,7 @@ namespace Vellocet.Sdk.Editor.Addons
                 SdkEditorGui.DrawInfoRow("Maps", "Export add-ons in Vertex; compile base maps in Unity");
                 SdkEditorGui.DrawInfoRow("Audio pack", "Build cues and audio files from an Add-on Project");
                 SdkEditorGui.DrawInfoRow("VSig", "Name the .vsig file after its scene; it builds with the map");
-                SdkEditorGui.DrawInfoRow("Game resources", "Create and build standalone resources in VSDK");
+                SdkEditorGui.DrawInfoRow("Game resources", "Create and build standalone resources in Vellocet Central");
                 EditorGUILayout.Space(6f);
                 SdkEditorGui.DrawCallout(
                     "Keep source outside generated package folders. Updating content preserves other declared entries.", MessageType.Info);

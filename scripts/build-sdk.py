@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose VSDK and the matching Vertex editors into one reusable SDK toolkit."""
+"""Compose Vellocet Central and the matching Vertex editors into one reusable SDK toolkit."""
 import argparse
 import json
 from pathlib import Path
@@ -39,14 +39,15 @@ def publish_launcher(root, destination, runtime):
     windows = runtime == "win-x64"
     application = destination / "VSDK.app"
     publish = destination if windows else application / "Contents/MacOS"
+    # Preserve the executable paths used by existing game SDK distributions.
     subprocess.run([
-        "dotnet", "publish", "src/VSDK/VSDK.csproj", "-c", "Release", "-r", runtime,
-        "--self-contained", "true", "-p:DebugType=None", "-p:PublishSingleFile=true", "-o", str(publish)
+        "dotnet", "publish", "src/Vellocet.Central/Vellocet.Central.csproj", "-c", "Release", "-r", runtime,
+        "--self-contained", "true", "-p:DebugType=None", "-p:PublishSingleFile=true", "-p:AssemblyName=VSDK", "-o", str(publish)
     ], cwd=root, check=True)
     for symbol in publish.rglob("*.pdb"):
         symbol.unlink()
     executable = publish / ("VSDK.exe" if windows else "VSDK")
-    assert executable.is_file() and executable.stat().st_size > 1_000_000, "Expected a bundled VSDK application."
+    assert executable.is_file() and executable.stat().st_size > 1_000_000, "Expected a bundled Vellocet Central application."
     if windows:
         assert {path.name for path in publish.iterdir()} == {"VSDK.exe"}, "Loose launcher dependencies remain."
         return
@@ -56,7 +57,7 @@ def publish_launcher(root, destination, runtime):
     executable.chmod(0o755)
     resources = application / "Contents/Resources"
     resources.mkdir()
-    shutil.copy2(root / "src/VSDK/Assets/vellocet-logo.icns", resources / "VSDK.icns")
+    shutil.copy2(root / "src/Vellocet.Central/Assets/vellocet-logo.icns", resources / "VSDK.icns")
     with (application / "Contents/Info.plist").open("wb") as output:
         plistlib.dump({
             "CFBundleIdentifier": "com.vellocet.vsdk", "CFBundleName": "Vellocet Central",

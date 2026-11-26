@@ -4,7 +4,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace VSDK;
+namespace Vellocet.Central;
 
 internal sealed class LauncherService(LauncherPaths paths)
 {

@@ -220,7 +220,7 @@ namespace Vellocet.Sdk.Editor.Distribution
             {
                 var path = Path.Combine(toolsRoot, tool);
                 if (!File.Exists(path) || new FileInfo(path).Length == 0)
-                    throw new FileNotFoundException("Incomplete VSDK toolkit: " + path + ". Pass the complete toolkit with -sdkToolsRoot.", path);
+                    throw new FileNotFoundException("Incomplete Vellocet Central toolkit: " + path + ". Pass the complete toolkit with -sdkToolsRoot.", path);
             }
         }
 

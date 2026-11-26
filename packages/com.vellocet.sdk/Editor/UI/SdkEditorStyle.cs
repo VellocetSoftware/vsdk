@@ -21,7 +21,7 @@ namespace Vellocet.Sdk.Editor
 
         private static bool IsDark => EditorGUIUtility.isProSkin;
 
-        // VSDK brand palette. Keep these values in sync with VSDK/App.axaml.
+        // Vellocet Central palette. Keep these values in sync with src/Vellocet.Central/App.axaml.
         public static Color Black => Rgb(0x06, 0x06, 0x06);
         public static Color NearBlack => Rgb(0x0B, 0x0B, 0x0B);
         public static Color Surface => Rgb(0x11, 0x11, 0x11);
