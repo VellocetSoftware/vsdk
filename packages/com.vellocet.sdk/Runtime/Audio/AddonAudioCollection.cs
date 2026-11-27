@@ -8,7 +8,7 @@ namespace Vellocet.Sdk.Audio
 {
     /// <summary>
     ///     Authoring set for exporting ordinary audio files into an existing map or server-mod addon package.
-    ///     The game decodes those files and sends PCM through host-authored Wwise Audio Input events at runtime.
+    ///     The game decodes those files and sends PCM through host-authored Stereoform Audio Input events at runtime.
     /// </summary>
     [CreateAssetMenu(fileName = "AddonAudioCollection", menuName = "Vellocet/SDK/Audio/Audio Collection",
         order = 121)]

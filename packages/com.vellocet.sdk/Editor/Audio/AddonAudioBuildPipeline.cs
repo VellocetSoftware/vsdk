@@ -18,7 +18,7 @@ namespace Vellocet.Sdk.Editor.Audio
 {
     /// <summary>
     ///     Copies author-owned WAV, Ogg Vorbis, or MP3 files into an addon and writes the platform-neutral
-    ///     cue catalog consumed by the game-side Wwise Audio Input bridge.
+    ///     cue catalog consumed by the game-side Stereoform Audio Input bridge.
     /// </summary>
     internal static class AddonAudioBuildPipeline
     {
@@ -149,7 +149,7 @@ namespace Vellocet.Sdk.Editor.Audio
             IReadOnlyList<AddonAudioCue> sourceCues, IReadOnlyList<BuildTarget> successfulTargets,
             out AddonManifest.ContentEntry audioContent, out string error)
         {
-            _ = successfulTargets; // Source audio and its Wwise Audio Input contract are platform-neutral.
+            _ = successfulTargets; // Source audio and its Stereoform Audio Input contract are platform-neutral.
             audioContent = null;
             error = null;
             addonId = AddonIdPolicy.NormalizeOrEmpty(addonId);

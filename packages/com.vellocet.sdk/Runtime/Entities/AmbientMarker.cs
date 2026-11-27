@@ -57,7 +57,7 @@ namespace Vellocet.Sdk.Entities
         public AddonAudioCue CustomCue { get; private set; }
 
         [field: Tooltip(
-            "Emitter radius in metres; default 10. Use 0 for a point source. The Wwise event controls falloff beyond this radius.")]
+            "Emitter radius in metres; default 10. Use 0 for a point source. The Stereoform event controls falloff beyond this radius.")]
         [field: Min(0f)]
         [field: SerializeField]
         public float AudibleDistance { get; private set; } = DefaultAudibleDistance;

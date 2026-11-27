@@ -41,7 +41,7 @@ namespace Vellocet.Sdk.Editor.Entities
                             var row = new VisualElement();
                             var cue = entry.FindPropertyRelative("Cue").objectReferenceValue;
                             row.Add(new Label(cue ? cue.name : entry.FindPropertyRelative("Event").stringValue));
-                            if (SdkGame.Current.AudioRuntimeCapability.StartsWith("wwise", StringComparison.OrdinalIgnoreCase))
+                            if (SdkGame.Current.AudioRuntimeCapability.StartsWith("stereoform-pcm/1", StringComparison.OrdinalIgnoreCase))
                                 row.Add(new PropertyField(entry.FindPropertyRelative("Event"), "Event"));
                             var advanced = new Foldout { text = "Event details", value = false };
                             advanced.Add(new PropertyField(entry));
@@ -82,7 +82,7 @@ namespace Vellocet.Sdk.Editor.Entities
                         Build();
                     });
                     foldout.Add(assign);
-                    if (SdkGame.Current.AudioRuntimeCapability.StartsWith("wwise", StringComparison.OrdinalIgnoreCase) && (sounds == null || sounds.arraySize == 0))
+                    if (SdkGame.Current.AudioRuntimeCapability.StartsWith("stereoform-pcm/1", StringComparison.OrdinalIgnoreCase) && (sounds == null || sounds.arraySize == 0))
                     {
                         var named = new TextField("Event") { isDelayed = true };
                         named.RegisterValueChangedCallback(change =>
@@ -105,7 +105,7 @@ namespace Vellocet.Sdk.Editor.Entities
                             var values = record.FindPropertyRelative("Sounds");
                             values.arraySize = 1;
                             var sound = values.GetArrayElementAtIndex(0);
-                            sound.FindPropertyRelative("Runtime").stringValue = "wwise";
+                            sound.FindPropertyRelative("Runtime").stringValue = "stereoform-pcm/1";
                             sound.FindPropertyRelative("Event").stringValue = change.newValue;
                             sound.FindPropertyRelative("Bank").stringValue = "";
                             sound.FindPropertyRelative("Duration").floatValue = 0;

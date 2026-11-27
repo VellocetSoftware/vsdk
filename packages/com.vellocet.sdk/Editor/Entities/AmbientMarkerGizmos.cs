@@ -60,7 +60,7 @@ namespace Vellocet.Sdk.Editor.Entities
 
             var labelOffset = drawAudibleRadius ? radius : 0.5f;
             var labelPosition = emitterPosition + marker.transform.up * labelOffset;
-            Handles.Label(labelPosition, $"Wwise outer radius  {radius:0.##} m{volumetricState}");
+            Handles.Label(labelPosition, $"Stereoform outer radius  {radius:0.##} m{volumetricState}");
         }
     }
 }

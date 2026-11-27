@@ -18,7 +18,7 @@ namespace Vellocet.Sdk.Editor.Entities
 
         private static readonly GUIContent RefreshContent = EditorGUIUtility.IconContent(
             "Refresh",
-            "Refresh ambient Events from the configured Wwise project.");
+            "Refresh ambient Events from the configured Stereoform project.");
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -102,7 +102,7 @@ namespace Vellocet.Sdk.Editor.Entities
         {
             if (eventNames.Count == 0)
                 return string.IsNullOrWhiteSpace(error)
-                    ? $"No Wwise Events beginning with '{AmbientMarker.EventNamePrefix}' are available."
+                    ? $"No Stereoform Events beginning with '{AmbientMarker.EventNamePrefix}' are available."
                     : error;
 
             if (property.hasMultipleDifferentValues || string.IsNullOrWhiteSpace(property.stringValue))

@@ -13,174 +13,49 @@ using Vellocet.Sdk.Entities;
 
 namespace Vellocet.Sdk.Editor.Entities
 {
-    /// <summary>
-    ///     Discovers ambient events directly from a Wwise project's event work units without requiring WAAPI or a
-    ///     running Wwise Authoring process. The SDK export compiler uses this same scanner, keeping live and shipped
-    ///     catalogs on one set of inclusion rules.
-    /// </summary>
+    /// <summary>Reads the built-in ambient cues used by the SDK.</summary>
     public static class AmbientEventDiscovery
     {
-        private const string WwiseSettingsFileName = "WwiseSettings.xml";
-        private const string WwiseProjectPathElement = "WwiseProjectPath";
-        private const string EventsDirectoryName = "Events";
-
-        public static bool TryDiscoverCurrentProject(out Snapshot snapshot, out string error)
-        {
-            return TryDiscover(Application.dataPath, out snapshot, out error);
-        }
+        public static bool TryDiscoverCurrentProject(out Snapshot snapshot, out string error) =>
+            TryDiscover(Application.dataPath, out snapshot, out error);
 
         public static bool TryDiscover(string assetsPath, out Snapshot snapshot, out string error)
         {
             snapshot = null;
             error = string.Empty;
+            var path = Path.Combine(assetsPath, "StreamingAssets", "Stereoform", "core", "catalog.json");
+            if (!File.Exists(path))
+            {
+                error = $"The game's audio catalog is missing: {path}";
+                return false;
+            }
 
             try
             {
-                if (string.IsNullOrWhiteSpace(assetsPath))
-                {
-                    error = "Unity Assets path is required to discover Wwise ambient events.";
-                    return false;
-                }
-
-                var normalizedAssetsPath = Path.GetFullPath(assetsPath);
-                var settingsPath = Path.Combine(normalizedAssetsPath, WwiseSettingsFileName);
-                if (!File.Exists(settingsPath))
-                {
-                    error = $"Wwise integration settings were not found: {settingsPath}";
-                    return false;
-                }
-
-                if (!TryReadWwiseProjectPath(settingsPath, normalizedAssetsPath, out var projectPath, out error))
-                    return false;
-
-                if (!TryReadProjectIdentity(projectPath, out var projectName, out var projectId, out error))
-                    return false;
-
-                var eventRoot = Path.Combine(Path.GetDirectoryName(projectPath) ?? string.Empty,
-                    EventsDirectoryName);
-                if (!Directory.Exists(eventRoot))
-                {
-                    error = $"Wwise Events directory was not found: {eventRoot}";
-                    return false;
-                }
-
-                var eventNames = new SortedSet<string>(StringComparer.Ordinal);
-                foreach (var workUnitPath in Directory.EnumerateFiles(eventRoot, "*.wwu", SearchOption.AllDirectories)
-                             .OrderBy(path => path, StringComparer.Ordinal))
-                    ReadAmbientEvents(workUnitPath, eventNames);
-
-                snapshot = new Snapshot(projectPath, projectName, projectId, eventNames.ToArray());
+                var catalog = JsonUtility.FromJson<AudioCatalog>(File.ReadAllText(path));
+                var names = catalog.events.Select(cue => cue.name)
+                    .Where(name => name.StartsWith(AmbientMarker.EventNamePrefix, StringComparison.OrdinalIgnoreCase))
+                    .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(name => name, StringComparer.Ordinal).ToArray();
+                snapshot = new Snapshot(path, "Grimwar", "grimwar", names);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is IOException or ArgumentException or NullReferenceException)
             {
-                error = $"Unable to discover Wwise ambient events: {ex.Message}";
+                error = $"Unable to read the audio catalog: {ex.Message}";
                 return false;
             }
         }
 
-        private static bool TryReadWwiseProjectPath(string settingsPath, string assetsPath, out string projectPath,
-            out string error)
+        [Serializable]
+        private sealed class AudioCatalog
         {
-            projectPath = string.Empty;
-            error = string.Empty;
-
-            using var reader = CreateReader(settingsPath);
-            while (reader.Read())
-            {
-                if (reader.NodeType != XmlNodeType.Element ||
-                    !string.Equals(reader.LocalName, WwiseProjectPathElement, StringComparison.Ordinal))
-                    continue;
-
-                var configuredPath = reader.ReadElementContentAsString()?.Trim();
-                if (string.IsNullOrWhiteSpace(configuredPath))
-                {
-                    error = $"{WwiseProjectPathElement} is empty in {settingsPath}.";
-                    return false;
-                }
-
-                configuredPath = configuredPath
-                    .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
-                    .Replace('\\', Path.DirectorySeparatorChar)
-                    .Replace('/', Path.DirectorySeparatorChar);
-                projectPath = Path.GetFullPath(Path.IsPathRooted(configuredPath)
-                    ? configuredPath
-                    : Path.Combine(assetsPath, configuredPath));
-
-                if (!File.Exists(projectPath))
-                {
-                    error = $"Configured Wwise project was not found: {projectPath}";
-                    return false;
-                }
-
-                return true;
-            }
-
-            error = $"{WwiseProjectPathElement} was not found in {settingsPath}.";
-            return false;
+            public AudioCue[] events = Array.Empty<AudioCue>();
         }
 
-        private static bool TryReadProjectIdentity(string projectPath, out string projectName, out string projectId,
-            out string error)
+        [Serializable]
+        private sealed class AudioCue
         {
-            projectName = string.Empty;
-            projectId = string.Empty;
-            error = string.Empty;
-
-            using var reader = CreateReader(projectPath);
-            while (reader.Read())
-            {
-                if (reader.NodeType != XmlNodeType.Element ||
-                    !string.Equals(reader.LocalName, "Project", StringComparison.Ordinal))
-                    continue;
-
-                projectName = reader.GetAttribute("Name")?.Trim() ?? string.Empty;
-                var rawProjectId = reader.GetAttribute("ID")?.Trim();
-                if (!Guid.TryParse(rawProjectId, out var parsedProjectId))
-                {
-                    error = $"Wwise project has an invalid or missing Project ID: {projectPath}";
-                    return false;
-                }
-
-                projectId = parsedProjectId.ToString("D").ToUpperInvariant();
-                if (string.IsNullOrWhiteSpace(projectName))
-                {
-                    error = $"Wwise project has no Project name: {projectPath}";
-                    return false;
-                }
-
-                return true;
-            }
-
-            error = $"Wwise project metadata was not found: {projectPath}";
-            return false;
-        }
-
-        private static void ReadAmbientEvents(string workUnitPath, ISet<string> eventNames)
-        {
-            using var reader = CreateReader(workUnitPath);
-            while (reader.Read())
-            {
-                if (reader.NodeType != XmlNodeType.Element ||
-                    !string.Equals(reader.LocalName, "Event", StringComparison.Ordinal))
-                    continue;
-
-                var eventName = reader.GetAttribute("Name")?.Trim();
-                if (!string.IsNullOrWhiteSpace(eventName) &&
-                    eventName.StartsWith(AmbientMarker.EventNamePrefix, StringComparison.Ordinal))
-                    eventNames.Add(eventName);
-            }
-        }
-
-        private static XmlReader CreateReader(string path)
-        {
-            return XmlReader.Create(path, new XmlReaderSettings
-            {
-                DtdProcessing = DtdProcessing.Prohibit,
-                IgnoreComments = true,
-                IgnoreProcessingInstructions = true,
-                XmlResolver = null
-            });
+            public string name;
         }
 
         public sealed class Snapshot
@@ -243,7 +118,7 @@ namespace Vellocet.Sdk.Editor.Entities
             {
                 _eventNames = live.EventNames;
                 _error = live.EventNames.Count == 0
-                    ? $"No Wwise Events beginning with '{AmbientMarker.EventNamePrefix}' were found."
+                    ? $"No Stereoform Events beginning with '{AmbientMarker.EventNamePrefix}' were found."
                     : string.Empty;
                 return;
             }
