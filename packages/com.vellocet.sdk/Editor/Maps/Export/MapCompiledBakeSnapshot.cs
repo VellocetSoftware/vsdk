@@ -37,6 +37,7 @@ namespace Vellocet.Sdk.Editor.Maps
         private Dictionary<string, LightmapBakeRecord> Renderers { get; set; } = new();
         private Dictionary<string, LightmapBakeRecord> Terrains { get; set; } = new();
         private Dictionary<string, ReflectionProbeBakeRecord> ReflectionProbes { get; set; } = new();
+        private Dictionary<Guid, int[]> BakedPrefabLights { get; set; } = new();
 
         internal static MapCompiledBakeSnapshot Capture(Scene compiledScene,
             IReadOnlyDictionary<string, string> assetMap)
@@ -61,7 +62,10 @@ namespace Vellocet.Sdk.Editor.Maps
                     MapSceneUtility.GetNavigationData(compiledScene)), assetMap),
                 Renderers = CaptureRenderers(compiledScene),
                 Terrains = CaptureTerrains(compiledScene),
-                ReflectionProbes = CaptureReflectionProbes(compiledScene, assetMap)
+                ReflectionProbes = CaptureReflectionProbes(compiledScene, assetMap),
+                BakedPrefabLights = MapPrefabLighting.Markers(compiledScene)
+                    .Where(marker => marker.Guid != Guid.Empty && marker.BakedPrefabLightSlots.Length > 0)
+                    .ToDictionary(marker => marker.Guid, marker => marker.BakedPrefabLightSlots)
             };
         }
 
@@ -102,6 +106,8 @@ namespace Vellocet.Sdk.Editor.Maps
                 summary.RenderersApplied = ApplyRenderers(authoringScene, Renderers);
                 summary.TerrainsApplied = ApplyTerrains(authoringScene, Terrains);
                 summary.ReflectionProbesApplied = ApplyReflectionProbes(authoringScene, ReflectionProbes);
+                foreach (var marker in MapPrefabLighting.Markers(authoringScene))
+                    marker.SetBakedPrefabLightSlots(BakedPrefabLights.GetValueOrDefault(marker.Guid));
                 if (!string.IsNullOrWhiteSpace(ProbeVolumeBakingSetPath))
                     MapProbeVolumeUtility.ApplyBakedData(authoringScene, ProbeVolumeBakingSetPath);
             }

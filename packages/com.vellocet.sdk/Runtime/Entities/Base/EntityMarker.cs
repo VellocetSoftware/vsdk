@@ -35,6 +35,44 @@ namespace Vellocet.Sdk.Entities.Base
         private bool ignoreNavMesh;
 
         [SerializeField] [HideInInspector] private bool ignoreFromNavMeshInitialized;
+        [SerializeField, HideInInspector] private int[] bakedPrefabLightSlots;
+
+        public int[] BakedPrefabLightSlots => bakedPrefabLightSlots ?? Array.Empty<int>();
+
+#if UNITY_EDITOR
+        public void SetBakedPrefabLightSlots(int[] slots)
+        {
+            if (BakedPrefabLightSlots.AsSpan().SequenceEqual(slots.AsSpan()))
+                return;
+            bakedPrefabLightSlots = slots ?? Array.Empty<int>();
+            EditorUtility.SetDirty(this);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+        }
+#endif
+
+        public List<Light> SuppressBakedPrefabLights(GameObject instance)
+        {
+            if (BakedPrefabLightSlots.Length < 2)
+                return null;
+
+            var lights = instance.GetComponentsInChildren<Light>(true);
+            // The first value records the size of the prefab's light list at compile time.
+            if (lights.Length != bakedPrefabLightSlots[0])
+                return null;
+
+            List<Light> suppressed = null;
+            for (var i = 1; i < bakedPrefabLightSlots.Length; i++)
+            {
+                var slot = bakedPrefabLightSlots[i];
+                if ((uint)slot >= (uint)lights.Length || !lights[slot].enabled)
+                    continue;
+                var light = lights[slot];
+                (suppressed ??= new List<Light>()).Add(light);
+                light.enabled = false;
+            }
+
+            return suppressed;
+        }
 
         public Guid Guid
         {
