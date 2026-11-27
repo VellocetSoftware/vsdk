@@ -33,7 +33,8 @@ namespace Vellocet.Sdk.Entities
         public enum PlacementMode
         {
             Point = 0,
-            Volumetric = 1
+            Volumetric = 1,
+            Global = 2
         }
 
         public const float DefaultAudibleDistance = 10f;
@@ -63,7 +64,7 @@ namespace Vellocet.Sdk.Entities
         public float AudibleDistance { get; private set; } = DefaultAudibleDistance;
 
         [field: Tooltip(
-            "Point plays at the marker. Volumetric uses its rotation and scale as a box: audio follows the nearest surface outside, then stops moving and plays in 2D inside.")]
+            "Point plays at the marker. Volumetric uses its rotation and scale as a box and plays in 2D inside. Global plays in 2D across the map.")]
         [field: SerializeField]
         public PlacementMode Mode { get; private set; } = PlacementMode.Point;
 

@@ -9,6 +9,7 @@ namespace Vellocet.Sdk.Audio
     ///     Stable reference placed in maps. Embedded cues retain an editor-only source GUID for export. Dependency
     ///     cues retain only the provider addon id and cue id, so shared media is never copied into the map package.
     /// </summary>
+    [Vertex.Contracts.CatalogAssetRole(CatalogRole)]
     [CreateAssetMenu(fileName = "AddonAudioCue", menuName = "Vellocet/SDK/Audio/Audio Cue", order = 120)]
 #if VELLOCET_STEREOFORM
     public sealed class AddonAudioCue : Vellocet.Stereoform.AudioEventReference
@@ -16,6 +17,8 @@ namespace Vellocet.Sdk.Audio
     public sealed class AddonAudioCue : ScriptableObject
 #endif
     {
+        public const string CatalogRole = "audio-cue";
+
         [SerializeField] private AddonAudioCueOrigin origin = AddonAudioCueOrigin.Embedded;
         [SerializeField] private string cueId = string.Empty;
         [SerializeField] private AddonAudioTemplate template = AddonAudioTemplate.Sfx3D;

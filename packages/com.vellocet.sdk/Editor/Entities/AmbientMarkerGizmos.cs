@@ -18,6 +18,12 @@ namespace Vellocet.Sdk.Editor.Entities
             if (!marker || !marker.isActiveAndEnabled || !marker.gameObject.activeInHierarchy)
                 return;
 
+            if (marker.Mode == AmbientMarker.PlacementMode.Global)
+            {
+                Handles.Label(marker.transform.position, "Global ambience");
+                return;
+            }
+
             var radius = float.IsFinite(marker.AudibleDistance)
                 ? Mathf.Max(0f, marker.AudibleDistance)
                 : 0f;

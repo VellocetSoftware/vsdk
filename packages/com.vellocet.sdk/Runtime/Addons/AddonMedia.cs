@@ -18,7 +18,7 @@ namespace Vellocet.Sdk.Addons
         public static SdkContentType[] Types() => new[]
         {
             new SdkContentType { Id = AudioType, Name = string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) ? "Sound" : "Audio event", Kind = string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) ? "data" : "audio", Extensions = string.IsNullOrEmpty(SdkGame.Current.AudioRuntimeCapability) ? new[] { ".wav", ".ogg", ".mp3" } : new[] { ".wav", ".ogg", ".mp3", ".sfevent" },
-                MaximumBytes = AddonAudioPolicy.MaximumSourceFileBytes, Settings = new[]
+                Role = AddonAudioCue.CatalogRole, MaximumBytes = AddonAudioPolicy.MaximumSourceFileBytes, Settings = new[]
                 {
                     new EntityPropertyDefinition { Id = "template", Name = "Playback", Type = "enum", DefaultValue = 2,
                         Choices = Enum.GetValues(typeof(AddonAudioTemplate)).Cast<AddonAudioTemplate>().Select(value => new EntityPropertyChoice

@@ -184,6 +184,15 @@ namespace Vellocet.Sdk.Editor.Entities
                     var definition = VertexEntityProperties.Describe(marker, id) ?? Describe(field, id, name, field.GetValue(marker));
                     if (marker is global::Vellocet.Sdk.Entities.DecalMarker && id == "material")
                         definition.AssetRole = "decal";
+                    if (marker is Vellocet.Sdk.Entities.AmbientMarker)
+                    {
+                        if (id == "event_name")
+                            definition.Suggestions = AmbientEventCatalog.GetEventNames(out _).Take(256).ToArray();
+                        else if (id == "custom_cue")
+                            definition.ReferenceType = null;
+                        else if (id == "audible_distance")
+                            definition.Units = "metres";
+                    }
                     definition.Group ??= group ?? "Properties";
                     if(marker is global::Vellocet.Sdk.Entities.DoorMarker)DoorSoundAuthoring.Conditions(definition);
                     definition.Validate();

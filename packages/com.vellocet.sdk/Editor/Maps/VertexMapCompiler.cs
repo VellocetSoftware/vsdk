@@ -172,6 +172,7 @@ namespace Vellocet.Sdk.Editor.Maps
                 property.Description = null;
                 property.Group = null;
                 property.VisibleWhen = null;
+                property.Suggestions = null;
                 property.Choices = property.Choices.OrderBy(choice => choice.Id, StringComparer.Ordinal).ToArray();
                 if (property.Members != null)
                     property.Members = property.Members.OrderBy(member => member.Id, StringComparer.Ordinal).ToArray();
