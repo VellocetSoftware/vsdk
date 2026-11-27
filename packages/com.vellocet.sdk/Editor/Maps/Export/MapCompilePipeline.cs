@@ -296,9 +296,11 @@ namespace Vellocet.Sdk.Editor.Maps
                     if (ctx.Options?.SkipLightingBake ?? false)
                         return MapCompilePassResult.Pass("Lighting bake was skipped.");
 
-                    return MapSceneUtility.BakeLightingBlocking(ctx.Scene, out var message)
-                        ? MapCompilePassResult.Pass(message)
-                        : MapCompilePassResult.Fail(message);
+                    var prefabLights = MapPrefabLighting.Prepare(ctx.Scene);
+                    if (!MapSceneUtility.BakeLightingBlocking(ctx.Scene, out var message))
+                        return MapCompilePassResult.Fail(message);
+                    var bakedPrefabLights = MapPrefabLighting.Complete(prefabLights);
+                    return MapCompilePassResult.Pass($"{message} Baked {bakedPrefabLights} prefab light(s).");
                 });
 
             yield return new DelegateMapCompilePass(
